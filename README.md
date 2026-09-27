@@ -1,7 +1,7 @@
 # Tinted Carstory: booking site + staff CRM
 
 Client build for Car Story Pro Auto (Kedai Tinted Bumiputera, Sungai Jawi).
-Standalone: its own Supabase project, its own Vercel project. Not part of the ShiftOS build.
+Standalone: its own Supabase project, its own Vercel project.
 
 | URL | What |
 |---|---|
@@ -37,7 +37,7 @@ is this build; it only rebuilds when this folder changes.
 4. **Staff accounts**: Authentication -> Users -> Add user (email + password, auto-confirm) for the owner and each worker. Then:
    `insert into staff (id, name, role) values ('<owner uuid>', 'Maliki', 'owner'), ('<worker uuid>', 'Tam', 'staff');`
    Turn OFF public sign-ups (Authentication -> Providers -> Email -> "Allow new users to sign up"). Staff are the only users.
-5. **Vercel**: new project from this repo, Root Directory `clients/tinted-bumiputera`, framework Vite. Env vars from `.env.example`. Add the domain, then set `SITE_URL` and redeploy (turns on canonical URLs + sitemap).
+5. **Vercel**: new project from this repo, Root Directory left as the repo root, framework Vite. Env vars from `.env.example`. Add the domain, then set `SITE_URL` and redeploy (turns on canonical URLs + sitemap).
 6. **Google**: create/claim the Google Business Profile, put its review link in `shop.js` (`googleReviewUrl`), submit `sitemap.xml` in Search Console.
 
 ## Before launch: owner must confirm (the site does not invent any of this)

@@ -1,16 +1,17 @@
 # Handoff: Tinted Carstory (read first next session)
 
-Work continues on branch `claude/tinted-navbar-responsive-gubnm5` (built on
-`claude/tinted-carstory-handoff-9sg21x`, itself from `claude/tinted-bumiputera-crm-website-bffa60`). It is NOT merged
-to ShiftOS `main` and should not be: this client lives in `clients/tinted-bumiputera/`
-with its own Supabase + Vercel. Outside this folder the branch touches only `CLAUDE.md`
-(the "ASK FIRST" rule) and `eslint.config.mjs` (ignores `clients/**`).
+This repo (`auzyvyth/carstorytinted`) is the shop's own home as of 2026-09-27, with its
+own Vercel account and its own Supabase project. It was split out of the ShiftOS monorepo
+(`clients/tinted-bumiputera/` on branch `claude/tinted-navbar-responsive-gubnm5`) with its
+history kept. It shares no code, database or deploy with ShiftOS.
 
 ## State (2026-09-27)
 - Sales demo live on Vercel project `tinted-carstory-demo` (owner's current account),
   `VITE_DEMO=1`, working. Sample data lives in each visitor's browser; nothing real.
-- `vercel.json` here forces `ignoreCommand: exit 1`: the repo-root `.vercelignore`
-  strips `.git`, so any git-based ignore step errors the deploy. Do not put one back.
+- `vercel.json` forces `ignoreCommand: exit 1` (always build). It was needed inside the
+  monorepo; here it is harmless and can stay.
+- The old demo (`tinted-carstory-demo`) still builds from the ShiftOS branch. Point a new
+  demo project at this repo with `VITE_DEMO=1`, then retire the old one.
 - Real (non-demo) build is untested against a real Supabase: migrations, edge function
   `notify-staff` (push + Telegram backup), and push on real phones are all unverified.
   One real-Supabase bug was already found and fixed by making the test DB mirror
