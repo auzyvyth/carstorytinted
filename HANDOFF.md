@@ -6,6 +6,15 @@ own Vercel account and its own Supabase project. It was split out of the ShiftOS
 history kept. It shares no code, database or deploy with ShiftOS.
 
 ## State (2026-09-27)
+- **Supabase project `tinted-carstory`** (ref `yzasfglsygqinuzmaiaq`, Singapore), made
+  2026-09-27 in the owner-of-record's existing "Xdrive" Supabase org (free plan; a new
+  account hit a GitHub-link mismatch). Its own database: nothing shared with ShiftOS.
+  Hand-over later = Supabase "project transfer" to the shop owner's own org.
+  Done on it: pg_net + pg_cron, migrations 0001/0002/0003, both cron jobs
+  (purge-old-jobs, nag-unconfirmed). Checked with a rolled-back anon probe: book ->
+  get_booking -> confirm -> finish -> certificate all work; anon cannot read `jobs`.
+  NOT done yet: push keys, `notify-staff` deploy + secrets, `app_config` rows, staff
+  users, turning off public sign-ups (README Setup steps 2-4).
 - Sales demo live on Vercel project `tinted-carstory-demo` (owner's current account),
   `VITE_DEMO=1`, working. Sample data lives in each visitor's browser; nothing real.
 - `vercel.json` forces `ignoreCommand: exit 1` (always build). It was needed inside the
