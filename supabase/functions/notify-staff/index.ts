@@ -8,6 +8,9 @@
 //   VAPID_PRIVATE_KEY  never leaves the server. NEVER regenerate either key:
 //                      every existing phone subscription dies silently.
 //   VAPID_SUBJECT      mailto: address for the push services, e.g. mailto:owner@example.com
+//   TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID  (optional) the backup: the same alert also
+//                      goes to a Telegram chat, so a booking is heard even when no
+//                      staff phone has notifications switched on.
 import webpush from 'npm:web-push@3.6.7';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
@@ -28,12 +31,14 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST' || !sameSecret(req.headers.get('x-notify-secret') ?? '', env('NOTIFY_SECRET'))) {
     return new Response('forbidden', { status: 403 });
   }
-  const { job_id } = await req.json().catch(() => ({}));
+  const { job_id, nag } = await req.json().catch(() => ({}));
   if (typeof job_id !== 'string') return new Response('bad request', { status: 400 });
 
   const { data: job } = await db.from('jobs')
-    .select('id, customer_name, car_model, scheduled_date, scheduled_slot, film_id').eq('id', job_id).single();
+    .select('id, stage, customer_name, car_model, scheduled_date, scheduled_slot, film_id').eq('id', job_id).single();
   if (!job) return new Response('no job', { status: 404 });
+  // The 30-minute reminder (nag_unconfirmed): someone may have confirmed it since.
+  if (nag && job.stage !== 'baru') return Response.json({ sent: 0, skipped: 'already handled' });
 
   const { data: subs } = await db.from('push_subscriptions')
     .select('endpoint, subscription, staff!inner(active)').eq('staff.active', true);
@@ -42,7 +47,7 @@ Deno.serve(async (req) => {
   const when = d ? `${DAY[d.getUTCDay()]} ${d.getUTCDate()}/${d.getUTCMonth() + 1}${job.scheduled_slot ? ` ${job.scheduled_slot}` : ''}` : '';
   // Title + car + time only. No phone number on a lock screen.
   const payload = JSON.stringify({
-    title: `Tempahan online: ${job.customer_name}`,
+    title: nag ? `Belum disahkan 30 minit: ${job.customer_name}` : `Tempahan online: ${job.customer_name}`,
     body: [job.car_model, when].filter(Boolean).join(' · ') || 'Buka untuk sahkan slot',
     tag: `job-${job.id}`,
     job: job.id,
@@ -60,5 +65,17 @@ Deno.serve(async (req) => {
       else console.error('push failed', code, (e as Error).message);
     }
   }));
-  return Response.json({ sent, removed });
+  // Backup channel. Same text as the push: name, car, time. Never the phone number.
+  let telegram = false;
+  const tgToken = env('TELEGRAM_BOT_TOKEN'), tgChat = env('TELEGRAM_CHAT_ID');
+  if (tgToken && tgChat) {
+    const p = JSON.parse(payload);
+    const r = await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: tgChat, text: `${p.title}\n${p.body}` }),
+    }).catch((e) => { console.error('telegram failed', (e as Error).message); return null; });
+    telegram = Boolean(r?.ok);
+    if (r && !r.ok) console.error('telegram failed', r.status, await r.text());
+  }
+  return Response.json({ sent, removed, telegram });
 });

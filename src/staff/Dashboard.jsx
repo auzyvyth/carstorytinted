@@ -11,17 +11,22 @@ function greeting() {
 
 // Required on staff phones: a web booking nobody hears about is a lost customer.
 // Only states nothing on the page can fix (iOS not installed, browser-blocked) explain instead.
-function PushNotice({ push }) {
-  if (push.state === 'on' || push.state === 'working' || push.state === 'unsupported') return null;
+function PushNotice({ push, devices }) {
+  // devices = phones that will ring for an online booking, shop-wide (null = unknown).
+  const nobody = devices === 0 && <span className="warnline"> Sekarang tiada satu telefon pun di kedai yang akan berbunyi.</span>;
+  if (push.state === 'on' || push.state === 'working') return null;
+  if (push.state === 'unsupported') {
+    return devices === 0 ? <div className="notice"><p><b>Tiada telefon terima notifikasi tempahan</b>Pelayar ini tidak boleh terima notifikasi. Buka app ini di telefon Android atau iPhone (pasang ke skrin utama) dan hidupkan notifikasi.</p></div> : null;
+  }
   if (push.state === 'ios-install') {
-    return <div className="notice"><p><b>Pasang app untuk dapat notifikasi</b>Tekan butang Kongsi di Safari, pilih "Add to Home Screen", kemudian buka app dari skrin utama.</p></div>;
+    return <div className="notice"><p><b>Pasang app untuk dapat notifikasi</b>Tekan butang Kongsi di Safari, pilih "Add to Home Screen", kemudian buka app dari skrin utama.{nobody}</p></div>;
   }
   if (push.state === 'denied') {
-    return <div className="notice"><p><b>Notifikasi disekat</b>Buka tetapan pelayar, cari laman ini dan benarkan Notifikasi. Tanpa ini, tempahan online baru tidak akan sampai ke telefon anda.</p></div>;
+    return <div className="notice"><p><b>Notifikasi disekat</b>Buka tetapan pelayar, cari laman ini dan benarkan Notifikasi. Tanpa ini, tempahan online baru tidak akan sampai ke telefon anda.{nobody}</p></div>;
   }
   return (
     <div className="notice">
-      <p><b>Hidupkan notifikasi tempahan</b>Telefon ini akan berbunyi setiap kali pelanggan tempah online.{push.error && <span className="warnline"> {push.error}</span>}</p>
+      <p><b>Hidupkan notifikasi tempahan</b>Telefon ini akan berbunyi setiap kali pelanggan tempah online.{nobody}{push.error && <span className="warnline"> {push.error}</span>}</p>
       <button className="btn btn-primary" onClick={push.enable}>Hidupkan</button>
     </div>
   );
@@ -51,7 +56,7 @@ function WeekStrip({ jobs, settings }) {
   );
 }
 
-export default function Dashboard({ me, jobs, settings, push, onOpen, onAction, onNew, error }) {
+export default function Dashboard({ me, jobs, settings, push, devices, onOpen, onAction, onNew, error }) {
   const today = shopDate(0);
   const todays = useMemo(() => jobs.filter((j) => j.scheduled_date === today && j.stage !== 'batal').sort(byScheduled), [jobs, today]);
   const actions = useMemo(() => actionsFor(jobs, today), [jobs, today]);
@@ -60,7 +65,7 @@ export default function Dashboard({ me, jobs, settings, push, onOpen, onAction, 
 
   return (
     <div className="page">
-      <PushNotice push={push} />
+      <PushNotice push={push} devices={devices} />
       {error && <div className="notice"><p className="warnline">{error}</p></div>}
       <div className="page-h">
         <div><div className="micro">{dayParts(today).dow}, {dayParts(today).date} {dayParts(today).mon}</div><h1>{greeting()}, {me.name}</h1></div>

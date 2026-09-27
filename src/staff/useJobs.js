@@ -12,7 +12,11 @@ export const clearJobCache = (uid) => { try { localStorage.removeItem(cacheKey(u
 // Closed jobs older than this are not preloaded; search reaches them server-side.
 const RECENT_DAYS = 120;
 
-export function useJobs(uid) {
+export function useJobs(uid, { onWebBooking } = {}) {
+  // Held in a ref: the caller passes an inline arrow, and keying the realtime
+  // effect on it would resubscribe on every render.
+  const onWeb = useRef(onWebBooking);
+  onWeb.current = onWebBooking;
   const [jobs, setJobs] = useState(() => {
     try { return JSON.parse(localStorage.getItem(cacheKey(uid))) || []; } catch { return []; }
   });
@@ -41,6 +45,7 @@ export function useJobs(uid) {
     // The demo has no realtime server; a refresh on focus is enough there.
     const ch = DEMO ? null : supabase.channel('jobs-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'jobs' }, (p) => {
+        if (p.eventType === 'INSERT' && p.new?.source === 'web') onWeb.current?.(p.new);
         setJobs((cur) => {
           const next = p.eventType === 'DELETE'
             ? cur.filter((j) => j.id !== p.old.id)

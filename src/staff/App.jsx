@@ -65,16 +65,20 @@ function Login() {
 }
 
 function Workspace({ me, signOut }) {
-  const { jobs, loading, error, update, create, remove } = useJobs(me.id);
+  const [toastMsg, setToastMsg] = useState('');
+  const toast = useCallback((m) => { setToastMsg(m); setTimeout(() => setToastMsg(''), 2600); }, []);
+  // App open when a customer books: say so on screen too (push may be off on this phone).
+  const { jobs, loading, error, update, create, remove } = useJobs(me.id, {
+    onWebBooking: (j) => { toast(`Tempahan online baru: ${j.customer_name}`); navigator.vibrate?.([120, 80, 120]); },
+  });
   const push = usePush();
+  const [devices, setDevices] = useState(null);
+  useEffect(() => { supabase.rpc('push_device_count').then(({ data }) => setDevices(typeof data === 'number' ? data : null)); }, [push.state]);
   const [view, setView] = useState(readUrl);
   const [settings, setSettings] = useState(null);
   const [staff, setStaff] = useState([]);
   const [showSettings, setShowSettings] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [toastMsg, setToastMsg] = useState('');
-
-  const toast = useCallback((m) => { setToastMsg(m); setTimeout(() => setToastMsg(''), 2600); }, []);
   const loadMeta = useCallback(async () => {
     const [{ data: s }, { data: st }] = await Promise.all([
       supabase.from('shop_settings').select('*').eq('id', 1).single(),
@@ -128,7 +132,7 @@ function Workspace({ me, signOut }) {
       {loading ? <div className="page"><div className="card empty">Memuatkan kerja...</div></div>
         : view.tab === 'pipeline'
           ? <Pipeline jobs={jobs} onOpen={openJob} onNew={() => setCreating(true)} />
-          : <Dashboard me={me} jobs={jobs} settings={settings} push={push} onOpen={openJob} onAction={onAction} onNew={() => setCreating(true)} error={error} />}
+          : <Dashboard me={me} jobs={jobs} settings={settings} push={push} devices={devices} onOpen={openJob} onAction={onAction} onNew={() => setCreating(true)} error={error} />}
 
       <nav className="bnav">{tabs.map(([id, label, icon]) => <button key={id} aria-current={view.tab === id ? 'page' : undefined} onClick={() => go(id)}>{icon}{label}</button>)}</nav>
 

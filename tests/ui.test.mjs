@@ -74,6 +74,7 @@ async function mockSupabase(route) {
     return json(j ? { ref: j.ref, customer: j.customer_name.split(' ')[0], car_model: j.car_model, plate: 'PNB 1***', film: 'Nano Ceramic',
       vlt_windscreen: j.vlt_windscreen, vlt_front: j.vlt_front, vlt_rear: j.vlt_rear, completed_at: shop(0), warranty_until: shop(365 * 5) } : null);
   }
+  if (p === '/rest/v1/rpc/push_device_count') return json(0);
   if (p.startsWith('/rest/v1/rpc/')) return route.fulfill({ status: 204, body: '' });
   if (p === '/rest/v1/staff') {
     const who = [OWNER, WORKER];
@@ -176,6 +177,7 @@ check((await p.locator('.tile').count()) === 4, 'owner sees 4 money tiles');
 const act = await p.locator('.row-act').allInnerTexts();
 check(act.some((t) => t.includes('Ahmad Faizal') && t.includes('Tempahan online baru')), 'web booking appears in Perlu tindakan');
 check(act.some((t) => t.includes('Lim Ah Kow') && t.includes('Sijil')), 'finished job asks to send certificate');
+check((await p.locator('.notice').allInnerTexts()).some((t) => t.includes('Tiada telefon terima notifikasi')), 'warns when no phone will ring for a booking');
 check(await noSideScroll(p), 'staff dashboard fits 375px');
 await p.screenshot({ path: `${SHOTS}/6-staff-dash-375.png`, fullPage: true });
 const [popup] = await Promise.all([p.waitForEvent('popup').catch(() => null),
