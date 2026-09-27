@@ -118,7 +118,7 @@ export function carDiagram() {
   <rect x="168" y="204" width="12" height="56" rx="5" fill="var(--glass-0)"/>
   <path d="M66 272 Q110 282 154 272 L162 300 Q110 314 58 300 Z" fill="var(--glass-0)"/>
   <rect x="66" y="132" width="88" height="130" rx="14" fill="var(--car-roof)"/>
-  <g font-family="Outfit, system-ui, sans-serif" font-weight="700" text-anchor="middle">
+  <g font-family="Plus Jakarta Sans, system-ui, sans-serif" font-weight="700" text-anchor="middle">
     <text x="110" y="104" font-size="15" fill="var(--glass-70-ink)">${JPJ.windscreen}%</text>
     <text x="110" y="172" font-size="13" fill="var(--car-label)">${JPJ.frontSide}%</text>
     <text x="110" y="189" font-size="10" fill="var(--car-label-2)" font-weight="500">tingkap depan</text>

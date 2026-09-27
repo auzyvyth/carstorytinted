@@ -27,10 +27,11 @@ with its own Supabase + Vercel. Outside this folder the branch touches only `CLA
 
 ## Rules that apply here
 - Anything NEW (feature/page) = research + ask the owner in detail before coding.
-- Public site design language = XDrive /for-salesmen (`src/pages/SalesmanLiteLanding.jsx`
-  in ShiftOS): one typeface (Outfit), sentence-case headings, ONE accent (`--accent` in
-  `src/public/site.css`, placeholder shop-sign blue), near-black dark bands, one filled
-  button + one outlined per view. Redesigned 2026-09-27; do not bring back Bebas Neue,
-  all-caps headings or a second accent colour.
+- Public site design (owner's call, 2026-09-27): layout from XDrive /for-salesmen
+  (`src/pages/SalesmanLiteLanding.jsx` in ShiftOS), ONE typeface (Plus Jakarta Sans),
+  sentence-case headings. No flat grounds: every section has a soft blue or yellow
+  wash, cards sit on a slight shadow, pricing cards + buttons carry the `--grad`
+  gradient border (blue to yellow/orange). Colours live in `:root` of
+  `src/public/site.css` (`--accent`, `--sun`, `--grad`), placeholders until the logo file.
 - Staff app colours are still placeholders (`--brand-*` in `src/staff/staff.css`).
 - No auto-send to customers: WhatsApp buttons open a draft, a person presses send.
