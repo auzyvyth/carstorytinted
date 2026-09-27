@@ -16,7 +16,7 @@ with its own Supabase + Vercel. Outside this folder the branch touches only `CLA
   One real-Supabase bug was already found and fixed by making the test DB mirror
   Supabase: 0001's jobs trigger could not see pgcrypto (Supabase keeps it in
   `extensions`), so finishing a job would have failed. 0002 fixes it.
-- Tests: `npm run test:db` 10/10, `npm run test:ui` 38/38, `npm run test:report` 17/17.
+- Tests: `npm run test:db` 11/11, `npm run test:ui` 40/40, `npm run test:report` 17/17, `npm run test:logic` 13/13.
 - Dashboard round 2 (2026-09-27, migration `0002_dashboard.sql`): slot capacity on every
   write (no double-booking), backup alerts, no-shows, archive instead of delete,
   changed-fields-only saves, installer per job, payment method + WhatsApp receipt,
@@ -39,6 +39,25 @@ with its own Supabase + Vercel. Outside this folder the branch touches only `CLA
    VAPID keys are generated once and never regenerated.
 4. Then a real-device test: book online -> push arrives on staff phone -> job flows
    to Selesai -> certificate link opens.
+
+## Walk-ins + pricing (2026-09-27, migration `0003_walkins_addons.sql`)
+Owner's rule: a booking holds its slot, walk-ins get whatever is left.
+- Capacity = time blocks x bays (`cars_per_slot`); only `online_per_slot` bays per block
+  are sold online. `available_slots` counts web bookings against that share and every
+  job against the bays; staff walk-ins use the full bay count.
+- Price = side-window film (per size) + add-ons (per size, `shop_settings.addons`).
+  `quote_price()` (DB) and `quote()` (render.js) are the same rule: no total unless every
+  part is priced. Never bring back "Harga tetap" next to a partial price.
+- Late rule: 15 minutes (`LATE_MINUTES`, shop.js). Staff move a late booking to the next
+  FREE block in one tap; never bump someone on time. Waitlist gets the next free bay.
+- Customer link `/urus/?t=` (`get_booking` / `manage_booking`): exact token, never
+  returned, no phone number. Cancel frees the slot and pushes 'Pelanggan batal'.
+- Decided with the owner's rep (2026-09-27): blocks + online cap, NOT minute-level job
+  durations; staff send reminders (link inside), NO WhatsApp Business API auto-send;
+  NO deposit for now (look at no-shows in Laporan after a month first).
+- Still open (owner decisions, not built): security film, fleet/dealer/Grab rates, a
+  "warranty visit" booking type, pick-up/drop-off service, real job durations to show
+  customers, opening hours, Google reviews.
 
 ## Dashboard rules (keep them in the DB, not the client)
 - Capacity is `trg_jobs_check_capacity`: every write path goes through it. The staff
