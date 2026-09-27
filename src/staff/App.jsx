@@ -6,6 +6,7 @@ import Dashboard from './Dashboard.jsx';
 import Pipeline from './Pipeline.jsx';
 import JobDrawer from './JobDrawer.jsx';
 import Settings from './Settings.jsx';
+import Report from './Report.jsx';
 import { Icon } from './ui.jsx';
 import { DEMO } from '../shared/api.js';
 
@@ -21,10 +22,11 @@ function DemoBar() {
 
 // URL holds the view (?tab=pipeline&job=<id>) so a push notification can open
 // the exact job, and the phone's back button closes a drawer instead of the app.
-const readUrl = () => { const p = new URLSearchParams(location.search); return { tab: p.get('tab') === 'pipeline' ? 'pipeline' : 'dashboard', job: p.get('job') }; };
+const TABS = ['dashboard', 'pipeline', 'report'];
+const readUrl = () => { const p = new URLSearchParams(location.search); return { tab: TABS.includes(p.get('tab')) ? p.get('tab') : 'dashboard', job: p.get('job') }; };
 function writeUrl(tab, job, push) {
   const p = new URLSearchParams();
-  if (tab === 'pipeline') p.set('tab', 'pipeline');
+  if (tab !== 'dashboard') p.set('tab', tab);
   if (job) p.set('job', job);
   const url = `/staff/${p.toString() ? `?${p}` : ''}`;
   if (push) history.pushState(null, '', url); else history.replaceState(null, '', url);
@@ -118,7 +120,8 @@ function Workspace({ me, signOut }) {
     try { await update(a.job.id, patch); toast(a.alt && !sendWa ? a.alt.done : a.advance ? 'Disahkan' : 'Ditanda selesai'); } catch { toast('Gagal kemaskini. Cuba lagi.'); }
   }
 
-  const tabs = [['dashboard', 'Dashboard', Icon.home], ['pipeline', 'Pipeline', Icon.board]];
+  const tabs = [['dashboard', 'Dashboard', Icon.home], ['pipeline', 'Pipeline', Icon.board],
+    ...(me.role === 'owner' ? [['report', 'Laporan', Icon.chart]] : [])];
   return (
     <>
       <DemoBar />
@@ -133,6 +136,8 @@ function Workspace({ me, signOut }) {
       </div></header>
 
       {loading ? <div className="page"><div className="card empty">Memuatkan kerja...</div></div>
+        : view.tab === 'report' && me.role === 'owner'
+          ? <Report jobs={jobs} settings={settings} staff={staff} />
         : view.tab === 'pipeline'
           ? <Pipeline jobs={jobs} archived={archived} onOpen={openJob} onNew={() => setCreating(true)} />
           : <Dashboard me={me} jobs={jobs} settings={settings} push={push} devices={devices} onOpen={openJob} onAction={onAction} onNew={() => setCreating(true)} error={error} />}

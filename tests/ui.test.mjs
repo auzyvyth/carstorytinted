@@ -226,6 +226,12 @@ await p.waitForTimeout(400);
 check(await p.locator('.sheet label:has-text("Harga") input').inputValue() === '500'
   && await p.locator('.sheet [role=status]').isVisible(), 'same field changed on both phones: yours kept, warning shown');
 await p.click('.sheet [aria-label="Tutup"]');
+// Owner report.
+await p.click('.bnav button:has-text("Laporan")');
+await p.waitForSelector('.seg');
+check((await p.locator('.tile-v').first().innerText()).startsWith('RM'), 'owner report shows sales');
+check(await noSideScroll(p), 'owner report fits 375px');
+await p.screenshot({ path: `${SHOTS}/11-report-375.png`, fullPage: true });
 check(p.errors.length === 0, `staff app has no JS errors ${p.errors.join(' | ')}`);
 
 // 6. Staff role: no money tiles, no settings.
@@ -234,6 +240,7 @@ await p.goto(`${BASE}/staff/`);
 await p.waitForSelector('.row');
 check((await p.locator('.tile').count()) === 0, 'staff role sees no money tiles');
 check((await p.locator('[aria-label="Tetapan kedai"]').count()) === 0, 'staff role has no settings');
+check((await p.locator('.top-tabs button:has-text("Laporan")').count()) === 0, 'staff role has no report tab');
 await p.screenshot({ path: `${SHOTS}/9-staff-dash-1280.png`, fullPage: true });
 await p.click('.top-tabs button:has-text("Pipeline")');
 await p.screenshot({ path: `${SHOTS}/10-pipeline-1280.png`, fullPage: true });

@@ -160,3 +160,21 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .demo-bar { background: var(--ink-2); color: rgba(255,255,255,.85); font-size: 12px; text-align: center; padding: 6px 16px; }
 .demo-bar b { color: var(--yellow); margin-right: 6px; text-transform: uppercase; letter-spacing: .08em; font-size: 11px; }
 .demo-bar button { background: none; border: 0; color: #fff; text-decoration: underline; cursor: pointer; margin-left: 8px; font-size: 12px; }
+
+/* owner report: bar-lists (label + value on top, one-hue bar under). One series per
+   list, so no legend; the value is printed, so the list doubles as its own table. */
+.seg { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 3px; margin-bottom: 12px; }
+.seg button { border: 0; background: none; padding: 8px 4px; border-radius: 8px; font-size: 13px; font-weight: 600; line-height: 1.2; color: var(--muted); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink-2); color: #fff; }
+@media (max-width: 400px) { .seg button { font-size: 12px; } }
+.rgrid { display: grid; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) { .rgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 16px; } }
+.bars { display: grid; gap: 12px; }
+.bar-top { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; margin-bottom: 4px; }
+.bar-top span { min-width: 0; overflow-wrap: anywhere; }
+.bar-top b { font-weight: 600; white-space: nowrap; }
+.bar-top small { color: var(--muted); font-weight: 400; font-size: 12px; }
+.bar-track { height: 8px; background: var(--line-2); border-radius: 4px; }
+.bar-track i { display: block; height: 100%; min-width: 4px; background: var(--blue); border-radius: 4px; }
+.section + .tiles { margin-top: 24px; }
+.section-h { flex-wrap: wrap; gap: 2px 12px; }

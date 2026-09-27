@@ -7,7 +7,8 @@
     "build": "vite build",
     "preview": "vite preview --port 4173",
     "test:db": "bash tests/db/run.sh",
-    "test:ui": "node tests/ui.test.mjs"
+    "test:ui": "node tests/ui.test.mjs",
+    "test:report": "node tests/report.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",
