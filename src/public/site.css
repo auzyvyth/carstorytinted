@@ -370,13 +370,6 @@ main:has(> .page-head), main:has(> .wrap > .page-head), main.book { background: 
 .done-box .ref { font-size: 44px; font-weight: 800; color: var(--ink); letter-spacing: .06em; line-height: 1; margin: 8px 0 4px; }
 .done-box .row-btns { justify-content: center; margin-top: 24px; }
 @media print { .mast, .foot, .row-btns, .demo-bar { display: none !important; } body { background: #fff; } .cert { box-shadow: none; border: 1px solid #ccc; } }
-.demo-bar { display: none !important; } body { background: #fff; } .cert { box-shadow: none; border: 1px solid #ccc; } }
-@media (max-width: 420px) {
-  .mast::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--grad); }
-.mast-in { gap: 12px; }
-  .wordmark { font-size: 18px; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-  .mast .btn-sm { padding: 0 12px; flex: none; }
-}
 .demo-bar { background: var(--ink); color: rgba(255,255,255,.8); font-size: 13px; text-align: center; padding: 8px 16px; line-height: 1.4; }
 .demo-bar b { color: #fff; margin-right: 6px; text-transform: uppercase; letter-spacing: .08em; font-size: 11px; }
 .demo-bar a { color: #fff; margin-left: 6px; }
