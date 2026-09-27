@@ -29,19 +29,42 @@ export function useJobs(uid, { onWebBooking } = {}) {
     try { localStorage.setItem(cacheKey(uid), JSON.stringify(rows)); } catch { /* quota */ }
   }, [uid]);
 
-  const refresh = useCallback(async () => {
+  // Newest updated_at we hold. Coming back to the app then fetches only what changed
+  // since (one small query) instead of re-downloading every job on every unlock.
+  const synced = useRef(null);
+  const newest = (rows) => rows.reduce((m, j) => (j.updated_at > m ? j.updated_at : m), '');
+
+  const refresh = useCallback(async ({ full = false } = {}) => {
+    if (!full && synced.current) {
+      // 2-minute overlap: a row written a moment before our last read is not missed.
+      const after = new Date(Date.parse(synced.current) - 120e3).toISOString();
+      const { data, error: e } = await supabase.from('jobs').select('*').gte('updated_at', after).limit(500);
+      if (e) { setError('Tidak dapat muat turun kerja terbaru. Menunjukkan salinan terakhir.'); return; }
+      setError('');
+      if (data.length) {
+        setJobs((cur) => {
+          const byId = new Map(cur.map((j) => [j.id, j]));
+          for (const j of data) byId.set(j.id, j);
+          const next = [...byId.values()];
+          try { localStorage.setItem(cacheKey(uid), JSON.stringify(next)); } catch { /* quota */ }
+          return next;
+        });
+        synced.current = newest(data) > synced.current ? newest(data) : synced.current;
+      }
+      return;
+    }
     const since = new Date(Date.now() - RECENT_DAYS * 864e5).toISOString();
     const { data, error: e } = await supabase.from('jobs').select('*')
       .or(`stage.in.(${OPEN_STAGES.join(',')}),updated_at.gte.${since}`)
       .order('scheduled_date', { ascending: true, nullsFirst: false }).limit(2000);
     // A failed read keeps what we had; never replace a good list with nothing.
     if (e) setError('Tidak dapat muat turun kerja terbaru. Menunjukkan salinan terakhir.');
-    else { setError(''); save(data); }
+    else { setError(''); save(data); synced.current = newest(data) || null; }
     setLoading(false);
-  }, [save]);
+  }, [save, uid]);
 
   useEffect(() => {
-    refresh();
+    refresh({ full: true });
     // The demo has no realtime server; a refresh on focus is enough there.
     const ch = DEMO ? null : supabase.channel('jobs-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'jobs' }, (p) => {

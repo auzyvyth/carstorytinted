@@ -8,7 +8,7 @@ Standalone: its own Supabase project, its own Vercel project. Not part of the Sh
 | `/` `/harga/` `/panduan-jpj/` `/privasi/` | Public site. Static HTML (full text for Google + AI crawlers), JSON-LD `AutoRepair` + `FAQPage`, `sitemap.xml`, `robots.txt`, `llms.txt` |
 | `/tempah/` | Self-service booking: car + film -> free slot -> details. No deposit |
 | `/sijil/?t=...` | Customer's VLT + warranty certificate (noindex, token-protected) |
-| `/staff/` | Staff CRM, installable PWA with push. Dashboard + Pipeline; owner gets a settings gear |
+| `/staff/` | Staff CRM, installable PWA with push. Dashboard + Pipeline; owner also gets Laporan (report + CSV export) and a settings gear |
 
 ## Sales demo (VITE_DEMO=1)
 Build with `VITE_DEMO=1` and no Supabase keys: every page runs on sample data kept in the
@@ -26,11 +26,12 @@ is this build; it only rebuilds when this folder changes.
 - Security model: header comment of `supabase/migrations/0001_init.sql`.
 
 ## Setup (about 30 minutes, once)
-1. **Supabase**: new project, region Singapore. SQL editor -> run `supabase/migrations/0001_init.sql`.
-   Database -> Extensions: enable `pg_net` (booking push) and `pg_cron` (data retention). If you enable them after step 1, rerun the last `do $$ ... cron.schedule` block.
+1. **Supabase**: new project, region Singapore. Database -> Extensions: enable `pg_net` (booking push) and `pg_cron` (retention + the 30-minute "still unconfirmed" reminder) FIRST. Then SQL editor -> run `supabase/migrations/0001_init.sql`, then `0002_dashboard.sql`, in that order. (Enabled the extensions after? Rerun each file's `do $$ ... cron.schedule` block.)
 2. **Push keys**: `npx web-push generate-vapid-keys`. Save both somewhere safe. **Never regenerate**: every staff phone's subscription is bound to this pair and dies silently if it changes.
 3. **Edge function**: `supabase functions deploy notify-staff --no-verify-jwt`, then
    `supabase secrets set NOTIFY_SECRET=<random 32+ chars> VAPID_PUBLIC_KEY=... VAPID_PRIVATE_KEY=... VAPID_SUBJECT=mailto:<owner email>`.
+   **Backup alert (recommended):** create a Telegram bot with @BotFather, add it to a group with the owner (or message it once), get the chat id, then
+   `supabase secrets set TELEGRAM_BOT_TOKEN=... TELEGRAM_CHAT_ID=...`. Every online booking (and the 30-minute reminder) then also lands in Telegram, so a booking is heard even if no staff phone has notifications on.
    In SQL: `insert into app_config values ('notify_url','https://<ref>.supabase.co/functions/v1/notify-staff'), ('notify_secret','<same random>');`
 4. **Staff accounts**: Authentication -> Users -> Add user (email + password, auto-confirm) for the owner and each worker. Then:
    `insert into staff (id, name, role) values ('<owner uuid>', 'Maliki', 'owner'), ('<worker uuid>', 'Tam', 'staff');`
@@ -46,10 +47,12 @@ is this build; it only rebuilds when this folder changes.
 - [ ] Check the privacy notice at `/privasi/` matches what they actually do.
 
 ## Tests
-- `npm run test:db`: runs the migration on a local Postgres 16 and probes it as the public, a worker, an inactive worker and the owner (8 checks).
-- `npm run test:ui`: clicks through the built site and CRM at 375px against a fake Supabase (27 checks). Build first with `VITE_SUPABASE_URL=https://mock.supabase.test VITE_SUPABASE_ANON_KEY=anon`, serve on :4174.
+- `npm run test:db`: runs both migrations on a local Postgres 16 (with pgcrypto in `extensions`, as on Supabase) and probes them as the public, a worker, an inactive worker and the owner (10 checks).
+- `npm run test:ui`: clicks through the built site and CRM at 375px against a fake Supabase (38 checks).
+- `npm run test:report`: the owner report maths against hand-counted fixtures (17 checks). Build first with `VITE_SUPABASE_URL=https://mock.supabase.test VITE_SUPABASE_ANON_KEY=anon`, serve on :4174.
 
 ## Known limits (v1)
 - Staff money totals are hidden from the `staff` role in the UI; a worker can still see a single job's price (they collect payment). The database does not hide prices per role.
 - No online deposit. Forgotten passwords are reset by the developer in Supabase.
+- Jobs are never hard-deleted: the owner's "Padam" archives (restorable under Batal > Dipadam). Only the retention job (`purge_old_jobs`) removes rows.
 - iPhone push works only after "Add to Home Screen" (Apple rule, iOS 16.4+). The dashboard explains this.
