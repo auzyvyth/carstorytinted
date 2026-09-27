@@ -36,9 +36,9 @@ with its own Supabase + Vercel. Outside this folder the branch touches only `CLA
 ## Rules that apply here
 - Anything NEW (feature/page) = research + ask the owner in detail before coding.
 - Film options = a tint preview (`tintStudio` + `carSvg` in render.js, `src/public/tint.js`):
-  a rounded dark showroom panel, film pills, the side windows of a car (glass only, no
-  body: owner found the full car too blocky) with "Need a tint?" in yellow behind the
-  glass, rear windows darkening with a slider, and a spec bar with the price. The
+  a rounded dark showroom panel, film pills, two square panes labelled BELAKANG / DEPAN
+  (owner, 2026-09-27: no car shapes, squares only) with "Need a tint?" in yellow behind
+  the glass, rear windows darkening with a slider, and a spec bar with the price. The
   circuit-board version was dropped (owner, 2026-09-27: wrong fit for a tint shop). Windscreen + front side windows are
   ALWAYS drawn at the JPJ limits; only the rear follows the slider. Keep it that way.
 - Booking form (`/tempah/`) scrolls to the next question after each pick

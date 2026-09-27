@@ -100,30 +100,31 @@ export const tintOpacity = (vlt) => +(1 - (vlt / 100) ** 0.6).toFixed(3);
 const PREVIEW_REAR = 30;
 const clampVlt = (f, v) => (Array.isArray(f.vlt) ? Math.min(f.vlt[1], Math.max(f.vlt[0], v)) : v);
 
-// Just the side glass of a car, no body: "Need a tint?" sits behind the windows
-// and each window has a tint layer whose opacity is its VLT, so the visitor SEES
-// how much the film hides. Front windows are drawn at the JPJ limit and never
-// follow the slider.
+// Two panes of glass, rear (left) and front (right), with "Need a tint?" behind
+// them. Each pane has a tint layer whose opacity is its VLT, so the visitor SEES
+// how much the film hides. A labelled pointer names each pane. The front pane
+// is drawn at the JPJ limit and never follows the slider.
 function carSvg(rearVlt) {
   const T = '#05070d';
-  const rearGlass = 'M214 124 C234 104 262 88 316 84 L318 124 Z';
-  const frontGlass = 'M328 84 C368 84 398 88 422 100 L448 124 L330 124 Z';
-  return `<svg class="car-view" viewBox="198 68 276 66" role="img" aria-label="Pratonton tinted: tingkap depan ${JPJ.frontSide}%, tingkap belakang ${rearVlt}%">
-  <defs>
-    <linearGradient id="ts-glass-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22325f"/><stop offset="1" stop-color="#101a3a"/></linearGradient>
-    <clipPath id="ts-glass"><path d="${rearGlass}"/><path d="${frontGlass}"/></clipPath>
-  </defs>
-  <path d="M206 127 C230 100 266 80 322 78 C370 77 404 82 430 96 L462 127 Z" fill="#161a22"/>
-  <g clip-path="url(#ts-glass)">
-    <rect x="200" y="70" width="270" height="60" fill="url(#ts-glass-bg)"/>
-    <g font-family="Plus Jakarta Sans, system-ui, sans-serif" font-weight="800" font-size="19" fill="#ffd21f" text-anchor="middle">
-      <text x="274" y="117">Need a</text><text x="378" y="117">tint?</text>
+  const pane = (x) => `x="${x}" y="84" width="230" height="230" rx="18"`;
+  const tag = (cx, title, value) => `<g text-anchor="middle">
+    <text x="${cx}" y="24" font-size="23" font-weight="800" fill="#fff" letter-spacing=".06em">${title}</text>
+    <text x="${cx}" y="50" font-size="19" font-weight="600" fill="rgba(255,255,255,.7)">${value}</text>
+    <path d="M${cx} 60 L${cx} 74 M${cx - 8} 67 L${cx} 76 L${cx + 8} 67" stroke="#ffc71a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>`;
+  return `<svg class="car-view" viewBox="0 0 520 318" role="img" aria-label="Pratonton tinted: cermin belakang ${rearVlt}%, cermin depan ${JPJ.frontSide}%">
+  <defs><linearGradient id="ts-glass-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22325f"/><stop offset="1" stop-color="#101a3a"/></linearGradient></defs>
+  <g font-family="Plus Jakarta Sans, system-ui, sans-serif">
+    ${tag(135, 'BELAKANG', `<tspan data-rear-tag>${rearVlt}%</tspan>`)}
+    ${tag(385, 'DEPAN', `${JPJ.frontSide}% (had JPJ)`)}
+    <rect ${pane(20)} fill="url(#ts-glass-bg)"/><rect ${pane(270)} fill="url(#ts-glass-bg)"/>
+    <g font-size="46" font-weight="800" fill="#ffd21f" text-anchor="middle">
+      <text x="135" y="214">Need a</text><text x="385" y="214">tint?</text>
     </g>
-    <path class="tint-rear" d="${rearGlass}" fill="${T}" style="opacity:${tintOpacity(rearVlt)}"/>
-    <path class="tint-front" d="${frontGlass}" fill="${T}" style="opacity:${tintOpacity(JPJ.frontSide)}"/>
-    <path d="M240 130 L300 70 L322 70 L262 130 Z M360 130 L420 70 L432 70 L372 130 Z" fill="#fff" opacity=".12"/>
+    <rect class="tint-rear" ${pane(20)} fill="${T}" style="opacity:${tintOpacity(rearVlt)}"/>
+    <rect class="tint-front" ${pane(270)} fill="${T}" style="opacity:${tintOpacity(JPJ.frontSide)}"/>
+    <rect ${pane(20)} fill="none" stroke="#2a3140" stroke-width="6"/><rect ${pane(270)} fill="none" stroke="#2a3140" stroke-width="6"/>
   </g>
-  <path d="M446 118 L462 112 Q468 112 468 118 L466 124 L450 125 Z" fill="#161a22"/>
 </svg>`;
 }
 

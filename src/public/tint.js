@@ -11,12 +11,14 @@ export function mountStudio() {
   const out = root.querySelector('[data-rear-out]');
   const rear = root.querySelector('.tint-rear');
   const svg = root.querySelector('.car-view');
+  const tag = root.querySelector('[data-rear-tag]');
   const tabs = [...root.querySelectorAll('[role="tab"]')];
 
   const paint = () => {
     const v = Number(range.value);
     out.textContent = `${v}%`;
     rear.style.opacity = tintOpacity(v);
+    if (tag) tag.textContent = `${v}%`;
     svg.setAttribute('aria-label', svg.getAttribute('aria-label').replace(/belakang \d+%/, `belakang ${v}%`));
   };
   const pick = (tab) => {
