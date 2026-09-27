@@ -2,12 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from './supabase.js';
 import { CAR_SIZES, JPJ, displayPhone } from '../shared/shop.js';
 import { shopDate } from '../shared/api.js';
-import { NEXT, vltWarnings, certUrl, balance, num, firstName, waCustomer, slotUse, walkInSlot, isClosedDay } from './logic.js';
+import { NEXT, vltWarnings, certUrl, balance, num, firstName, waCustomer, slotUse, walkInSlot, isClosedDay, receiptText } from './logic.js';
+import { METHODS } from './report.js';
 import { DEMO } from '../shared/api.js';
 import { Sheet, StageChip, Icon, rmFmt } from './ui.jsx';
 
 const FIELDS = ['customer_name', 'phone', 'car_model', 'plate', 'car_size', 'film_id', 'scheduled_date', 'scheduled_slot',
-  'price', 'paid_amount', 'vlt_windscreen', 'vlt_front', 'vlt_rear', 'notes', 'no_followup', 'installer_id'];
+  'price', 'paid_amount', 'vlt_windscreen', 'vlt_front', 'vlt_rear', 'notes', 'no_followup', 'installer_id', 'payment_method'];
 const NUMERIC = ['price', 'paid_amount', 'vlt_windscreen', 'vlt_front', 'vlt_rear'];
 const ERR = {
   jobs_phone_check: 'Nombor telefon tidak sah.',
@@ -88,6 +89,10 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
     if (digits.length < 9) return setErr('Nombor telefon terlalu pendek.'), null;
     // A dated job with no slot is invisible to capacity: the website would sell that time again.
     const moved = isNew || f.scheduled_date !== (job.scheduled_date || '') || f.scheduled_slot !== (job.scheduled_slot || '');
+    // Money recorded without saying how it came in can't be reconciled later.
+    const paying = (num(extra.paid_amount ?? f.paid_amount) || 0) > 0
+      && (isNew || String(extra.paid_amount ?? f.paid_amount) !== String(base.current.paid_amount) || extra.stage === 'selesai');
+    if (paying && !f.payment_method) return setErr('Pilih kaedah bayaran (tunai, pindahan, QR atau kad).'), null;
     if (moved && f.scheduled_date && !f.scheduled_slot && (extra.stage || job?.stage) !== 'batal') return setErr('Pilih slot, supaya laman web tidak jual masa yang sama.'), null;
     setBusy(true);
     try {
@@ -128,6 +133,12 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
     if (!t) return;
     const { error } = await supabase.from('job_events').insert({ job_id: job.id, actor: me.id, kind: 'note', note: t.slice(0, 500) });
     if (!error) { setNote(''); loadEvents(); }
+  }
+
+  // From the saved row: a receipt must match what the database holds.
+  function sendReceipt() {
+    const text = receiptText(job, { filmName: settings?.films?.find((x) => x.id === job.film_id)?.name, method: METHODS[job.payment_method] });
+    window.open(waCustomer(job.phone, text), '_blank', 'noopener');
   }
 
   async function sendCert() {
@@ -228,7 +239,15 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
           </select></label>
           <label className="fld"><span>Harga (RM)</span><input className="in tab-num" type="number" inputMode="decimal" min="0" value={f.price} onChange={set('price')} /></label>
           <label className="fld"><span>Sudah dibayar (RM)</span><input className="in tab-num" type="number" inputMode="decimal" min="0" value={f.paid_amount} onChange={set('paid_amount')} /></label>
+          <label className="fld"><span>Kaedah bayaran</span><select className="in" value={f.payment_method || ''} onChange={set('payment_method')}>
+            <option value="">Pilih</option>{Object.entries(METHODS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select></label>
         </div>
+        {!isNew && num(job.paid_amount) > 0 && (
+          <div className="row-actions">
+            <button className="btn btn-sm btn-wa" onClick={sendReceipt}>{Icon.wa}Hantar resit</button>
+          </div>
+        )}
         {isClosedDay(settings, f.scheduled_date) && <div className="warnline">Tarikh ini ditanda tutup dalam tetapan kedai.</div>}
         {f.scheduled_date && (settings?.slots || []).length > 0 && settings.slots.every((t) => (use[t] || 0) >= cap && t !== job?.scheduled_slot) && <div className="warnline">Semua slot pada tarikh ini penuh.</div>}
         {job?.quoted_price !== null && job?.quoted_price !== undefined && <div className="muted" style={{ fontSize: 12 }}>Harga di laman web semasa tempah: {rmFmt(job.quoted_price)}</div>}

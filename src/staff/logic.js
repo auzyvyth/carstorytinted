@@ -140,3 +140,24 @@ export function isClosedDay(settings, iso) {
   const [y, m, d] = iso.split('-').map(Number);
   return settings.closed_weekdays.includes(new Date(Date.UTC(y, m - 1, d)).getUTCDay()) || settings.closed_dates.includes(iso);
 }
+
+// WhatsApp receipt, built from the SAVED job (never the unsaved form). A plain
+// receipt of what was paid: not a tax invoice, and it says nothing it can't prove.
+export function receiptText(j, { filmName = '', method = '' } = {}) {
+  const price = num(j.price) ?? num(j.quoted_price) ?? 0;
+  const paid = num(j.paid_amount) || 0;
+  const rm = (n) => `RM${Number(n).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const d = klDate(j.completed_at || new Date().toISOString());
+  const lines = [
+    `*Resit ${SHOP.name}*`, `${SHOP.legalName}, ${SHOP.street}, ${SHOP.town}`, '',
+    `Rujukan: ${j.ref}`, `Tarikh: ${dayLabel(d)} ${d.slice(0, 4)}`,
+    `Pelanggan: ${j.customer_name}`,
+    `Kereta: ${[j.car_model, j.plate].filter(Boolean).join(' · ') || '-'}`,
+    `Filem: ${filmName || j.film_id}`, '',
+    `Harga: ${rm(price)}`, `Dibayar: ${rm(paid)}${method ? ` (${method})` : ''}`,
+  ];
+  if (price - paid > 0) lines.push(`Baki: ${rm(price - paid)}`);
+  if (j.warranty_until) lines.push(`Waranti hingga: ${dayLabel(j.warranty_until)} ${j.warranty_until.slice(0, 4)}`);
+  lines.push('', 'Terima kasih!');
+  return lines.join('\n');
+}

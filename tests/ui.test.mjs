@@ -226,6 +226,18 @@ await p.waitForTimeout(400);
 check(await p.locator('.sheet label:has-text("Harga") input').inputValue() === '500'
   && await p.locator('.sheet [role=status]').isVisible(), 'same field changed on both phones: yours kept, warning shown');
 await p.click('.sheet [aria-label="Tutup"]');
+// Money needs a method: marking paid in full without one is refused, with one it goes through.
+await p.click('.pills button:has-text("Siap")');
+await p.click('.jcard:has-text("Lim Ah Kow")');
+await p.click('.sheet-f button:has-text("dibayar penuh")');
+await p.waitForTimeout(300);
+check((await p.locator('.sheet [role=alert]').innerText().catch(() => '')).includes('kaedah bayaran'), 'paid in full asks how it was paid');
+await p.selectOption('.sheet label:has-text("Kaedah bayaran") select', 'tunai');
+await p.click('.sheet-f button:has-text("dibayar penuh")');
+await p.waitForTimeout(300);
+const lim = jobs.find((j) => j.customer_name === 'Lim Ah Kow');
+check(lim.stage === 'selesai' && lim.payment_method === 'tunai' && Number(lim.paid_amount) === 700, 'paid in full saves stage, amount and method');
+await p.click('.sheet [aria-label="Tutup"]');
 // Owner report.
 await p.click('.bnav button:has-text("Laporan")');
 await p.waitForSelector('.seg');
