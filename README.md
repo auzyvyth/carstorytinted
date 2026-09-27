@@ -10,6 +10,15 @@ Standalone: its own Supabase project, its own Vercel project. Not part of the Sh
 | `/sijil/?t=...` | Customer's VLT + warranty certificate (noindex, token-protected) |
 | `/staff/` | Staff CRM, installable PWA with push. Dashboard + Pipeline; owner gets a settings gear |
 
+## Sales demo (VITE_DEMO=1)
+Build with `VITE_DEMO=1` and no Supabase keys: every page runs on sample data kept in the
+visitor's own browser (`src/shared/demoBackend.js`). Banner on every page, noindex,
+robots `Disallow: /`. Staff login has one-tap "pemilik" / "staf" buttons (or
+`pemilik@demo.my` / `staf@demo.my`, password `demo1234`); "Mula semula" resets.
+Customer WhatsApp/call buttons never dial the invented sample numbers. A normal build
+contains none of this code. Vercel project `tinted-carstory-demo` (env `VITE_DEMO=1`)
+is this build; it only rebuilds when this folder changes.
+
 ## Where things live
 - Shop facts (name, phones, address, towns): `src/shared/shop.js`. One place.
 - Films, prices, slots, closed days: the database (`shop_settings`), edited by the owner from the gear in `/staff/`. `src/shared/catalog.default.json` is only the copy baked into the static HTML.
