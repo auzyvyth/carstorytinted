@@ -1,0 +1,4 @@
+{
+  "cleanUrls": true,
+  "headers": [{ "source": "/crm", "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }] }]
+}
