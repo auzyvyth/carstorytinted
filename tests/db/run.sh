@@ -9,4 +9,5 @@ psql -q -c "drop database if exists $DB" -c "create database $DB" postgres
 psql -q -v ON_ERROR_STOP=1 -d $DB -f supabase_stub.sql
 psql -q -v ON_ERROR_STOP=1 -d $DB -f ../../supabase/migrations/0001_init.sql
 psql -q -v ON_ERROR_STOP=1 -d $DB -f ../../supabase/migrations/0002_dashboard.sql
+psql -q -v ON_ERROR_STOP=1 -d $DB -f ../../supabase/migrations/0003_walkins_addons.sql
 psql -q -v ON_ERROR_STOP=1 -d $DB -f security.test.sql

@@ -58,10 +58,11 @@ select pg_temp.expect_error($q$select book_slot('Ali','0123456789','Myvi','PKA12
 select pg_temp.expect_error($q$select book_slot('Ali','0123456789','Myvi','PKA1234','small','ceramic',(select d from t_ctx),'08:00',null,true)$q$, 'slot_closed');
 select pg_temp.expect_error($q$select book_slot('Ali','0123456789','Myvi','PKA1234','small','ceramic',(select d from t_ctx)-3,'09:30',null,true)$q$, 'slot_closed');
 select book_slot('Ali Bin Abu','012-345 6789','Myvi','pka 1234','small','ceramic',(select d from t_ctx),'09:30','Cermin belakang sahaja',true);
-select pg_temp.expect_error($q$select book_slot('Siti','0198765432','Axia',null,'small','standard',(select d from t_ctx),'09:30',null,true)$q$, 'slot_full');
-select book_slot('Ali Bin Abu','0123456789','Myvi',null,'small','ceramic',(select d from t_ctx),'12:30',null,true);
-select book_slot('Ali Bin Abu','+60123456789','Myvi',null,'small','ceramic',(select d from t_ctx),'15:30',null,true);
-select pg_temp.expect_error($q$select book_slot('Ali Bin Abu','0123456789','Myvi',null,'small','ceramic',(select d from t_ctx)+1,'09:30',null,true)$q$, 'too_many');
+select pg_temp.expect_error($q$select book_slot('Siti','0198765432','Axia',null,'small','standard',(select d from t_ctx),'09:30',null,true)$q$, 'bad_plate');
+select pg_temp.expect_error($q$select book_slot('Siti','0198765432','Axia','PKB 1','small','standard',(select d from t_ctx),'09:30',null,true)$q$, 'slot_full');
+select book_slot('Ali Bin Abu','0123456789','Myvi','PKA 1234','small','ceramic',(select d from t_ctx),'12:30',null,true);
+select book_slot('Ali Bin Abu','+60123456789','Myvi','PKA 1234','small','ceramic',(select d from t_ctx),'15:30',null,true);
+select pg_temp.expect_error($q$select book_slot('Ali Bin Abu','0123456789','Myvi','PKA 1234','small','ceramic',(select d from t_ctx)+1,'09:30',null,true)$q$, 'too_many');
 do $$ begin
   if exists (select 1 from available_slots((select d from t_ctx), 1) where remaining > 0) then
     raise exception 'day should be full'; end if;
@@ -74,7 +75,7 @@ begin; set local role authenticated; set local request.jwt.claim.sub = '22222222
 do $$ begin
   if (select count(*) from jobs) <> 3 then raise exception 'staff should see 3 jobs'; end if;
   if exists (select 1 from jobs where phone <> '60123456789') then raise exception 'phone not normalised'; end if;
-  if (select plate from jobs where plate is not null) <> 'PKA 1234' then raise exception 'plate not normalised'; end if;
+  if exists (select 1 from jobs where plate <> 'PKA 1234') then raise exception 'plate not normalised'; end if;
   if (select count(*) from job_events where kind = 'created') <> 3 then raise exception 'missing created events'; end if;
 end $$;
 commit;
@@ -191,4 +192,52 @@ begin; set local role anon;
 select pg_temp.expect_error('select push_device_count()', 'permission denied');
 commit;
 \echo 'ok 10 reopen clears finish, installer stamped, archive owner-only + restores its stage, device count staff-only'
+
+-- 11. Walk-in reserve, add-on pricing, the customer's own link (0003).
+--     2 bays per block (test 7), only 1 sold online. Day e is untouched so far.
+create temp table t_e as select (shop_today() + 5) as e;
+grant select on t_e to anon, authenticated;
+update shop_settings set online_per_slot = 1,
+  addons = '[{"id":"depan","name":"Cermin depan","prices":{"small":100}},{"id":"buang","name":"Buang tinted lama","prices":{"small":50}},{"id":"belakang","name":"Cermin belakang","prices":{"small":null}}]';
+create temp table t_tok2 (tok text);
+grant select, insert on t_tok2 to anon;
+begin; set local role anon;
+select pg_temp.expect_error($q$select book_slot('Rina','0133333333','Myvi','PKC 3','small','ceramic',(select e from t_e),'09:30',null,true,'{nope}')$q$, 'bad_addon');
+insert into t_tok2 select book_slot('Rina','0133333333','Myvi','PKC 3','small','ceramic',(select e from t_e),'09:30',null,true,'{depan,buang}','tinggal','tiktok')->>'manage_token';
+do $$ begin
+  if (select remaining from available_slots((select e from t_e), 1) where slot = '09:30') <> 0 then raise exception 'online share not capped'; end if;
+end $$;
+select pg_temp.expect_error($q$select book_slot('Wan','0144444444','Myvi','PKD 4','small','ceramic',(select e from t_e),'09:30',null,true)$q$, 'slot_full');
+do $$ declare b jsonb; begin
+  b := get_booking((select tok from t_tok2));
+  if b is null or b ? 'phone' or b ? 'manage_token' or b->>'customer' <> 'Rina' then raise exception 'get_booking wrong: %', b; end if;
+  if get_booking(repeat('0', 36)) is not null then raise exception 'wrong token returned data'; end if;
+  b := manage_booking((select tok from t_tok2), 'confirm');
+  if (b->>'confirmed')::boolean is not true then raise exception 'confirm failed: %', b; end if;
+end $$;
+select pg_temp.expect_error($q$select manage_booking(repeat('0', 36), 'cancel')$q$, 'not_found');
+commit;
+do $$ declare j jobs; begin
+  select * into j from jobs where customer_name = 'Rina';
+  if j.quoted_price <> 750 then raise exception 'quote should be 600 + 100 + 50, got %', j.quoted_price; end if;
+  if j.wait_mode <> 'tinggal' or j.heard_from <> 'tiktok' or j.addons <> '{buang,depan}' then raise exception 'fields not saved: %', j; end if;
+  if quote_price('small', 'ceramic', '{belakang}') is not null then raise exception 'unpriced add-on must give no quote'; end if;
+  if (select count(*) from pg_proc where proname = 'book_slot') <> 1 then raise exception 'book_slot has an old overload left'; end if;
+  if has_function_privilege('anon', 'quote_price(text,text,text[])', 'execute') then raise exception 'anon can call quote_price'; end if;
+  if not has_function_privilege('anon', 'get_booking(text)', 'execute') then raise exception 'anon cannot open their link'; end if;
+end $$;
+-- The walk-in bay is still there for staff.
+begin; set local role authenticated; set local request.jwt.claim.sub = '22222222-2222-2222-2222-222222222222';
+insert into jobs (source, stage, customer_name, phone, car_size, film_id, scheduled_date, scheduled_slot)
+  values ('walk_in', 'dalam_kerja', 'Walk Three', '0155555555', 'small', 'standard', (select e from t_e), '09:30');
+commit;
+begin; set local role anon;
+do $$ declare b jsonb; begin
+  b := manage_booking((select tok from t_tok2), 'cancel');
+  if b->>'stage' <> 'batal' or (b->>'can_change')::boolean then raise exception 'cancel failed: %', b; end if;
+  if (select remaining from available_slots((select e from t_e), 1) where slot = '09:30') <> 1 then raise exception 'cancel did not free the online place'; end if;
+end $$;
+select pg_temp.expect_error($q$select manage_booking((select tok from t_tok2), 'confirm')$q$, 'too_late');
+commit;
+\echo 'ok 11 walk-in reserve, add-on quote, customer link confirm/cancel, one book_slot'
 \echo 'ALL DB TESTS PASSED'
