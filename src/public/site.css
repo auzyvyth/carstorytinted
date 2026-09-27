@@ -92,15 +92,44 @@ section { padding: 80px 0; }
 .wordmark { font-family: var(--body); font-weight: 800; font-size: 20px; letter-spacing: -0.02em; color: var(--ink); text-decoration: none; line-height: 1; white-space: nowrap; }
 .wordmark span { color: var(--accent); }
 .mast-nav { display: flex; gap: 24px; flex: 1; font-size: 14px; font-weight: 500; }
-.mast-nav a, .mast-nav-m a { color: var(--text-2); text-decoration: none; }
+.mast-nav a { color: var(--text-2); text-decoration: none; }
 .mast-nav a:hover, .mast-nav a[aria-current] { color: var(--ink); }
 .mast-nav a[aria-current] { font-weight: 600; }
-.mast-nav-m { display: none; }
+.mast-menu, .mast-menu[hidden] { display: none; }
+
+/* phones + small tablets: wordmark | Tempah slot | menu button, links collapse */
 @media (max-width: 860px) {
-  .mast-nav { display: none; }
-  .mast::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--grad); }
-.mast-in { justify-content: space-between; height: 56px; }
-  .mast-nav-m { display: flex; gap: 20px; overflow-x: auto; scrollbar-width: none; padding: 0 var(--gutter) 12px; font-size: 14px; white-space: nowrap; }
+  .mast { background: #fff; backdrop-filter: none; }
+  .mast-in { height: 60px; gap: 8px; }
+  .mast-in .wordmark { margin-right: auto; font-size: 19px; }
+  .mast-in .btn-sm { flex: none; }
+  .mast-menu:not([hidden]) { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 44px; height: 44px; margin-right: -8px; border: 0; border-radius: 10px; background: transparent; color: var(--ink); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .mast-menu:hover, .mast.open .mast-menu { background: var(--accent-soft); color: var(--accent); }
+  .mast-menu:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .mast-menu .m-close, .mast.open .mast-menu .m-open { display: none; }
+  .mast.open .mast-menu .m-close { display: inline; }
+
+  /* no JS: the links stay reachable as a scrolling row under the bar */
+  .mast:not(.js-nav) .mast-in { flex-wrap: wrap; height: auto; padding-top: 10px; }
+  .mast:not(.js-nav) .mast-nav { order: 3; flex: 1 0 100%; gap: 20px; overflow-x: auto; scrollbar-width: none; padding: 6px 0 12px; white-space: nowrap; }
+
+  /* JS: a dropdown panel pinned under the bar, full width, big tap rows */
+  .mast.js-nav .mast-nav { display: none; position: absolute; top: 100%; left: 0; right: 0; flex-direction: column; gap: 0; padding: 8px var(--gutter) 16px; background: #fff; /* the spread shadow dims the page below; clip-path keeps it off the bar above */ box-shadow: 0 0 0 100vmax rgba(10, 16, 40, 0.32); clip-path: inset(0 -100vmax -100vmax -100vmax); max-height: 75vh; max-height: 75dvh; overflow-y: auto; overscroll-behavior: contain; }
+  .mast.js-nav.open .mast-nav { display: flex; }
+  .mast.js-nav .mast-nav a { display: flex; align-items: center; min-height: 52px; font-size: 17px; font-weight: 600; color: var(--ink); }
+  .mast.js-nav .mast-nav a + a:not(.nav-cta) { border-top: 1px solid var(--line); }
+  .mast.js-nav .mast-nav a[aria-current] { color: var(--accent); }
+}
+/* the bar's CTA only lives in the menu on phones too narrow for three things */
+.mast-nav .nav-cta, .mast.js-nav .mast-nav a.nav-cta { display: none; }
+@media (max-width: 400px) {
+  .mast-in { gap: 6px; }
+  .mast-in .wordmark { font-size: 18px; }
+  .mast-in .btn-sm { padding: 0 12px; }
+}
+@media (max-width: 350px) {
+  .mast-in > .btn-sm { display: none; }
+  .mast.js-nav .mast-nav a.nav-cta { display: flex; justify-content: center; margin-top: 12px; color: #fff; }
 }
 
 /* hero */
@@ -335,6 +364,7 @@ main:has(> .page-head), main:has(> .wrap > .page-head), main.book { background: 
 .done-box .ref { font-size: 44px; font-weight: 800; color: var(--ink); letter-spacing: .06em; line-height: 1; margin: 8px 0 4px; }
 .done-box .row-btns { justify-content: center; margin-top: 24px; }
 @media print { .mast, .foot, .row-btns, .demo-bar { display: none !important; } body { background: #fff; } .cert { box-shadow: none; border: 1px solid #ccc; } }
+.demo-bar { display: none !important; } body { background: #fff; } .cert { box-shadow: none; border: 1px solid #ccc; } }
 @media (max-width: 420px) {
   .mast::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--grad); }
 .mast-in { gap: 12px; }

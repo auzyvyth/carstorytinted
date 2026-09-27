@@ -1,6 +1,7 @@
 // Shared by every public page: live prices + the hero's next-free-slot card.
 // The HTML already holds the build-time copy, so a failed call changes nothing.
 import './site.css';
+import './nav.js';
 import { rpc, apiReady, shopDate, dayParts } from '../shared/api.js';
 import { tintStudio, priceTable } from '../shared/render.js';
 import { mountStudio } from './tint.js';

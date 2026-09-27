@@ -20,13 +20,17 @@ const NAV = [
 export function header(active = '') {
   const links = NAV.map(([href, label]) =>
     `<a href="${href}"${active === href ? ' aria-current="page"' : ''}>${label}</a>`).join('');
+  // ONE nav for every width. Phones collapse it behind the menu button (nav.js);
+  // without JS it falls back to a scrolling row under the bar.
   return `<header class="mast">
   <div class="mast-in">
     <a class="wordmark" href="/" aria-label="${esc(SHOP.name)} - laman utama"><span>Tinted</span> Carstory</a>
-    <nav class="mast-nav" aria-label="Menu utama">${links}</nav>
+    <nav class="mast-nav" id="mast-nav" aria-label="Menu utama">${links}<a class="btn btn-cta nav-cta" href="/tempah/">Tempah slot</a></nav>
     <a class="btn btn-cta btn-sm" href="/tempah/">Tempah slot</a>
+    <button class="mast-menu" type="button" aria-controls="mast-nav" aria-expanded="false" aria-label="Buka menu" hidden>
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path class="m-open" d="M4 7h16M4 12h16M4 17h16"/><path class="m-close" d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
   </div>
-  <nav class="mast-nav-m" aria-label="Menu">${links}</nav>
 </header>`;
 }
 

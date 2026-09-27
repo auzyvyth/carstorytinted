@@ -1,6 +1,7 @@
 // Warranty + VLT certificate. The link's ?t= token is the only key; the page
 // never shows a phone number and the plate comes back partly masked.
 import './site.css';
+import './nav.js';
 import { rpc, apiReady, dayLabel } from '../shared/api.js';
 import { SHOP, JPJ, fullAddress } from '../shared/shop.js';
 import { esc } from '../shared/render.js';

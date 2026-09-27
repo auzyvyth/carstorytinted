@@ -2,6 +2,7 @@
 // The database re-checks everything (slot still free, phone valid, rate limit),
 // so this page only has to be pleasant, never trusted.
 import './site.css';
+import './nav.js';
 import { rpc, apiReady, shopDate, dayParts, dayLabel, slotLabel, DEMO } from '../shared/api.js';
 import { SHOP, CAR_SIZES, waLink, displayPhone, fullAddress } from '../shared/shop.js';
 import { esc, rm, hasNum } from '../shared/render.js';
