@@ -69,10 +69,19 @@ export function hoursHtml() {
     `<p>${h.days.map((d) => names[d]).join(', ')}: ${h.opens} - ${h.closes}</p>`).join('')}</div>`;
 }
 
-export function galleryHtml() {
-  if (!SHOP.gallery.length) return '';
-  return `<section id="galeri"><div class="wrap"><div class="sec-head"><div><p class="eyebrow">Hasil kerja</p><h2>Galeri</h2></div></div>
-<div class="gallery">${SHOP.gallery.map((g) => `<img src="${esc(g.src)}" alt="${esc(g.alt)}" loading="lazy" width="400" height="300">`).join('')}</div></div></section>`;
+// Past customers. Real photos only (SHOP.gallery); with none the section is not
+// rendered, except in the sales demo, which shows labelled empty frames so the
+// owner sees where his photos will go.
+export function galleryHtml(demo = false) {
+  const items = SHOP.gallery.length ? SHOP.gallery.map((g) => `<figure class="shot">
+  <img src="${esc(g.src)}" alt="${esc(g.alt)}" loading="lazy" width="600" height="450">
+  ${g.car || g.film ? `<figcaption><b>${esc(g.car || '')}</b>${g.film ? `<span>${esc(g.film)}</span>` : ''}</figcaption>` : ''}
+</figure>`).join('') : demo ? Array.from({ length: 6 }, (_, i) => `<figure class="shot shot-empty"><div>Gambar pelanggan ${i + 1}</div>
+  <figcaption><b>Model kereta</b><span>Jenis filem</span></figcaption></figure>`).join('') : '';
+  if (!items) return '';
+  return `<section id="galeri" class="alt"><div class="wrap"><div class="sec-head"><div><p class="eyebrow">Hasil kerja</p><h2>Kereta pelanggan kami.</h2></div>
+<p>Gambar sebenar dari kedai kami di ${esc(SHOP.town)}.${SHOP.facebook ? ` Lebih banyak di <a href="${SHOP.facebook}" rel="noopener">Facebook</a>.` : ''}</p></div>
+<div class="gallery">${items}</div></div></section>`;
 }
 
 export function minPrice(film) {
@@ -80,22 +89,48 @@ export function minPrice(film) {
   return vals.length ? Math.min(...vals) : null;
 }
 
-export function filmCards(catalog) {
-  return catalog.films.map((f) => {
+// What every listed price covers (owner's price list). Shown next to every "dari" price.
+export const PRICE_BASIS = 'Kereta kompak, 4 cermin sisi';
+
+const topNum = (t) => { const n = String(t ?? '').match(/\d+(?:\.\d+)?/g); return n ? Number(n[n.length - 1]) : null; };
+
+// The film options as a circuit board: one row per film, each with a "chip"
+// (the film's glass swatch + infrared meter). src/public/board.js draws the
+// trace that joins the chips as the visitor scrolls.
+export function filmBoard(catalog) {
+  const n = catalog.films.length;
+  const rows = catalog.films.map((f, i) => {
     const specs = [
-      hasNum(f.heat_rejection) && ['Tolak haba', `${f.heat_rejection}%`],
       hasNum(f.uv) && ['Sekat UV', `${f.uv}%`],
+      f.ir && ['Tolak inframerah (IRR)', esc(f.ir)],
+      hasNum(f.heat_rejection) && ['Tolak haba', `${f.heat_rejection}%`],
       hasNum(f.warranty_years) && ['Waranti', `${f.warranty_years} tahun`],
+      f.grade && ['Kualiti', esc(f.grade)],
+      Array.isArray(f.vlt) && ['Pilihan kegelapan', `${f.vlt[0]}% - ${f.vlt[1]}%`],
     ].filter(Boolean);
     const from = minPrice(f);
-    return `<article class="film">
-  <h3>${esc(f.name)}</h3>
-  <p class="film-tag">${esc(f.tagline)}</p>
-  ${specs.length ? `<dl class="specs">${specs.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>` : ''}
-  <div class="film-price">${from !== null ? `<span>dari</span> ${rm(from)}` : 'Tanya harga'}</div>
-  <a class="btn btn-line" href="/tempah/?film=${encodeURIComponent(f.id)}">Pilih ${esc(f.name)}</a>
+    const ir = topNum(f.ir) ?? (hasNum(f.heat_rejection) ? Number(f.heat_rejection) : null);
+    const light = Array.isArray(f.vlt) ? f.vlt[1] : 70;
+    const dark = Array.isArray(f.vlt) ? f.vlt[0] : 5;
+    return `<article class="brow${i % 2 ? ' flip' : ''}">
+  <div class="bcopy">
+    <p class="btier"><span>${String(i + 1).padStart(2, '0')}</span> Tahap ${i + 1} dari ${n}</p>
+    <h3>${esc(f.name)}</h3>
+    <p class="film-tag">${esc(f.tagline)}</p>
+    ${specs.length ? `<dl class="specs">${specs.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>` : ''}
+    <div class="film-price">${from !== null ? `<span>dari</span> ${rm(from)}` : 'Tanya harga'}</div>
+    ${from !== null ? `<p class="pnote">${PRICE_BASIS}</p>` : ''}
+    <a class="btn btn-cta" href="/tempah/?film=${encodeURIComponent(f.id)}">Pilih ${esc(f.name)}</a>
+  </div>
+  <div class="chip" aria-hidden="true">
+    <div class="chip-top"><span>${esc(f.name)}</span><span>${f.grade ? esc(f.grade) : ''}</span></div>
+    <div class="chip-glass" style="--light:${1 - light / 100};--dark:${1 - dark / 100}"><small>${light}%</small><small>${dark}%</small></div>
+    ${ir !== null ? `<div class="chip-ir"><b>${f.ir ? esc(f.ir) : `${ir}%`}</b><small>haba inframerah ditolak</small></div>
+    <div class="chip-meter"><i style="width:${Math.min(100, ir)}%"></i></div>` : ''}
+  </div>
 </article>`;
   }).join('');
+  return `<div class="board-flow" data-board>${rows}</div>`;
 }
 
 export function priceTable(catalog) {
@@ -137,6 +172,8 @@ export const FAQ = [
     `Kesalahan pertama boleh didenda sehingga ${JPJ.fine}. Sebab itu kami rekod bacaan VLT dalam sijil digital anda.`],
   ['Apa itu sijil digital?',
     'Selepas siap, anda terima pautan sijil yang menunjukkan bacaan VLT setiap cermin, jenis filem dan tarikh tamat waranti. Simpan dalam telefon, tunjuk bila perlu.'],
+  ['Boleh pasang lebih gelap?',
+    `Boleh untuk tingkap belakang dan cermin belakang, sehingga 5%, tanpa caj tambahan. Cermin depan dan tingkap sisi depan kami pasang ikut had JPJ (${JPJ.windscreen}% dan ${JPJ.frontSide}%), kerana lebih gelap dari itu satu kesalahan.`],
   ['Perlu bayar deposit untuk tempah?',
     'Tidak. Tempah slot secara online tanpa bayaran. Bayaran dibuat di kedai selepas kerja siap.'],
   ['Boleh tukar atau batal slot?',

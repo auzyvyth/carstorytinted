@@ -2,7 +2,8 @@
 // The HTML already holds the build-time copy, so a failed call changes nothing.
 import './site.css';
 import { rpc, apiReady, shopDate, dayParts } from '../shared/api.js';
-import { filmCards, priceTable } from '../shared/render.js';
+import { filmBoard, priceTable } from '../shared/render.js';
+import { mountBoard } from './board.js';
 
 export async function loadCatalog() {
   if (!apiReady) return null;
@@ -15,7 +16,7 @@ async function paintPrices() {
   if (!films && !prices) return;
   const cat = await loadCatalog();
   if (!cat?.films) return;
-  if (films) films.innerHTML = filmCards(cat);
+  if (films) { films.innerHTML = filmBoard(cat); mountBoard(); }
   if (prices) prices.innerHTML = priceTable(cat);
 }
 
@@ -42,5 +43,6 @@ async function paintNextSlots() {
   }
 }
 
+mountBoard();
 paintPrices();
 paintNextSlots();

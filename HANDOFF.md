@@ -20,6 +20,14 @@ with its own Supabase + Vercel. Outside this folder the branch touches only `CLA
 2. Collect from owner: VLT meter yes/no (site promises every window is measured),
    real film names/specs/warranty/prices, opening hours, logo + exact blue/orange
    colours, 6-10 before/after photos, Google review link, confirm Sungai Jawi branch.
+   DONE 2026-09-27: the 4 films + compact prices (catalog.default.json, from his
+   WhatsApp list). STILL NEEDED: prices for sedan/SUV/large and for the windscreen +
+   rear glass (the list covers 4 side windows only; site says "Tanya" for the rest).
+   Ask him too: Black UV's lightest is 50% film, and JPJ measures glass + film
+   together, so on the front side windows it likely reads under 50% (a fail).
+   Staff Settings cannot edit the new film fields yet (`ir`, `grade`, `vlt`).
+   Customer photos go in `SHOP.gallery` (shop.js) with `car` + `film` captions;
+   the demo shows 6 labelled empty frames until then.
 3. When owner signs: new Supabase (Singapore) + new Vercel, follow README "Setup".
    VAPID keys are generated once and never regenerated.
 4. Then a real-device test: book online -> push arrives on staff phone -> job flows
@@ -27,11 +35,16 @@ with its own Supabase + Vercel. Outside this folder the branch touches only `CLA
 
 ## Rules that apply here
 - Anything NEW (feature/page) = research + ask the owner in detail before coding.
+- Film options = a circuit board (`filmBoard` in render.js + `src/public/board.js`),
+  same idea as ShiftOS PlanTour: chips joined by a trace drawn on scroll.
+- Never advertise darker than JPJ on the windscreen / front side windows (the
+  owner's WhatsApp copy says "5% if the customer asks"): the site offers 5% on the
+  REAR only. Verified 2026-09-27: 70% / 50% / rear no limit, Kaedah 1991 as amended 2019.
 - Public site design (owner's call, 2026-09-27): layout from XDrive /for-salesmen
   (`src/pages/SalesmanLiteLanding.jsx` in ShiftOS), ONE typeface (Plus Jakarta Sans),
-  sentence-case headings. No flat grounds: every section has a soft blue or yellow
-  wash, cards sit on a slight shadow, pricing cards + buttons carry the `--grad`
+  sentence-case headings. Colours from the shopfront photo (`public/kedai.webp`):
+  blue sign, yellow letters, orange building. No flat grounds: every section has a wash, cards sit on a slight shadow, pricing cards + buttons carry the `--grad`
   gradient border (blue to yellow/orange). Colours live in `:root` of
-  `src/public/site.css` (`--accent`, `--sun`, `--grad`), placeholders until the logo file.
+  `src/public/site.css` (`--accent`, `--sun`, `--orange`, `--grad`), placeholders until the logo file.
 - Staff app colours are still placeholders (`--brand-*` in `src/staff/staff.css`).
 - No auto-send to customers: WhatsApp buttons open a draft, a person presses send.

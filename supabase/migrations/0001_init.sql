@@ -379,12 +379,11 @@ do $$ begin
 end $$;
 
 -- ---------------------------------------------------------------- seed
--- Placeholder copy until the owner confirms brands, specs, warranty and prices.
+-- Owner's price list (compact car, 4 side windows). Other sizes null until the owner gives them.
+-- ir/grade/vlt are display-only extras; the booking functions read id, name, prices, warranty_years.
 insert into public.shop_settings (id, films) values (1, '[
-  {"id":"standard","name":"Standard","tagline":"Gelap, privasi, tolak haba asas","heat_rejection":null,"uv":null,"warranty_years":null,
-   "prices":{"small":null,"sedan":null,"suv":null,"large":null}},
-  {"id":"ceramic","name":"Nano Ceramic","tagline":"Sejuk tanpa terlalu gelap","heat_rejection":null,"uv":null,"warranty_years":null,
-   "prices":{"small":null,"sedan":null,"suv":null,"large":null}},
-  {"id":"premium","name":"Premium IR","tagline":"Tolak haba inframerah paling tinggi","heat_rejection":null,"uv":null,"warranty_years":null,
-   "prices":{"small":null,"sedan":null,"suv":null,"large":null}}
+  {"id": "black_uv", "name": "Black UV", "tagline": "Pilihan asas, sekat UV", "heat_rejection": null, "uv": 99, "warranty_years": 1, "ir": "20–30%", "grade": "Korea", "vlt": [5, 50], "prices": {"small": 60, "sedan": null, "suv": null, "large": null}},
+  {"id": "black_smoke", "name": "Black Smoke", "tagline": "Lebih sejuk dari Black UV", "heat_rejection": null, "uv": 99, "warranty_years": 2, "ir": "50–70%", "grade": "Korea", "vlt": [5, 70], "prices": {"small": 100, "sedan": null, "suv": null, "large": null}},
+  {"id": "carbon_ceramic", "name": "Carbon Ceramic HD", "tagline": "Seramik karbon, gred US", "heat_rejection": null, "uv": 99, "warranty_years": 3, "ir": "80%", "grade": "US", "vlt": [5, 70], "prices": {"small": 200, "sedan": null, "suv": null, "large": null}},
+  {"id": "nano_ceramic", "name": "Nano Ceramic HD", "tagline": "Paling sejuk di kedai kami", "heat_rejection": null, "uv": 99, "warranty_years": 5, "ir": "95–99%", "grade": "US", "vlt": [5, 70], "prices": {"small": 300, "sedan": null, "suv": null, "large": null}}
 ]'::jsonb);

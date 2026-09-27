@@ -23,7 +23,7 @@ const DEMO_BANNER = `<div class="demo-bar" role="note"><b>Versi demo</b> Data da
 
 function shopPages(siteUrl, demo) {
   const slots = {
-    films: () => R.filmCards(catalog),
+    films: () => R.filmBoard(catalog),
     prices: () => R.priceTable(catalog),
     car: () => R.carDiagram(),
     faq: () => R.faqHtml(),
@@ -31,7 +31,7 @@ function shopPages(siteUrl, demo) {
     contacts: () => R.contactsHtml(),
     'map-links': () => R.mapLinksHtml(),
     hours: () => R.hoursHtml(),
-    gallery: () => R.galleryHtml(),
+    gallery: () => R.galleryHtml(demo),
     'ld-home': () => R.ldScript(R.localBusinessLd(siteUrl, catalog)) + R.ldScript(R.faqLd()),
     'ld-shop': () => R.ldScript(R.localBusinessLd(siteUrl, catalog)),
   };
