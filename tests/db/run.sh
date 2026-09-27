@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Local DB security test. Needs a Postgres 16 server you can reach as a superuser.
+set -euo pipefail
+DB=carstory_test
+cd "$(dirname "$0")"
+psql -q -c "drop database if exists $DB" -c "create database $DB" postgres
+psql -q -v ON_ERROR_STOP=1 -d $DB -f supabase_stub.sql
+psql -q -v ON_ERROR_STOP=1 -d $DB -f ../../supabase/migrations/0001_init.sql
+psql -q -v ON_ERROR_STOP=1 -d $DB -f security.test.sql

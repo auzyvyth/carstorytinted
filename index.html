@@ -3,247 +3,143 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Carstory Pro Auto | Tinted Bumiputera Sungai Jawi</title>
-<meta name="description" content="Kedai tinted Bumiputera di Sungai Jawi, Pulau Pinang. Tinted kereta ikut had JPJ, nano ceramic, tinted rumah dan pejabat. Tempah melalui WhatsApp.">
-<meta name="theme-color" content="#0b0d10">
+<title>Tinted Kereta Sungai Jawi | Tinted Carstory, Kedai Tinted Bumiputera</title>
+<meta name="description" content="Kedai tinted Bumiputera di %TOWN%, %STATE%. Tinted kereta ikut had JPJ dengan sijil VLT digital. Tempah slot online tanpa deposit. Dekat %AREAS%.">
+<link rel="canonical" href="%SITE_URL%/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Tinted Carstory | Kedai Tinted Bumiputera %TOWN%">
+<meta property="og:description" content="Tinted kereta ikut had JPJ, sijil VLT digital, tempah slot online.">
+<meta property="og:url" content="%SITE_URL%/">
+<meta property="og:locale" content="ms_MY">
+<meta name="theme-color" content="#1d3fc4">
+<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="config.js"></script>
-<style>
-  :root{--bg:#0b0d10;--card:#13161b;--line:#23272e;--text:#eef0f3;--muted:#8b93a1;--accent:#e0a526;--accent-ink:#1a1305}
-  *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth}
-  body{background:var(--bg);color:var(--text);font-family:Outfit,system-ui,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
-  a{color:inherit;text-decoration:none}
-  .wrap{max-width:1100px;margin:0 auto;padding:0 16px}
-  h1,h2,.display{font-family:'Bebas Neue',Impact,sans-serif;letter-spacing:.02em;font-weight:400;line-height:1}
-  h2{font-size:clamp(36px,6vw,54px);margin-bottom:8px}
-  .eyebrow{color:var(--accent);font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px}
-  .lead{color:var(--muted);max-width:560px}
-  section{padding:72px 0;border-top:1px solid var(--line)}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 22px;border-radius:10px;font-weight:600;font-size:15px;border:1px solid var(--line);cursor:pointer;background:transparent;color:var(--text);font-family:inherit}
-  .btn-primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-  .btn:disabled{opacity:.45;cursor:not-allowed}
-
-  nav{position:sticky;top:0;z-index:10;background:rgba(11,13,16,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px;gap:12px}
-  .brand{font-family:'Bebas Neue',Impact,sans-serif;font-size:26px;letter-spacing:.04em}
-  .brand span{color:var(--accent)}
-  .navlinks{display:flex;gap:22px;font-size:14px;color:var(--muted)}
-  .navlinks a:hover{color:var(--text)}
-  @media(max-width:720px){.navlinks{display:none}}
-
-  .hero{padding:72px 0 64px;border:0;position:relative;overflow:hidden}
-  .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(60% 60% at 80% 20%,rgba(224,165,38,.14),transparent 70%);pointer-events:none}
-  .hero h1{font-size:clamp(56px,11vw,112px);max-width:820px}
-  .hero h1 em{font-style:normal;color:var(--accent)}
-  .hero .lead{font-size:18px;margin:18px 0 28px}
-  .hero-ctas{display:flex;gap:12px;flex-wrap:wrap}
-  .facts{display:flex;gap:28px;flex-wrap:wrap;margin-top:40px;color:var(--muted);font-size:14px}
-  .facts b{display:block;color:var(--text);font-size:15px}
-
-  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:32px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;min-width:0}
-  .card h3{font-size:20px;font-weight:600;margin-bottom:4px}
-  .card .muted{color:var(--muted);font-size:14px}
-  .price{font-family:'Bebas Neue',Impact,sans-serif;font-size:34px;margin-top:14px}
-  .pill{display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;border:1px solid var(--line);color:var(--muted);margin-top:10px}
-
-  /* JPJ diagram */
-  .jpj{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center;margin-top:32px}
-  @media(max-width:820px){.jpj{grid-template-columns:1fr}}
-  .car{width:100%;max-width:420px;margin:0 auto;display:block}
-  .legend{display:grid;gap:12px}
-  .legend div{display:flex;justify-content:space-between;gap:12px;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-radius:10px;font-size:15px}
-  .legend b{font-variant-numeric:tabular-nums}
-  .note{font-size:13px;color:var(--muted);margin-top:12px}
-
-  /* Quote */
-  .quote{display:grid;grid-template-columns:1.2fr 1fr;gap:20px;margin-top:32px}
-  @media(max-width:820px){.quote{grid-template-columns:1fr}}
-  label{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px}
-  input,select,textarea{width:100%;background:#0e1115;border:1px solid var(--line);color:var(--text);border-radius:10px;padding:12px 14px;font:inherit;font-size:16px}
-  input:focus,select:focus{outline:2px solid var(--accent);outline-offset:-1px}
-  .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
-  .opt{border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;font-size:14px;background:#0e1115}
-  .opt.on{border-color:var(--accent);background:rgba(224,165,38,.08)}
-  .total{font-family:'Bebas Neue',Impact,sans-serif;font-size:52px;line-height:1;margin:8px 0}
-
-  .map{width:100%;height:320px;border:0;border-radius:14px;filter:grayscale(.3) invert(.9) hue-rotate(180deg)}
-  footer{padding:32px 0 96px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
-  footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-
-  .fab{position:fixed;right:16px;bottom:16px;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,.4)}
-  [hidden]{display:none!important}
-</style>
+<!--@ld-home-->
 </head>
 <body>
+<a class="skip" href="#main">Langkau ke kandungan</a>
+<!--@header-->
 
-<nav><div class="wrap">
-  <a class="brand" href="#"><span>Carstory</span> Pro Auto</a>
-  <div class="navlinks">
-    <a href="#servis">Servis</a><a href="#jpj">Had JPJ</a><a href="#sebut-harga">Sebut Harga</a><a href="#lokasi">Lokasi</a>
+<main id="main">
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">Kedai Tinted Bumiputera · %TOWN%, %STATE%</p>
+      <h1>Kereta sejuk.<br>Cermin lulus JPJ.</h1>
+      <p class="lead">Pasang tinted ikut had JPJ, diukur dengan meter VLT, dan terima sijil digital untuk setiap kereta. Pilih slot sendiri, tiada deposit.</p>
+      <div class="ctas">
+        <a class="btn btn-cta" href="/tempah/">Tempah slot sekarang</a>
+        <a class="btn btn-line" href="/harga/">Lihat harga</a>
+      </div>
+      <ul class="trust">
+        <li><span class="tick"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 6.5l2.5 2.5L10 3.5"/></svg></span><div><b>Ikut had JPJ</b>Depan %JPJ_WS%%, sisi depan %JPJ_FS%%</div></li>
+        <li><span class="tick"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 6.5l2.5 2.5L10 3.5"/></svg></span><div><b>Sijil VLT digital</b>Bacaan setiap cermin</div></li>
+        <li><span class="tick"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 6.5l2.5 2.5L10 3.5"/></svg></span><div><b>Harga tetap</b>Ikut saiz kereta</div></li>
+        <li><span class="tick"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 6.5l2.5 2.5L10 3.5"/></svg></span><div><b>Tempah 24 jam</b>Tanpa deposit</div></li>
+      </ul>
+    </div>
+    <aside class="slot-card" aria-labelledby="slot-h">
+      <p class="eyebrow">Slot kosong terdekat</p>
+      <h2 id="slot-h">Pilih hari</h2>
+      <p class="muted">Tekan hari untuk terus tempah.</p>
+      <div class="slot-days" data-next-slots>
+        <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+      </div>
+      <a class="btn btn-ink" href="/tempah/">Lihat semua slot</a>
+    </aside>
   </div>
-  <a class="btn btn-primary wa-only" data-wa="Salam, saya nak tanya pasal tinted." style="padding:9px 16px">WhatsApp</a>
-</div></nav>
+</section>
 
-<header class="hero"><div class="wrap">
-  <div class="eyebrow">Tinted Bumiputera · Sungai Jawi, Pulau Pinang</div>
-  <h1>Sejuk dalam kereta. <em>Lulus JPJ.</em></h1>
-  <p class="lead">Pasang tinted ikut had JPJ, dengan filem tolak haba untuk cuaca panas Malaysia. Tempah slot terus melalui WhatsApp.</p>
-  <div class="hero-ctas">
-    <a class="btn btn-primary" href="#sebut-harga">Kira harga & tempah</a>
-    <a class="btn" href="#jpj">Tengok had JPJ</a>
+<section id="filem">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><p class="eyebrow">Pilihan filem</p><h2>Pilih tahap sejuk</h2></div>
+      <p>Harga "dari" untuk kereta kecil. Harga penuh ikut saiz ada di <a href="/harga/">halaman harga</a>.</p>
+    </div>
+    <div class="films" data-films><!--@films--></div>
   </div>
-  <div class="facts">
-    <div><b id="f-hours"></b>Waktu operasi</div>
-    <div><b>Sungai Jawi</b>Seberang Perai Selatan</div>
-    <div><b>Kereta · Rumah · Pejabat</b>Jenis kerja</div>
-  </div>
-</div></header>
+</section>
 
-<section id="servis"><div class="wrap">
-  <div class="eyebrow">Pilihan filem</div>
-  <h2>Pilih tahap sejuk</h2>
-  <p class="lead">Harga "dari" untuk kereta kecil, satu kereta penuh. Harga sebenar ikut saiz kereta.</p>
-  <div class="grid3" id="films"></div>
-  <p class="note" id="other-services"></p>
-</div></section>
-
-<section id="jpj"><div class="wrap">
-  <div class="eyebrow">Supaya tak kena saman</div>
-  <h2>Had tinted JPJ</h2>
-  <p class="lead">Peratus di bawah ialah cahaya yang mesti tembus (VLT). JPJ ukur cermin kilang + filem sekali, jadi kami ukur setiap cermin selepas pasang.</p>
-  <div class="jpj">
-    <svg class="car" viewBox="0 0 200 300" aria-label="Rajah kereta dari atas">
-      <rect x="30" y="10" width="140" height="280" rx="46" fill="#1a1e24" stroke="#2e333b"/>
-      <path d="M48 70 Q100 46 152 70 L144 104 Q100 92 56 104 Z" fill="#7fb4d9" opacity=".75"/>
-      <rect x="36" y="112" width="12" height="54" rx="4" fill="#7fb4d9" opacity=".5"/>
-      <rect x="152" y="112" width="12" height="54" rx="4" fill="#7fb4d9" opacity=".5"/>
-      <rect x="36" y="172" width="12" height="50" rx="4" fill="#0e1115"/>
-      <rect x="152" y="172" width="12" height="50" rx="4" fill="#0e1115"/>
-      <path d="M56 236 Q100 246 144 236 L150 262 Q100 276 50 262 Z" fill="#0e1115"/>
-      <text x="100" y="86" text-anchor="middle" font-size="12" fill="#0b0d10" font-family="Outfit" font-weight="700">70%</text>
-      <text x="100" y="146" text-anchor="middle" font-size="12" fill="#eef0f3" font-family="Outfit">50%</text>
-      <text x="100" y="202" text-anchor="middle" font-size="12" fill="#8b93a1" font-family="Outfit">Bebas</text>
-    </svg>
-    <div class="legend">
-      <div><span>Cermin depan</span><b>min. <span id="j-ws"></span>% cahaya</b></div>
-      <div><span>Tingkap sisi depan</span><b>min. <span id="j-fs"></span>% cahaya</b></div>
-      <div><span>Tingkap belakang & cermin belakang</span><b>Tiada had</b></div>
-      <p class="note" id="j-fine"></p>
+<section class="alt">
+  <div class="wrap">
+    <div class="sec-head"><div><p class="eyebrow">Cara tempah</p><h2>Tiga langkah</h2></div></div>
+    <div class="steps">
+      <div class="step"><h3>Pilih filem dan saiz</h3><p>Nampak harga terus, tiada caj tersembunyi.</p></div>
+      <div class="step"><h3>Pilih slot</h3><p>Hanya slot yang masih kosong ditunjukkan. Tiada deposit.</p></div>
+      <div class="step"><h3>Datang, siap, dapat sijil</h3><p>Kami ukur setiap cermin dan hantar sijil digital ke WhatsApp anda.</p></div>
     </div>
   </div>
-</div></section>
+</section>
 
-<section id="sebut-harga"><div class="wrap">
-  <div class="eyebrow">Anggaran segera</div>
-  <h2>Kira harga & tempah slot</h2>
-  <div class="quote">
-    <div class="card">
-      <label>Saiz kereta</label><div class="opts" id="q-size"></div>
-      <label>Jenis filem</label><div class="opts" id="q-film"></div>
-      <label for="q-name">Nama</label><input id="q-name" autocomplete="name" placeholder="Nama anda">
-      <label for="q-car">Model kereta & no. plat</label><input id="q-car" placeholder="cth. Myvi 2022, PKA 1234">
-      <label for="q-date">Tarikh pilihan</label><input id="q-date" type="date">
-    </div>
-    <div class="card" style="display:flex;flex-direction:column">
-      <div class="muted">Anggaran</div>
-      <div class="total" id="q-total"></div>
-      <div class="muted" id="q-warranty"></div>
-      <div style="flex:1"></div>
-      <button class="btn btn-primary" id="q-send" style="margin-top:24px">Hantar tempahan via WhatsApp</button>
-      <p class="note" id="q-hint">Harga akhir disahkan selepas kami tengok kereta.</p>
+<section id="jpj">
+  <div class="wrap jpj">
+    <!--@car-->
+    <div>
+      <p class="eyebrow">Supaya tak kena saman</p>
+      <h2>Had tinted JPJ</h2>
+      <p class="lead" style="margin:12px 0 24px">Peratus ialah cahaya yang mesti tembus (VLT). JPJ ukur cermin kilang dan filem bersama, jadi kami ukur selepas pasang, bukan teka.</p>
+      <div class="limits">
+        <div class="limit"><div class="limit-top"><span>Cermin depan</span><b>min %JPJ_WS%%</b></div><div class="bar"><i style="width:%JPJ_WS%%"></i></div></div>
+        <div class="limit"><div class="limit-top"><span>Tingkap sisi depan</span><b>min %JPJ_FS%%</b></div><div class="bar"><i style="width:%JPJ_FS%%"></i></div></div>
+        <div class="limit"><div class="limit-top"><span>Tingkap belakang dan cermin belakang</span><b>Tiada had</b></div></div>
+      </div>
+      <p class="note">Kesalahan pertama: denda sehingga %JPJ_FINE%. <a href="/panduan-jpj/">Baca panduan penuh</a>.</p>
     </div>
   </div>
-</div></section>
+</section>
 
-<section id="lokasi"><div class="wrap">
-  <div class="eyebrow">Datang kedai</div>
-  <h2>Lokasi</h2>
-  <p class="lead" id="addr"></p>
-  <div style="display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 24px">
-    <a class="btn" id="waze" target="_blank" rel="noopener">Buka di Waze</a>
-    <a class="btn" id="gmaps" target="_blank" rel="noopener">Google Maps</a>
-    <a class="btn" id="fb" target="_blank" rel="noopener">Facebook</a>
+<section id="sijil" class="alt">
+  <div class="wrap cert-grid">
+    <div>
+      <p class="eyebrow">Hanya di Tinted Carstory</p>
+      <h2>Sijil VLT digital untuk setiap kereta</h2>
+      <p class="lead" style="margin-top:12px">Selepas siap, anda terima pautan sijil dalam WhatsApp. Kena tahan? Tunjuk sijil.</p>
+      <ul class="checks">
+        <li><span class="tick"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 6.5l2.5 2.5L10 3.5"/></svg></span>Bacaan VLT sebenar setiap cermin</li>
+        <li><span class="tick"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 6.5l2.5 2.5L10 3.5"/></svg></span>Jenis filem dan tarikh pasang</li>
+        <li><span class="tick"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 6.5l2.5 2.5L10 3.5"/></svg></span>Tarikh tamat waranti, tak perlu simpan resit kertas</li>
+      </ul>
+    </div>
+    <div class="cert" aria-label="Contoh sijil">
+      <div class="cert-head"><span class="wordmark wordmark-ink" style="font-size:22px"><span>Tinted</span> Carstory</span><span class="muted" style="font-size:13px">Contoh</span></div>
+      <div class="cert-row"><span>Kereta</span><b>Perodua Myvi · PKA 1***</b></div>
+      <div class="cert-row"><span>Filem</span><b>Nano Ceramic</b></div>
+      <div class="cert-row"><span>Cermin depan</span><b>72% <span class="pass"><i class="dot"></i>Lulus</span></b></div>
+      <div class="cert-row"><span>Tingkap depan</span><b>52% <span class="pass"><i class="dot"></i>Lulus</span></b></div>
+      <div class="cert-row"><span>Belakang</span><b>15%</b></div>
+      <div class="cert-row"><span>Waranti hingga</span><b>12 Okt 2031</b></div>
+    </div>
   </div>
-  <iframe class="map" id="map" loading="lazy" title="Peta lokasi kedai"></iframe>
-</div></section>
+</section>
 
-<footer><div class="wrap">
-  <span>&copy; <span id="yr"></span> Carstory Pro Auto · Tinted Bumiputera</span>
-  <a href="crm.html">Staff</a>
-</div></footer>
+<!--@gallery-->
 
-<a class="btn btn-primary fab wa-only" data-wa="Salam, saya nak tempah slot tinted.">WhatsApp kami</a>
+<section id="soalan">
+  <div class="wrap">
+    <div class="sec-head"><div><p class="eyebrow">Soalan lazim</p><h2>Sebelum anda datang</h2></div></div>
+    <div class="faqs"><!--@faq--></div>
+  </div>
+</section>
 
-<script>
-const S = window.SHOP, J = window.JPJ;
-const $ = (id) => document.getElementById(id);
-const rm = (n) => 'RM' + Math.round(n).toLocaleString('en-MY');
-const waLink = (text) => S.whatsapp ? `https://wa.me/${S.whatsapp}?text=${encodeURIComponent(text)}` : '';
+<section id="lokasi" class="alt">
+  <div class="wrap">
+    <div class="sec-head"><div><p class="eyebrow">Datang kedai</p><h2>Lokasi</h2></div><p>Kami di %TOWN%, dekat %AREAS%.</p></div>
+    <div class="loc">
+      <div class="loc-card">
+        <div><h3>Alamat</h3><p>%ADDRESS%</p></div>
+        <!--@hours-->
+        <div class="row-btns"><!--@map-links--></div>
+        <div><h3>WhatsApp</h3><div><!--@contacts--></div></div>
+      </div>
+      <iframe class="map" src="%MAP_EMBED%" title="Peta lokasi kedai" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+  </div>
+</section>
+</main>
 
-// Static facts
-$('f-hours').textContent = S.hours;
-$('addr').textContent = S.address;
-$('yr').textContent = new Date().getFullYear();
-$('j-ws').textContent = J.windscreen; $('j-fs').textContent = J.frontSide; $('j-fine').textContent = J.fine;
-$('other-services').textContent = 'Juga: ' + S.otherServices.join(' · ');
-const q = encodeURIComponent(S.mapsQuery);
-$('waze').href = `https://waze.com/ul?q=${q}`;
-$('gmaps').href = `https://www.google.com/maps/search/?api=1&query=${q}`;
-$('map').src = `https://maps.google.com/maps?q=${q}&output=embed`;
-if (S.facebook) $('fb').href = S.facebook; else $('fb').hidden = true;
-
-// WhatsApp buttons disappear until the owner's number is set — a dead wa.me/ link is worse than none.
-document.querySelectorAll('.wa-only').forEach(a => {
-  const href = waLink(a.dataset.wa);
-  if (!href) { a.hidden = true; return; }
-  a.href = href; a.target = '_blank'; a.rel = 'noopener';
-});
-
-// Film cards
-$('films').innerHTML = S.films.map(f => `
-  <div class="card">
-    <h3>${f.name}</h3>
-    <div class="muted">${f.heat}</div>
-    <div class="price">${f.price ? 'dari ' + rm(f.price) : 'Tanya harga'}</div>
-    <span class="pill">Waranti ${f.warrantyYears} tahun</span>
-  </div>`).join('');
-
-// Quote builder
-const state = { size: S.carSizes[0].id, film: S.films[1]?.id || S.films[0].id };
-function opts(el, list, key, labelOf) {
-  $(el).innerHTML = list.map(o => `<div class="opt${state[key] === o.id ? ' on' : ''}" data-id="${o.id}">${labelOf(o)}</div>`).join('');
-  $(el).onclick = (e) => { const t = e.target.closest('.opt'); if (!t) return; state[key] = t.dataset.id; render(); };
-}
-function current() {
-  const size = S.carSizes.find(s => s.id === state.size), film = S.films.find(f => f.id === state.film);
-  return { size, film, total: film.price ? film.price * size.factor : 0 };
-}
-function render() {
-  opts('q-size', S.carSizes, 'size', s => s.label);
-  opts('q-film', S.films, 'film', f => f.name);
-  const { film, total } = current();
-  $('q-total').textContent = total ? rm(total) : 'Tanya harga';
-  $('q-warranty').textContent = `${film.name} · waranti ${film.warrantyYears} tahun · ikut had JPJ`;
-  $('q-send').disabled = !S.whatsapp;
-  if (!S.whatsapp) $('q-hint').textContent = 'Tempahan WhatsApp akan dibuka tidak lama lagi.';
-}
-$('q-send').onclick = () => {
-  const { size, film, total } = current();
-  const lines = [
-    'Salam, saya nak tempah tinted.',
-    `Nama: ${$('q-name').value || '-'}`,
-    `Kereta: ${$('q-car').value || '-'} (${size.label})`,
-    `Filem: ${film.name}`,
-    total ? `Anggaran di laman web: ${rm(total)}` : '',
-    `Tarikh pilihan: ${$('q-date').value || '-'}`,
-  ].filter(Boolean);
-  window.open(waLink(lines.join('\n')), '_blank', 'noopener');
-};
-$('q-date').min = new Date().toISOString().slice(0, 10);
-render();
-</script>
+<!--@footer-->
+<script type="module" src="/src/public/site.js"></script>
 </body>
 </html>

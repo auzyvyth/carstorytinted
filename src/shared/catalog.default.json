@@ -1,0 +1,13 @@
+{
+  "films": [
+    {"id":"standard","name":"Standard","tagline":"Gelap, privasi, tolak haba asas","heat_rejection":null,"uv":null,"warranty_years":null,
+     "prices":{"small":null,"sedan":null,"suv":null,"large":null}},
+    {"id":"ceramic","name":"Nano Ceramic","tagline":"Sejuk tanpa terlalu gelap","heat_rejection":null,"uv":null,"warranty_years":null,
+     "prices":{"small":null,"sedan":null,"suv":null,"large":null}},
+    {"id":"premium","name":"Premium IR","tagline":"Tolak haba inframerah paling tinggi","heat_rejection":null,"uv":null,"warranty_years":null,
+     "prices":{"small":null,"sedan":null,"suv":null,"large":null}}
+  ],
+  "slots": ["09:30", "12:30", "15:30"],
+  "closed_weekdays": [0],
+  "booking_days_ahead": 30
+}

@@ -1,0 +1,145 @@
+-- Runs against a fresh DB with supabase_stub.sql + the migration applied.
+-- Every block raises on failure; `psql -v ON_ERROR_STOP=1` stops at the first.
+\set owner   '''11111111-1111-1111-1111-111111111111'''
+\set worker  '''22222222-2222-2222-2222-222222222222'''
+\set gone    '''33333333-3333-3333-3333-333333333333'''
+
+insert into auth.users (id) values (:owner), (:worker), (:gone);
+insert into staff (id, name, role, active) values
+  (:owner, 'Maliki', 'owner', true), (:worker, 'Tam', 'staff', true), (:gone, 'Ex', 'staff', false);
+update shop_settings set films = jsonb_set(films, '{1,warranty_years}', '5'),
+                         closed_weekdays = '{}';   -- keep tests independent of the weekday
+
+create temp table t_ctx as select (shop_today() + 2) as d;
+grant select on t_ctx to anon, authenticated;
+
+-- helper: expect an error containing `want`
+create or replace function pg_temp.expect_error(sql text, want text) returns void language plpgsql as $$
+begin
+  execute sql;
+  raise exception 'EXPECTED ERROR "%" but statement succeeded: %', want, sql;
+exception when others then
+  if sqlerrm not like '%' || want || '%' then
+    raise exception 'EXPECTED "%" got "%" for: %', want, sqlerrm, sql;
+  end if;
+end $$;
+grant execute on function pg_temp.expect_error(text, text) to anon, authenticated;
+
+-- 1. The public cannot touch any table.
+begin; set local role anon;
+select pg_temp.expect_error('select * from jobs', 'permission denied');
+select pg_temp.expect_error('select * from staff', 'permission denied');
+select pg_temp.expect_error('select * from shop_settings', 'permission denied');
+select pg_temp.expect_error('select * from push_subscriptions', 'permission denied');
+select pg_temp.expect_error('select * from app_config', 'permission denied');
+select pg_temp.expect_error($q$insert into jobs (source, customer_name, phone, car_size, film_id) values ('web','x','60123456789','small','standard')$q$, 'permission denied');
+select pg_temp.expect_error('select is_staff()', 'permission denied');
+select pg_temp.expect_error($q$select push_register('{"endpoint":"https://x"}')$q$, 'permission denied');
+commit;
+\echo 'ok 1 anon locked out of tables and staff functions'
+
+-- 2. Public catalogue + slots work and leak nothing about customers.
+begin; set local role anon;
+do $$ begin
+  if get_catalog()->'films' is null then raise exception 'catalog empty'; end if;
+  if (select count(*) from available_slots((select d from t_ctx), 1)) <> 3 then
+    raise exception 'expected 3 slots on an open day'; end if;
+end $$;
+commit;
+\echo 'ok 2 catalogue + slots readable by anon'
+
+-- 3. Booking: validation, success, slot full, rate limit.
+begin; set local role anon;
+select pg_temp.expect_error($q$select book_slot('Ali','0123456789','Myvi','PKA1234','small','ceramic',(select d from t_ctx),'09:30',null,false)$q$, 'consent_required');
+select pg_temp.expect_error($q$select book_slot('Ali','12','Myvi','PKA1234','small','ceramic',(select d from t_ctx),'09:30',null,true)$q$, 'bad_phone');
+select pg_temp.expect_error($q$select book_slot('Ali','0123456789','Myvi','PKA1234','small','nope',(select d from t_ctx),'09:30',null,true)$q$, 'bad_film');
+select pg_temp.expect_error($q$select book_slot('Ali','0123456789','Myvi','PKA1234','small','ceramic',(select d from t_ctx),'08:00',null,true)$q$, 'slot_closed');
+select pg_temp.expect_error($q$select book_slot('Ali','0123456789','Myvi','PKA1234','small','ceramic',(select d from t_ctx)-3,'09:30',null,true)$q$, 'slot_closed');
+select book_slot('Ali Bin Abu','012-345 6789','Myvi','pka 1234','small','ceramic',(select d from t_ctx),'09:30','Cermin belakang sahaja',true);
+select pg_temp.expect_error($q$select book_slot('Siti','0198765432','Axia',null,'small','standard',(select d from t_ctx),'09:30',null,true)$q$, 'slot_full');
+select book_slot('Ali Bin Abu','0123456789','Myvi',null,'small','ceramic',(select d from t_ctx),'12:30',null,true);
+select book_slot('Ali Bin Abu','+60123456789','Myvi',null,'small','ceramic',(select d from t_ctx),'15:30',null,true);
+select pg_temp.expect_error($q$select book_slot('Ali Bin Abu','0123456789','Myvi',null,'small','ceramic',(select d from t_ctx)+1,'09:30',null,true)$q$, 'too_many');
+do $$ begin
+  if exists (select 1 from available_slots((select d from t_ctx), 1) where remaining > 0) then
+    raise exception 'day should be full'; end if;
+end $$;
+commit;
+\echo 'ok 3 booking validation, slot capacity, rate limit'
+
+-- 4. Staff see jobs; the phone was normalised; events were written.
+begin; set local role authenticated; set local request.jwt.claim.sub = '22222222-2222-2222-2222-222222222222';
+do $$ begin
+  if (select count(*) from jobs) <> 3 then raise exception 'staff should see 3 jobs'; end if;
+  if exists (select 1 from jobs where phone <> '60123456789') then raise exception 'phone not normalised'; end if;
+  if (select plate from jobs where plate is not null) <> 'PKA 1234' then raise exception 'plate not normalised'; end if;
+  if (select count(*) from job_events where kind = 'created') <> 3 then raise exception 'missing created events'; end if;
+end $$;
+commit;
+\echo 'ok 4 staff read jobs, data normalised, events logged'
+
+-- 5. Inactive staff see nothing.
+begin; set local role authenticated; set local request.jwt.claim.sub = '33333333-3333-3333-3333-333333333333';
+do $$ begin if (select count(*) from jobs) <> 0 then raise exception 'inactive staff can read jobs'; end if; end $$;
+commit;
+\echo 'ok 5 inactive staff locked out'
+
+-- 6. Finishing a job mints a certificate; staff cannot forge one; anon reads it masked.
+begin; set local role authenticated; set local request.jwt.claim.sub = '22222222-2222-2222-2222-222222222222';
+update jobs set stage = 'siap', vlt_windscreen = 72, vlt_front = 52, vlt_rear = 15, price = 800
+ where scheduled_slot = '09:30';
+update jobs set cert_token = 'forged' where scheduled_slot = '09:30';
+do $$ declare j jobs; begin
+  select * into j from jobs where scheduled_slot = '09:30';
+  if j.cert_token is null or length(j.cert_token) <> 36 then raise exception 'no certificate token'; end if;
+  if j.warranty_until is null then raise exception 'warranty not stamped'; end if;
+  if not exists (select 1 from job_events where job_id = j.id and kind = 'stage'
+                  and actor = '22222222-2222-2222-2222-222222222222') then raise exception 'stage event missing actor'; end if;
+end $$;
+create temp table t_tok as select cert_token from jobs where scheduled_slot = '09:30';
+grant select on t_tok to anon;
+commit;
+begin; set local role anon;
+do $$ declare c jsonb; begin
+  if get_certificate('0000') is not null then raise exception 'short token returned data'; end if;
+  if get_certificate(repeat('a', 36)) is not null then raise exception 'wrong token returned data'; end if;
+  c := get_certificate((select cert_token from t_tok));
+  if c is null then raise exception 'real token returned nothing'; end if;
+  if c->>'plate' <> 'PKA 1***' or c->>'customer' <> 'Ali' then raise exception 'masking wrong: %', c; end if;
+  if c ? 'phone' or c ? 'cert_token' then raise exception 'certificate leaks: %', c; end if;
+end $$;
+commit;
+\echo 'ok 6 certificate minted by trigger, unforgeable, masked for anon'
+
+-- 7. Only the owner changes settings, staff and deletes jobs (RLS filters silently,
+--    so check the rows did not change rather than expecting an error).
+begin; set local role authenticated; set local request.jwt.claim.sub = '22222222-2222-2222-2222-222222222222';
+update shop_settings set cars_per_slot = 9;
+update staff set role = 'owner' where id = '22222222-2222-2222-2222-222222222222';
+delete from jobs;
+commit;
+begin; set local role authenticated; set local request.jwt.claim.sub = '11111111-1111-1111-1111-111111111111';
+do $$ begin
+  if (select cars_per_slot from shop_settings) <> 1 then raise exception 'staff changed settings'; end if;
+  if (select role from staff where name = 'Tam') <> 'staff' then raise exception 'staff promoted self'; end if;
+  if (select count(*) from jobs) <> 3 then raise exception 'staff deleted jobs'; end if;
+end $$;
+update shop_settings set cars_per_slot = 2;
+do $$ begin if (select cars_per_slot from shop_settings) <> 2 then raise exception 'owner cannot edit settings'; end if; end $$;
+commit;
+\echo 'ok 7 settings, staff list and deletes are owner-only'
+
+-- 8. Push devices: one owner per endpoint, never readable by the public.
+begin; set local role authenticated; set local request.jwt.claim.sub = '22222222-2222-2222-2222-222222222222';
+select push_register('{"endpoint":"https://push.example/abc","keys":{}}');
+commit;
+begin; set local role authenticated; set local request.jwt.claim.sub = '11111111-1111-1111-1111-111111111111';
+select push_register('{"endpoint":"https://push.example/abc","keys":{}}');
+select pg_temp.expect_error($q$select push_register('{"endpoint":"http://insecure"}')$q$, 'bad_subscription');
+commit;
+do $$ begin
+  if (select count(*) from push_subscriptions) <> 1 then raise exception 'endpoint duplicated'; end if;
+  if (select user_id from push_subscriptions) <> '11111111-1111-1111-1111-111111111111' then raise exception 'endpoint not reclaimed'; end if;
+end $$;
+\echo 'ok 8 push endpoint claimed by last device owner'
+\echo 'ALL DB TESTS PASSED'
