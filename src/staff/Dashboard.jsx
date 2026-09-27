@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { actionsFor, monthStats, byScheduled } from './logic.js';
+import { actionsFor, monthStats, byScheduled, klDate } from './logic.js';
 import { StageChip, Tile, Icon, rmFmt } from './ui.jsx';
 import { shopDate, dayParts, slotLabel } from '../shared/api.js';
 import { CAR_SIZES } from '../shared/shop.js';
@@ -56,12 +56,20 @@ function WeekStrip({ jobs, settings }) {
   );
 }
 
-export default function Dashboard({ me, jobs, settings, push, devices, onOpen, onAction, onNew, error }) {
+export default function Dashboard({ me, jobs, settings, staff = [], push, devices, onOpen, onAction, onNew, error }) {
   const today = shopDate(0);
   const todays = useMemo(() => jobs.filter((j) => j.scheduled_date === today && j.stage !== 'batal').sort(byScheduled), [jobs, today]);
   const actions = useMemo(() => actionsFor(jobs, today), [jobs, today]);
   const stats = useMemo(() => monthStats(jobs, today), [jobs, today]);
   const size = (id) => CAR_SIZES.find((s) => s.id === id)?.label || '';
+  const fitter = (id) => (id === me.id ? 'Anda' : staff.find((p) => p.id === id)?.name || '');
+  // A worker's own month: cars they finished (no money, same rule as the owner tiles).
+  const mine = useMemo(() => {
+    const ym = today.slice(0, 7);
+    const lastYm = shopDate(-Number(today.slice(8, 10))).slice(0, 7);
+    const count = (k) => jobs.filter((j) => j.installer_id === me.id && ['siap', 'selesai'].includes(j.stage) && klDate(j.completed_at)?.slice(0, 7) === k).length;
+    return { cur: count(ym), prev: count(lastYm), today: todays.filter((j) => j.installer_id === me.id).length };
+  }, [jobs, me.id, today, todays]);
 
   return (
     <div className="page">
@@ -72,6 +80,12 @@ export default function Dashboard({ me, jobs, settings, push, devices, onOpen, o
         <button className="btn btn-primary" onClick={onNew}>{Icon.plus}Kerja baru</button>
       </div>
 
+      {me.role !== 'owner' && (
+        <div className="tiles">
+          <Tile label="Kereta anda siap bulan ini" value={mine.cur} cur={mine.cur} prev={mine.prev} note="vs bulan lepas" />
+          <Tile label="Kerja anda hari ini" value={mine.today} note={`daripada ${todays.length} kereta hari ini`} />
+        </div>
+      )}
       {me.role === 'owner' && (
         <div className="tiles">
           <Tile label="Jualan bulan ini" value={rmFmt(stats.cur.sales)} cur={stats.cur.sales} prev={stats.prev.sales} note="vs bulan lepas" />
@@ -88,7 +102,7 @@ export default function Dashboard({ me, jobs, settings, push, devices, onOpen, o
             <button key={j.id} className="row" onClick={() => onOpen(j)}>
               <span className="row-time">{j.scheduled_slot || '--:--'}</span>
               <span className="row-main"><span className="row-title">{j.customer_name}</span>
-                <span className="row-sub">{[j.car_model, j.plate, size(j.car_size)].filter(Boolean).join(' · ')}</span></span>
+                <span className="row-sub">{[j.car_model, j.plate, size(j.car_size), fitter(j.installer_id)].filter(Boolean).join(' · ')}</span></span>
               <StageChip stage={j.stage} />
             </button>
           )) : <div className="empty">Tiada kereta dijadualkan hari ini.</div>}

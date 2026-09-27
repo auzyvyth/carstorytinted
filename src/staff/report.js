@@ -1,12 +1,9 @@
 // Owner report maths. Pure: no React, no network, so tests/report.test.mjs can run it.
 // Every number comes from the jobs table; nothing is estimated.
 import { CAR_SIZES } from '../shared/shop.js';
-import { balance, num } from './logic.js';
+import { balance, num, klDate } from './logic.js';
 
-const TZ = 'Asia/Kuala_Lumpur';
-const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: TZ });
-// A timestamp's date in the shop's time zone (a 11pm job belongs to that day, not the next).
-export const klDate = (ts) => (ts ? (String(ts).length === 10 ? String(ts) : fmt.format(new Date(ts))) : null);
+export { klDate };
 const addDays = (iso, n) => { const d = new Date(`${iso}T00:00:00Z`); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
 const firstOfMonth = (iso, back = 0) => { const [y, m] = iso.split('-').map(Number); const d = new Date(Date.UTC(y, m - 1 - back, 1)); return d.toISOString().slice(0, 10); };
 const daysBetween = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 864e5);

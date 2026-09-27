@@ -7,7 +7,7 @@ import { DEMO } from '../shared/api.js';
 import { Sheet, StageChip, Icon, rmFmt } from './ui.jsx';
 
 const FIELDS = ['customer_name', 'phone', 'car_model', 'plate', 'car_size', 'film_id', 'scheduled_date', 'scheduled_slot',
-  'price', 'paid_amount', 'vlt_windscreen', 'vlt_front', 'vlt_rear', 'notes', 'no_followup'];
+  'price', 'paid_amount', 'vlt_windscreen', 'vlt_front', 'vlt_rear', 'notes', 'no_followup', 'installer_id'];
 const NUMERIC = ['price', 'paid_amount', 'vlt_windscreen', 'vlt_front', 'vlt_rear'];
 const ERR = {
   jobs_phone_check: 'Nombor telefon tidak sah.',
@@ -205,6 +205,11 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
           <label className="fld"><span>No. plat</span><input className="in" value={f.plate} onChange={set('plate')} maxLength={12} style={{ textTransform: 'uppercase' }} /></label>
           <label className="fld"><span>Saiz</span><select className="in" value={f.car_size} onChange={set('car_size')}>{CAR_SIZES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}</select></label>
           <label className="fld"><span>Filem</span><select className="in" value={f.film_id} onChange={set('film_id')}>{(settings?.films || []).map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
+          {/* Filled automatically by whoever presses "mula kerja"; change it if someone else did the job. */}
+          <label className="fld"><span>Dipasang oleh</span><select className="in" value={f.installer_id || ''} onChange={set('installer_id')}>
+            <option value="">Belum ditentukan</option>
+            {staff.filter((p) => p.active || p.id === f.installer_id).map((p) => <option key={p.id} value={p.id}>{p.name}{p.id === me.id ? ' (anda)' : ''}</option>)}
+          </select></label>
         </div>
       </div>
 

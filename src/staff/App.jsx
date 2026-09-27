@@ -140,7 +140,7 @@ function Workspace({ me, signOut }) {
           ? <Report jobs={jobs} settings={settings} staff={staff} />
         : view.tab === 'pipeline'
           ? <Pipeline jobs={jobs} archived={archived} onOpen={openJob} onNew={() => setCreating(true)} />
-          : <Dashboard me={me} jobs={jobs} settings={settings} push={push} devices={devices} onOpen={openJob} onAction={onAction} onNew={() => setCreating(true)} error={error} />}
+          : <Dashboard me={me} jobs={jobs} settings={settings} staff={staff} push={push} devices={devices} onOpen={openJob} onAction={onAction} onNew={() => setCreating(true)} error={error} />}
 
       <nav className="bnav">{tabs.map(([id, label, icon]) => <button key={id} aria-current={view.tab === id ? 'page' : undefined} onClick={() => go(id)}>{icon}{label}</button>)}</nav>
 

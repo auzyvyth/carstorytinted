@@ -7,6 +7,11 @@ import { dayLabel, slotLabel, shopDate, DEMO } from '../shared/api.js';
 export const waCustomer = (phone, text = '') =>
   (DEMO ? `https://wa.me/${text ? `?text=${encodeURIComponent(text)}` : ''}` : waLink(phone, text));
 
+// A timestamp's date in the shop's time zone: a job finished at 7am on the 1st in
+// Kuala Lumpur is still 23:00 on the 31st in UTC, and belongs to the 1st.
+const klFmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kuala_Lumpur' });
+export const klDate = (ts) => (ts ? (String(ts).length === 10 ? String(ts) : klFmt.format(new Date(ts))) : null);
+
 export const OPEN_STAGES = ['baru', 'disahkan', 'dalam_kerja', 'siap'];
 export const stageOf = (id) => STAGES.find((s) => s.id === id) || STAGES[0];
 export const num = (v) => (v === null || v === undefined || v === '' ? null : Number(v));
@@ -76,7 +81,7 @@ export function monthStats(jobs, today = shopDate(0)) {
   const ym = today.slice(0, 7);
   const [y, m] = ym.split('-').map(Number);
   const prevYm = `${m === 1 ? y - 1 : y}-${String(m === 1 ? 12 : m - 1).padStart(2, '0')}`;
-  const inMonth = (iso, k) => iso && String(iso).slice(0, 7) === k;
+  const inMonth = (ts, k) => Boolean(ts) && klDate(ts).slice(0, 7) === k;
   const calc = (k) => {
     const done = jobs.filter((j) => ['siap', 'selesai'].includes(j.stage) && inMonth(j.completed_at, k));
     return {

@@ -238,7 +238,8 @@ check(p.errors.length === 0, `staff app has no JS errors ${p.errors.join(' | ')}
 p = await page(1280, WORKER);
 await p.goto(`${BASE}/staff/`);
 await p.waitForSelector('.row');
-check((await p.locator('.tile').count()) === 0, 'staff role sees no money tiles');
+check((await p.locator('.tile').allInnerTexts()).every((t) => !t.includes('RM')), 'staff role sees no money figures');
+check((await p.locator('.tile').allInnerTexts()).some((t) => /kereta anda siap/i.test(t)), 'staff role sees their own car count');
 check((await p.locator('[aria-label="Tetapan kedai"]').count()) === 0, 'staff role has no settings');
 check((await p.locator('.top-tabs button:has-text("Laporan")').count()) === 0, 'staff role has no report tab');
 await p.screenshot({ path: `${SHOTS}/9-staff-dash-1280.png`, fullPage: true });
