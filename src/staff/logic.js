@@ -1,6 +1,11 @@
 // Pure rules for the staff app: no React, no network, so they can be tested.
 import { SHOP, JPJ, STAGES, waLink } from '../shared/shop.js';
-import { dayLabel, slotLabel, shopDate } from '../shared/api.js';
+import { dayLabel, slotLabel, shopDate, DEMO } from '../shared/api.js';
+
+// WhatsApp to a CUSTOMER. In the demo the sample numbers are invented and could
+// belong to a real stranger, so the link opens WhatsApp without a recipient.
+export const waCustomer = (phone, text = '') =>
+  (DEMO ? `https://wa.me/${text ? `?text=${encodeURIComponent(text)}` : ''}` : waLink(phone, text));
 
 export const OPEN_STAGES = ['baru', 'disahkan', 'dalam_kerja', 'siap'];
 export const stageOf = (id) => STAGES.find((s) => s.id === id) || STAGES[0];
@@ -56,7 +61,7 @@ export function actionsFor(jobs, today = shopDate(0)) {
           text: `Salam ${n}, macam mana tinted ${j.car_model || 'kereta'} anda setakat ini?${SHOP.googleReviewUrl ? ` Kalau puas hati, boleh tinggalkan ulasan di sini: ${SHOP.googleReviewUrl}` : ' Kalau puas hati, kongsikan dengan kawan ya.'}` };
       }
     }
-    if (a) out.push({ ...a, job: j, wa: a.text ? waLink(j.phone, a.text) : '' });
+    if (a) out.push({ ...a, job: j, wa: a.text ? waCustomer(j.phone, a.text) : '' });
   }
   return out.sort((x, y) => x.rank - y.rank || String(x.job.scheduled_date).localeCompare(String(y.job.scheduled_date)));
 }

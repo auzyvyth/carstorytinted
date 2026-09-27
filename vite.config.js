@@ -19,7 +19,9 @@ const PAGES = {
 // Indexable pages for the sitemap (sijil + staff are noindex).
 const PUBLIC_PATHS = ['/', '/tempah/', '/harga/', '/panduan-jpj/', '/privasi/'];
 
-function shopPages(siteUrl) {
+const DEMO_BANNER = `<div class="demo-bar" role="note"><b>Versi demo</b> Data dan harga contoh. Tempahan di sini tidak sampai ke kedai. <a href="/staff/">Buka app staf</a></div>`;
+
+function shopPages(siteUrl, demo) {
   const slots = {
     films: () => R.filmCards(catalog),
     prices: () => R.priceTable(catalog),
@@ -40,18 +42,22 @@ function shopPages(siteUrl) {
   };
   return {
     name: 'shop-pages',
-    transformIndexHtml(html) {
+    transformIndexHtml(html, ctx) {
+      const staffPage = (ctx?.path || '').startsWith('/staff');
       return html
         .replace(/<!--@header:?([^>]*?)-->/g, (_, active) => R.header(active.trim()))
         .replace(/<!--@([a-z-]+)-->/g, (m, k) => (slots[k] ? slots[k]() : m))
         .replace(/%([A-Z0-9_]+)%/g, (m, k) => (k in vars ? String(vars[k]) : m))
         // No canonical/og:url until the real domain is known (SITE_URL env).
         .replace(/<link rel="canonical" href="\/?[^"]*">|<meta property="og:url" content="\/?[^"]*">/g,
-          (tag) => (siteUrl ? tag : ''));
+          (tag) => (siteUrl && !demo ? tag : ''))
+        // The demo is a sales tool on a public URL: label every page, keep it out of search.
+        .replace('</head>', demo ? '<meta name="robots" content="noindex, nofollow">\n</head>' : '</head>')
+        .replace(/<body>/, demo && !staffPage ? `<body>\n${DEMO_BANNER}` : '<body>');
     },
     generateBundle() {
-      const robots = ['User-agent: *', 'Allow: /', 'Disallow: /staff/', 'Disallow: /sijil/'];
-      if (siteUrl) {
+      const robots = demo ? ['User-agent: *', 'Disallow: /'] : ['User-agent: *', 'Allow: /', 'Disallow: /staff/', 'Disallow: /sijil/'];
+      if (siteUrl && !demo) {
         robots.push(`Sitemap: ${siteUrl}/sitemap.xml`);
         const urls = PUBLIC_PATHS.map((p) => `<url><loc>${siteUrl}${p}</loc></url>`).join('');
         this.emitFile({ type: 'asset', fileName: 'sitemap.xml',
@@ -93,7 +99,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const siteUrl = (env.SITE_URL || '').replace(/\/$/, '');
   return {
-    plugins: [react(), shopPages(siteUrl)],
+    plugins: [react(), shopPages(siteUrl, env.VITE_DEMO === '1')],
     build: {
       rollupOptions: { input: Object.fromEntries(Object.entries(PAGES).map(([k, p]) => [k, resolve(__dirname, p)])) },
     },

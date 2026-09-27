@@ -1,0 +1,210 @@
+// DEMO ONLY (VITE_DEMO=1). A pretend Supabase that lives in this browser's
+// localStorage, so the shop owner can click through booking + staff app before
+// a real project exists. Imported dynamically behind the VITE_DEMO flag, so a
+// real build never ships this file. It mirrors the SQL functions' behaviour
+// closely enough to demo, not to trust: the real rules are in 0001_init.sql.
+const KEY = 'cs-demo-db-v1';
+const TZ = 'Asia/Kuala_Lumpur';
+const day = (n) => new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date(Date.now() + n * 864e5));
+const iso = (n, hh = 10) => new Date(`${day(n)}T${String(hh).padStart(2, '0')}:00:00+08:00`).toISOString();
+const uid = () => crypto.randomUUID();
+const ref = () => Math.random().toString(16).slice(2, 8).toUpperCase();
+const token = () => Array.from(crypto.getRandomValues(new Uint8Array(18)), (b) => b.toString(16).padStart(2, '0')).join('');
+
+export const DEMO_USERS = {
+  'pemilik@demo.my': { id: '00000000-0000-4000-8000-000000000001', name: 'Maliki', role: 'owner' },
+  'staf@demo.my': { id: '00000000-0000-4000-8000-000000000002', name: 'Tam', role: 'staff' },
+};
+export const DEMO_PASSWORD = 'demo1234';
+
+// Sample prices so the pitch has numbers on screen. Labelled "contoh" everywhere.
+const FILMS = [
+  { id: 'standard', name: 'Standard', tagline: 'Gelap, privasi, tolak haba asas', heat_rejection: null, uv: 99, warranty_years: 3, prices: { small: 280, sedan: 320, suv: 380, large: 450 } },
+  { id: 'ceramic', name: 'Nano Ceramic', tagline: 'Sejuk tanpa terlalu gelap', heat_rejection: null, uv: 99, warranty_years: 5, prices: { small: 650, sedan: 750, suv: 880, large: 1050 } },
+  { id: 'premium', name: 'Premium IR', tagline: 'Tolak haba inframerah paling tinggi', heat_rejection: null, uv: 99, warranty_years: 7, prices: { small: 950, sedan: 1100, suv: 1300, large: 1550 } },
+];
+
+function job(o) {
+  const created = o.created_at || iso(-2);
+  return { id: uid(), ref: ref(), created_at: created, updated_at: created, source: 'walk_in', stage: 'disahkan',
+    customer_name: '', phone: '60123456789', car_model: null, plate: null, car_size: 'small', film_id: 'ceramic',
+    scheduled_date: day(0), scheduled_slot: '09:30', quoted_price: null, price: null, paid_amount: 0,
+    vlt_windscreen: null, vlt_front: null, vlt_rear: null, notes: null, lost_reason: null, consent_at: null,
+    confirmed_msg_at: null, reminded_at: null, cert_sent_at: null, thanked_at: null, no_followup: false,
+    completed_at: null, warranty_until: null, cert_token: null, ...o };
+}
+const done = (daysAgo, o) => {
+  const c = iso(-daysAgo, 16);
+  return job({ stage: 'selesai', scheduled_date: day(-daysAgo), completed_at: c, updated_at: c, cert_token: token(),
+    cert_sent_at: c, vlt_windscreen: 74, vlt_front: 53, vlt_rear: 18, warranty_until: day(-daysAgo + 365 * 5), ...o });
+};
+
+function seed() {
+  const O = DEMO_USERS['pemilik@demo.my'].id;
+  const jobs = [
+    job({ source: 'web', stage: 'baru', customer_name: 'Nurul Huda', phone: '60134567821', car_model: 'Myvi 2021', car_size: 'small', scheduled_date: day(1), scheduled_slot: '12:30', quoted_price: 650, consent_at: iso(0, 8), created_at: iso(0, 8), notes: 'Cermin belakang sahaja kalau boleh lebih gelap' }),
+    job({ source: 'web', stage: 'baru', customer_name: 'Faizal Rahim', phone: '60195552310', car_model: 'X50', car_size: 'suv', film_id: 'premium', scheduled_date: day(2), scheduled_slot: '09:30', quoted_price: 1300, consent_at: iso(-1, 21), created_at: iso(-1, 21) }),
+    job({ stage: 'dalam_kerja', customer_name: 'Siti Aminah', phone: '60123348876', car_model: 'Axia', plate: 'PNA 8821', scheduled_slot: '09:30', price: 650 }),
+    job({ source: 'whatsapp', stage: 'disahkan', customer_name: 'Rosli Hamid', phone: '60174412098', car_model: 'City', plate: 'PKR 551', car_size: 'sedan', scheduled_slot: '15:30', price: 750 }),
+    job({ source: 'web', stage: 'disahkan', customer_name: 'Hafiz Zulkifli', phone: '60112093344', car_model: 'Hilux', car_size: 'large', film_id: 'standard', scheduled_date: day(1), scheduled_slot: '09:30', quoted_price: 450, price: 450, consent_at: iso(-3), confirmed_msg_at: iso(-3) }),
+    job({ stage: 'siap', customer_name: 'Lim Wei Jie', phone: '60162217788', car_model: 'Vios', plate: 'PMB 3302', car_size: 'sedan', scheduled_date: day(-1), price: 750, paid_amount: 200, completed_at: iso(-1, 17), cert_token: token(), vlt_windscreen: 72, vlt_front: 52, vlt_rear: 15, warranty_until: day(-1 + 365 * 5) }),
+    done(5, { customer_name: 'Aisyah Kamal', phone: '60137789012', car_model: 'Bezza', plate: 'PNC 772', car_size: 'sedan', price: 750, paid_amount: 750 }),
+    done(9, { customer_name: 'Kamarul Ariffin', phone: '60129981234', car_model: 'Ativa', car_size: 'suv', film_id: 'premium', price: 1300, paid_amount: 1300, thanked_at: iso(-4) }),
+    done(33, { customer_name: 'Mei Ling', phone: '60168830021', car_model: 'Saga', price: 280, paid_amount: 280, film_id: 'standard', thanked_at: iso(-28) }),
+    done(38, { customer_name: 'Azman Yusof', phone: '60193302211', car_model: 'Alza', car_size: 'suv', price: 880, paid_amount: 880, thanked_at: iso(-30) }),
+    job({ stage: 'batal', customer_name: 'Zainal Abidin', phone: '60145523300', car_model: 'Persona', car_size: 'sedan', scheduled_date: day(-3), lost_reason: 'Harga lebih murah di tempat lain' }),
+  ];
+  return {
+    jobs,
+    events: jobs.map((j) => ({ id: Math.random(), job_id: j.id, at: j.created_at, actor: j.source === 'web' ? null : O, kind: 'created', from_stage: null, to_stage: j.stage, note: null })),
+    settings: { id: 1, slots: ['09:30', '12:30', '15:30'], cars_per_slot: 1, closed_weekdays: [0], closed_dates: [], booking_days_ahead: 30, films: FILMS, updated_at: iso(-10) },
+    staff: Object.values(DEMO_USERS).map((u) => ({ ...u, active: true })),
+  };
+}
+
+function load() {
+  try { const d = JSON.parse(localStorage.getItem(KEY)); if (d?.jobs) return d; } catch { /* fresh */ }
+  const d = seed(); save(d); return d;
+}
+function save(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch { /* quota */ } }
+export function resetDemo() { localStorage.removeItem(KEY); localStorage.removeItem('cs-staff-auth'); Object.keys(localStorage).filter((k) => k.startsWith('cs-jobs-')).forEach((k) => localStorage.removeItem(k)); }
+
+const normPhone = (p) => { let d = String(p || '').replace(/\D/g, ''); if (d.startsWith('0')) d = `6${d}`; else if (d.startsWith('1')) d = `60${d}`; return /^60\d{8,11}$/.test(d) ? d : null; };
+const dow = (d) => new Date(`${d}T00:00:00Z`).getUTCDay();
+
+function slots(db, from, days) {
+  const out = [], s = db.settings;
+  const start = Math.max(0, Math.round((Date.parse(from) - Date.parse(day(0))) / 864e5));
+  for (let i = start; i < start + Math.min(days, 31); i++) {
+    const d = day(i);
+    if (i > s.booking_days_ahead || s.closed_weekdays.includes(dow(d)) || s.closed_dates.includes(d)) continue;
+    for (const t of s.slots) {
+      if (Date.parse(`${d}T${t}:00+08:00`) < Date.now() + 36e5) continue;
+      const used = db.jobs.filter((j) => j.scheduled_date === d && j.scheduled_slot === t && j.stage !== 'batal').length;
+      out.push({ day: d, slot: t, remaining: Math.max(0, s.cars_per_slot - used) });
+    }
+  }
+  return out;
+}
+
+function mint(j, db) {
+  if (['siap', 'selesai'].includes(j.stage) && !j.completed_at) j.completed_at = new Date().toISOString();
+  if (j.completed_at && !j.cert_token) j.cert_token = token();
+  if (j.completed_at && !j.warranty_until) {
+    const y = db.settings.films.find((f) => f.id === j.film_id)?.warranty_years;
+    if (y) { const d = new Date(j.completed_at); d.setFullYear(d.getFullYear() + y); j.warranty_until = d.toISOString().slice(0, 10); }
+  }
+}
+
+const reply = (data, status = 200) => new Response(data === undefined ? null : JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json' } });
+const fail = (code, status = 400) => reply({ message: code, code: 'P0001' }, status);
+function actorFrom(headers) {
+  const auth = new Headers(headers).get('Authorization') || '';
+  return Object.values(DEMO_USERS).find((u) => auth.includes(u.id))?.id || null;
+}
+
+export async function demoFetch(input, init = {}) {
+  await new Promise((r) => setTimeout(r, 120)); // feel like a network
+  const url = new URL(typeof input === 'string' ? input : input.url);
+  const method = (init.method || 'GET').toUpperCase();
+  const body = init.body ? JSON.parse(init.body) : null;
+  const single = String(new Headers(init.headers).get('Accept') || '').includes('vnd.pgrst.object');
+  const q = url.searchParams;
+  const eq = (k) => q.get(k)?.replace(/^eq\./, '');
+  const db = load();
+  const p = url.pathname;
+  const me = actorFrom(init.headers);
+  const out = (rows) => reply(single ? rows[0] ?? null : rows);
+
+  // --- auth: two fixed demo accounts. The access token just carries the user id.
+  if (p === '/auth/v1/token') {
+    const byRefresh = q.get('grant_type') === 'refresh_token'
+      && Object.entries(DEMO_USERS).find(([, x]) => body?.refresh_token === `r.${x.id}`);
+    if (byRefresh) body.email = byRefresh[0];
+    if (byRefresh) body.password = DEMO_PASSWORD;
+    const u = DEMO_USERS[String(body?.email).toLowerCase()];
+    if (!u || body?.password !== DEMO_PASSWORD) return reply({ error: 'invalid_grant', error_description: 'Invalid login credentials' }, 400);
+    const user = { id: u.id, aud: 'authenticated', role: 'authenticated', email: body.email, app_metadata: {}, user_metadata: {}, created_at: iso(-30) };
+    return reply({ access_token: `demo.${u.id}`, refresh_token: `r.${u.id}`, token_type: 'bearer', expires_in: 86400, expires_at: Math.floor(Date.now() / 1000) + 86400, user });
+  }
+  if (p === '/auth/v1/logout') return reply(undefined, 204);
+  if (p === '/auth/v1/user') {
+    const u = Object.entries(DEMO_USERS).find(([, x]) => x.id === me);
+    return u ? reply({ id: u[1].id, email: u[0], aud: 'authenticated', role: 'authenticated' }) : reply({ message: 'no user' }, 401);
+  }
+
+  // --- the four public functions + push
+  if (p === '/rest/v1/rpc/get_catalog') {
+    const s = db.settings;
+    return reply({ films: s.films, slots: s.slots, closed_weekdays: s.closed_weekdays, booking_days_ahead: s.booking_days_ahead });
+  }
+  if (p === '/rest/v1/rpc/available_slots') return reply(slots(db, body.p_from, body.p_days));
+  if (p === '/rest/v1/rpc/book_slot') {
+    if (!body.p_consent) return fail('consent_required');
+    if (String(body.p_name || '').trim().length < 2) return fail('bad_name');
+    const ph = normPhone(body.p_phone);
+    if (!ph) return fail('bad_phone');
+    const film = db.settings.films.find((f) => f.id === body.p_film_id);
+    if (!film) return fail('bad_film');
+    const open = slots(db, body.p_date, 1).find((r) => r.day === body.p_date && r.slot === body.p_slot);
+    if (!open) return fail('slot_closed');
+    if (open.remaining < 1) return fail('slot_full');
+    const j = job({ source: 'web', stage: 'baru', created_at: new Date().toISOString(), customer_name: body.p_name.trim(), phone: ph,
+      car_model: body.p_car_model || null, plate: body.p_plate ? body.p_plate.toUpperCase() : null, car_size: body.p_car_size, film_id: film.id,
+      scheduled_date: body.p_date, scheduled_slot: body.p_slot, quoted_price: film.prices[body.p_car_size], notes: body.p_notes || null, consent_at: new Date().toISOString() });
+    db.jobs.push(j);
+    db.events.push({ id: Math.random(), job_id: j.id, at: j.created_at, actor: null, kind: 'created', to_stage: 'baru' });
+    save(db);
+    return reply({ ref: j.ref, date: j.scheduled_date, slot: j.scheduled_slot, quoted_price: j.quoted_price });
+  }
+  if (p === '/rest/v1/rpc/get_certificate') {
+    const j = db.jobs.find((x) => x.cert_token === body.p_token && ['siap', 'selesai'].includes(x.stage));
+    if (!j) return reply(null);
+    const pl = j.plate;
+    return reply({ ref: j.ref, customer: j.customer_name.split(' ')[0], car_model: j.car_model,
+      plate: pl ? pl.slice(0, Math.max(pl.length - 3, 1)) + '*'.repeat(Math.min(3, pl.length - 1)) : null,
+      film: db.settings.films.find((f) => f.id === j.film_id)?.name, vlt_windscreen: j.vlt_windscreen, vlt_front: j.vlt_front, vlt_rear: j.vlt_rear,
+      completed_at: j.completed_at?.slice(0, 10), warranty_until: j.warranty_until });
+  }
+  if (p.startsWith('/rest/v1/rpc/')) return reply(undefined, 204);
+
+  // --- staff tables (the real app is RLS-protected; the demo trusts the login)
+  if (!me) return reply({ message: 'permission denied' }, 401);
+  if (p === '/rest/v1/staff') {
+    if (method === 'PATCH') { const s = db.staff.find((x) => x.id === eq('id')); Object.assign(s, body); save(db); return out([s]); }
+    const id = eq('id');
+    return out(id ? db.staff.filter((s) => s.id === id) : db.staff);
+  }
+  if (p === '/rest/v1/shop_settings') {
+    if (method === 'PATCH') { Object.assign(db.settings, body); save(db); }
+    return out([db.settings]);
+  }
+  if (p === '/rest/v1/job_events') {
+    if (method === 'POST') { const e = { id: Math.random(), at: new Date().toISOString(), ...body }; db.events.push(e); save(db); return out([e]); }
+    return out(db.events.filter((e) => e.job_id === eq('job_id')).sort((a, b) => String(b.at).localeCompare(String(a.at))));
+  }
+  if (p === '/rest/v1/jobs') {
+    const id = eq('id');
+    if (method === 'PATCH') {
+      const j = db.jobs.find((x) => x.id === id);
+      const before = { stage: j.stage, paid: j.paid_amount };
+      Object.assign(j, body, { updated_at: new Date().toISOString() });
+      if (j.phone) j.phone = normPhone(j.phone) || j.phone;
+      mint(j, db);
+      if (before.stage !== j.stage) db.events.push({ id: Math.random(), job_id: j.id, at: j.updated_at, actor: me, kind: 'stage', from_stage: before.stage, to_stage: j.stage });
+      if (before.paid !== j.paid_amount) db.events.push({ id: Math.random(), job_id: j.id, at: j.updated_at, actor: me, kind: 'payment', note: `Bayaran: RM${before.paid} -> RM${j.paid_amount}` });
+      save(db); return out([j]);
+    }
+    if (method === 'POST') {
+      const ph = normPhone(body.phone);
+      if (!ph) return reply({ message: 'new row violates check constraint "jobs_phone_check"' }, 400);
+      const j = job({ ...body, phone: ph, created_at: new Date().toISOString() });
+      mint(j, db); db.jobs.push(j);
+      db.events.push({ id: Math.random(), job_id: j.id, at: j.created_at, actor: me, kind: 'created', to_stage: j.stage });
+      save(db); return out([j]);
+    }
+    if (method === 'DELETE') { db.jobs = db.jobs.filter((x) => x.id !== id); save(db); return reply(undefined, 204); }
+    return out(id ? db.jobs.filter((j) => j.id === id) : db.jobs);
+  }
+  return reply({});
+}

@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from './supabase.js';
-import { CAR_SIZES, JPJ, waLink, displayPhone } from '../shared/shop.js';
+import { CAR_SIZES, JPJ, displayPhone } from '../shared/shop.js';
 import { shopDate } from '../shared/api.js';
-import { NEXT, vltWarnings, certUrl, balance, num, firstName } from './logic.js';
+import { NEXT, vltWarnings, certUrl, balance, num, firstName, waCustomer } from './logic.js';
+import { DEMO } from '../shared/api.js';
 import { Sheet, StageChip, Icon, rmFmt } from './ui.jsx';
 
 const FIELDS = ['customer_name', 'phone', 'car_model', 'plate', 'car_size', 'film_id', 'scheduled_date', 'scheduled_slot',
@@ -98,7 +99,7 @@ export default function JobDrawer({ job, settings, staff, me, api, onClose, toas
 
   async function sendCert() {
     const url = certUrl(job);
-    window.open(waLink(job.phone, `Terima kasih ${firstName(job)}! Ini sijil tinted anda (bacaan VLT dan waranti). Simpan pautan ini: ${url}`), '_blank', 'noopener');
+    window.open(waCustomer(job.phone, `Terima kasih ${firstName(job)}! Ini sijil tinted anda (bacaan VLT dan waranti). Simpan pautan ini: ${url}`), '_blank', 'noopener');
     await api.update(job.id, { cert_sent_at: new Date().toISOString() }).catch(() => {});
   }
 
@@ -136,8 +137,8 @@ export default function JobDrawer({ job, settings, staff, me, api, onClose, toas
         <div className="card box">
           <div className="box-h"><StageChip stage={job.stage} />
             <span className="row-actions">
-              <a className="btn btn-sm" href={`tel:+${job.phone}`}>Telefon</a>
-              <a className="btn btn-sm" href={waLink(job.phone)} target="_blank" rel="noopener">{Icon.wa}WhatsApp</a>
+              {!DEMO && <a className="btn btn-sm" href={`tel:+${job.phone}`}>Telefon</a>}
+              <a className="btn btn-sm" href={waCustomer(job.phone)} target="_blank" rel="noopener">{Icon.wa}WhatsApp</a>
             </span>
           </div>
           {job.lost_reason && <div className="muted">Sebab batal: {job.lost_reason}</div>}

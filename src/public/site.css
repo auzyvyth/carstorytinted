@@ -261,3 +261,6 @@ section { padding: 72px 0; }
 /* grid children must be allowed to shrink, or the date strip widens the page */
 .book-grid > * { min-width: 0; }
 @media (max-width: 900px) { .book-grid { grid-template-columns: minmax(0, 1fr); } }
+.demo-bar { background: var(--ink); color: rgba(255,255,255,.85); font-size: 13px; text-align: center; padding: 8px 16px; line-height: 1.4; }
+.demo-bar b { color: var(--brand-yellow); margin-right: 6px; text-transform: uppercase; letter-spacing: .08em; font-size: 11px; }
+.demo-bar a { color: #fff; margin-left: 6px; }

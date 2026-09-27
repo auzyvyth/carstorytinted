@@ -3,6 +3,7 @@
 // through realtime so both phones see the same board without reloading.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from './supabase.js';
+import { DEMO } from '../shared/api.js';
 import { OPEN_STAGES } from './logic.js';
 
 const cacheKey = (uid) => `cs-jobs-${uid}`;
@@ -37,7 +38,8 @@ export function useJobs(uid) {
 
   useEffect(() => {
     refresh();
-    const ch = supabase.channel('jobs-live')
+    // The demo has no realtime server; a refresh on focus is enough there.
+    const ch = DEMO ? null : supabase.channel('jobs-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'jobs' }, (p) => {
         setJobs((cur) => {
           const next = p.eventType === 'DELETE'
@@ -51,7 +53,7 @@ export function useJobs(uid) {
     // Coming back to the app after the phone slept: realtime may have missed events.
     const onVis = () => { if (document.visibilityState === 'visible') refresh(); };
     document.addEventListener('visibilitychange', onVis);
-    return () => { supabase.removeChannel(ch); document.removeEventListener('visibilitychange', onVis); };
+    return () => { if (ch) supabase.removeChannel(ch); document.removeEventListener('visibilitychange', onVis); };
   }, [refresh, uid]);
 
   // Write, then trust the returned row (triggers normalise phone, mint certificates...).

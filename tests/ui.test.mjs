@@ -53,6 +53,12 @@ async function mockSupabase(route) {
   const json = (data, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(data) });
   const p = url.pathname;
   calls.push(`${req.method()} ${p}`);
+  if (p === '/auth/v1/token') {
+    const u = body?.email === 'maliki@test.my' ? OWNER : null;
+    if (!u || body.password !== 'pw') return json({ error: 'invalid_grant' }, 400);
+    return json({ access_token: 'x', refresh_token: 'y', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
+      user: { id: u.id, aud: 'authenticated', role: 'authenticated', email: body.email } });
+  }
   if (p === '/rest/v1/rpc/get_catalog') return json({ films, slots: settings.slots, closed_weekdays: [], booking_days_ahead: 30 });
   if (p === '/rest/v1/rpc/available_slots') return json(slotsFrom(body.p_from, body.p_days));
   if (p === '/rest/v1/rpc/book_slot') {
@@ -156,9 +162,15 @@ await p.screenshot({ path: `${SHOTS}/5-cert-375.png`, fullPage: true });
 await p.goto(`${BASE}/sijil/?t=nope`);
 check((await p.locator('[data-cert]').innerText()).toLowerCase().includes('tidak dijumpai'), 'bad certificate token shows not found');
 
-// 4. Staff: owner dashboard.
-p = await page(375, OWNER);
+// 4. Staff: owner signs in through the real form (the first frame after login once crashed).
+p = await page(375);
 await p.goto(`${BASE}/staff/`);
+await p.fill('input[type=email]', 'maliki@test.my');
+await p.fill('input[type=password]', 'wrong');
+await p.click('button:has-text("Masuk")');
+check(await p.locator('.warnline').innerText().then((t) => t.includes('salah')).catch(() => false), 'wrong password shows an error');
+await p.fill('input[type=password]', 'pw');
+await p.click('button:has-text("Masuk")');
 await p.waitForSelector('.tile');
 check((await p.locator('.tile').count()) === 4, 'owner sees 4 money tiles');
 const act = await p.locator('.row-act').allInnerTexts();

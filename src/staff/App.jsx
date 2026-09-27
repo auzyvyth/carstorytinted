@@ -7,6 +7,17 @@ import Pipeline from './Pipeline.jsx';
 import JobDrawer from './JobDrawer.jsx';
 import Settings from './Settings.jsx';
 import { Icon } from './ui.jsx';
+import { DEMO } from '../shared/api.js';
+
+// Sales demo only: say so on every screen, and let the viewer start over.
+function DemoBar() {
+  if (!DEMO) return null;
+  const reset = async () => {
+    const m = await import('../shared/demoBackend.js');
+    m.resetDemo(); location.href = '/staff/';
+  };
+  return <div className="demo-bar" role="note"><b>Versi demo</b>Data contoh, disimpan dalam telefon ini sahaja.<button onClick={reset}>Mula semula</button></div>;
+}
 
 // URL holds the view (?tab=pipeline&job=<id>) so a push notification can open
 // the exact job, and the phone's back button closes a drawer instead of the app.
@@ -24,6 +35,10 @@ function Login() {
   const [pw, setPw] = useState('');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
+  async function demoLogin(em) {
+    const { DEMO_PASSWORD } = await import('../shared/demoBackend.js');
+    await supabase.auth.signInWithPassword({ email: em, password: DEMO_PASSWORD });
+  }
   async function submit(e) {
     e.preventDefault(); setBusy(true); setErr('');
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password: pw });
@@ -31,14 +46,21 @@ function Login() {
     if (error) setErr(error.status === 400 ? 'Emel atau kata laluan salah.' : 'Tidak dapat log masuk. Semak internet.');
   }
   return (
-    <div className="login"><form className="card" onSubmit={submit}>
+    <><DemoBar /><div className="login"><form className="card" onSubmit={submit}>
       <div className="micro">Tinted Carstory</div><h1>Log masuk staf</h1>
       <label className="fld"><span>Emel</span><input className="in" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
       <label className="fld"><span>Kata laluan</span><input className="in" type="password" autoComplete="current-password" value={pw} onChange={(e) => setPw(e.target.value)} required /></label>
       {err && <div className="warnline" role="alert">{err}</div>}
       <button className="btn btn-primary" disabled={busy}>{busy ? 'Sebentar...' : 'Masuk'}</button>
       <div className="muted" style={{ fontSize: 12 }}>Lupa kata laluan? Hubungi pemilik kedai.</div>
-    </form></div>
+      {DEMO && (
+        <div style={{ display: 'grid', gap: 8, borderTop: '1px solid var(--line)', paddingTop: 12 }}>
+          <div className="micro">Cuba demo</div>
+          <button type="button" className="btn" onClick={() => demoLogin('pemilik@demo.my')}>Masuk sebagai pemilik (Maliki)</button>
+          <button type="button" className="btn" onClick={() => demoLogin('staf@demo.my')}>Masuk sebagai staf (Tam)</button>
+        </div>
+      )}
+    </form></div></>
   );
 }
 
@@ -92,6 +114,7 @@ function Workspace({ me, signOut }) {
   const tabs = [['dashboard', 'Dashboard', Icon.home], ['pipeline', 'Pipeline', Icon.board]];
   return (
     <>
+      <DemoBar />
       <header className="top"><div className="top-in">
         <span className="wm"><span>Tinted</span> Carstory</span>
         <nav className="top-tabs">{tabs.map(([id, label]) => <button key={id} aria-current={view.tab === id ? 'page' : undefined} onClick={() => go(id)}>{label}</button>)}</nav>
@@ -133,6 +156,7 @@ export default function App() {
 
   useEffect(() => {
     if (!session) { setMe(session === null ? null : undefined); return; }
+    setMe(undefined);
     supabase.from('staff').select('id, name, role, active').eq('id', session.user.id).maybeSingle()
       .then(({ data }) => setMe(data && data.active ? data : false));
   }, [session]);
@@ -143,8 +167,11 @@ export default function App() {
     await supabase.auth.signOut();
   };
 
-  if (session === undefined || (session && me === undefined)) return <div className="login"><div className="muted">Memuatkan...</div></div>;
+  if (session === undefined) return <div className="login"><div className="muted">Memuatkan...</div></div>;
   if (!session) return <Login />;
+  // Just signed in: the staff row is still loading (me is null/undefined). Never render
+  // the workspace without it; that crashed on the first frame after login.
+  if (me === null || me === undefined) return <div className="login"><div className="muted">Memuatkan...</div></div>;
   if (me === false) {
     return <div className="login"><div className="card"><h1>Tiada akses</h1><p className="muted">Akaun ini bukan staf aktif kedai.</p><button className="btn" onClick={signOut}>Log keluar</button></div></div>;
   }

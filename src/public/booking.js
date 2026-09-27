@@ -2,7 +2,7 @@
 // The database re-checks everything (slot still free, phone valid, rate limit),
 // so this page only has to be pleasant, never trusted.
 import './site.css';
-import { rpc, apiReady, shopDate, dayParts, dayLabel, slotLabel } from '../shared/api.js';
+import { rpc, apiReady, shopDate, dayParts, dayLabel, slotLabel, DEMO } from '../shared/api.js';
 import { SHOP, CAR_SIZES, waLink, displayPhone, fullAddress } from '../shared/shop.js';
 import { esc, rm, hasNum } from '../shared/render.js';
 import defaults from '../shared/catalog.default.json';
@@ -116,6 +116,7 @@ function doneView() {
   <p class="muted">Nombor rujukan anda</p>
   <p class="lead" style="margin:20px auto 0">${dayLabel(d.date)}, ${slotLabel(d.slot)}<br>${esc(fullAddress())}</p>
   <p class="note">Kami akan WhatsApp untuk sahkan. Mahu cepat? Hantar mesej kepada kami sekarang.</p>
+  ${DEMO ? '<p class="note"><b>Demo:</b> tempahan ini kini ada di <a href="/staff/">app staf</a> (log masuk sebagai pemilik).</p>' : ''}
   <div class="row-btns">
     <a class="btn btn-cta" href="${waLink(contact.phone, shopMsg)}" rel="noopener">WhatsApp ${esc(contact.name)}</a>
     <button type="button" class="btn btn-line" data-ics>Simpan ke kalendar</button>

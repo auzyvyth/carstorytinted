@@ -1,9 +1,15 @@
 // Public pages talk to the database ONLY through the four anon functions
 // (see supabase/migrations/0001_init.sql). Plain fetch keeps these pages light;
 // the staff app uses supabase-js instead.
-export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
-export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+// VITE_DEMO=1: sales demo with sample data kept in this browser (demoBackend.js).
+// It is a build-time constant, so a real build drops the demo code entirely.
+export const DEMO = import.meta.env.VITE_DEMO === '1';
+export const SUPABASE_URL = DEMO ? 'https://demo.invalid' : import.meta.env.VITE_SUPABASE_URL || '';
+export const SUPABASE_ANON_KEY = DEMO ? 'demo' : import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 export const apiReady = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+export const apiFetch = DEMO
+  ? (...a) => import('./demoBackend.js').then((m) => m.demoFetch(...a))
+  : (...a) => fetch(...a);
 
 export class ApiError extends Error {
   constructor(code) { super(code); this.code = code; }
@@ -13,7 +19,7 @@ export async function rpc(fn, args = {}) {
   if (!apiReady) throw new ApiError('not_configured');
   let res;
   try {
-    res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+    res = await apiFetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
       method: 'POST',
       headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(args),
