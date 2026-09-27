@@ -32,3 +32,25 @@ if (mast && btn && nav) {
   // Rotating to landscape / widening past the breakpoint must not leave the page locked.
   phone.addEventListener('change', (e) => { if (!e.matches) setOpen(false); });
 }
+
+// Pinned header that tucks away while reading down and comes back the moment
+// the visitor scrolls up. Never tucks near the top, while the menu is open, or
+// while keyboard focus is inside the header.
+if (mast) {
+  const DEAD = 6; // px of travel ignored, so a trembling thumb doesn't flicker it
+  let lastY = window.scrollY;
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const y = Math.max(0, window.scrollY);
+    const dy = y - lastY;
+    if (Math.abs(dy) < DEAD) return;
+    const keep = y < mast.offsetHeight * 2 || mast.classList.contains('open') || mast.contains(document.activeElement);
+    mast.classList.toggle('tucked', dy > 0 && !keep);
+    lastY = y;
+  };
+  window.addEventListener('scroll', () => {
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
+  }, { passive: true });
+  mast.addEventListener('focusin', () => mast.classList.remove('tucked'));
+}

@@ -97,6 +97,12 @@ section { padding: 80px 0; }
 .mast-nav a[aria-current] { font-weight: 600; }
 .mast-menu, .mast-menu[hidden] { display: none; }
 
+/* hides while scrolling down (nav.js adds .tucked), slides back on any scroll up;
+   the extra 12px takes the drop shadow off-screen too */
+.mast { transition: transform .25s ease; will-change: transform; }
+.mast.tucked { transform: translateY(calc(-100% - 12px)); }
+@media (prefers-reduced-motion: reduce) { .mast { transition: none; } }
+
 /* phones + small tablets: wordmark | Tempah slot | menu button, links collapse */
 @media (max-width: 860px) {
   .mast { background: #fff; backdrop-filter: none; }
