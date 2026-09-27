@@ -101,3 +101,32 @@ export function matches(j, q) {
 
 export const byScheduled = (a, b) =>
   `${a.scheduled_date || '9999'}${a.scheduled_slot || ''}`.localeCompare(`${b.scheduled_date || '9999'}${b.scheduled_slot || ''}`);
+
+// Cars already holding each slot on one day (cancelled jobs free their slot).
+// Same rule as the DB trigger jobs_check_capacity; the DB is the one that refuses.
+export function slotUse(jobs, date, exceptId = null) {
+  const use = {};
+  for (const j of jobs) {
+    if (j.scheduled_date !== date || !j.scheduled_slot || j.stage === 'batal' || j.id === exceptId) continue;
+    use[j.scheduled_slot] = (use[j.scheduled_slot] || 0) + 1;
+  }
+  return use;
+}
+
+// A walk-in is being worked on now: the slot running at this moment (the latest
+// one already started), or the first free one after it. '' if today is full.
+export function walkInSlot(settings, jobs, now = new Date()) {
+  const slots = settings?.slots || [];
+  const cap = settings?.cars_per_slot || 1;
+  const hm = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Asia/Kuala_Lumpur' }).format(now);
+  const use = slotUse(jobs, shopDate(0));
+  const started = slots.filter((t) => t <= hm);
+  const from = started.length ? slots.indexOf(started[started.length - 1]) : 0;
+  return slots.slice(from).find((t) => (use[t] || 0) < cap) || '';
+}
+
+export function isClosedDay(settings, iso) {
+  if (!settings || !iso) return false;
+  const [y, m, d] = iso.split('-').map(Number);
+  return settings.closed_weekdays.includes(new Date(Date.UTC(y, m - 1, d)).getUTCDay()) || settings.closed_dates.includes(iso);
+}

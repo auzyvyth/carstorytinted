@@ -133,7 +133,7 @@ function Workspace({ me, signOut }) {
       <nav className="bnav">{tabs.map(([id, label, icon]) => <button key={id} aria-current={view.tab === id ? 'page' : undefined} onClick={() => go(id)}>{icon}{label}</button>)}</nav>
 
       {(openJobRow || creating) && settings && (
-        <JobDrawer key={openJobRow?.id || 'new'} job={creating ? null : openJobRow} settings={settings} staff={staff} me={me}
+        <JobDrawer key={openJobRow?.id || 'new'} job={creating ? null : openJobRow} jobs={jobs} settings={settings} staff={staff} me={me}
           api={{ update, create, remove }} toast={toast}
           onClose={() => (creating ? setCreating(false) : closeJob())} />
       )}

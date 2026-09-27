@@ -32,7 +32,8 @@ function job(o) {
     scheduled_date: day(0), scheduled_slot: '09:30', quoted_price: null, price: null, paid_amount: 0,
     vlt_windscreen: null, vlt_front: null, vlt_rear: null, notes: null, lost_reason: null, consent_at: null,
     confirmed_msg_at: null, reminded_at: null, cert_sent_at: null, thanked_at: null, no_followup: false,
-    completed_at: null, warranty_until: null, cert_token: null, ...o };
+    completed_at: null, warranty_until: null, cert_token: null,
+    no_show: false, archived_at: null, installer_id: null, payment_method: null, nagged_at: null, ...o };
 }
 const done = (daysAgo, o) => {
   const c = iso(-daysAgo, 16);
@@ -86,6 +87,20 @@ function slots(db, from, days) {
     }
   }
   return out;
+}
+
+// Mirrors the DB triggers jobs_before_write + jobs_check_capacity (0002_dashboard.sql).
+function rules(j, before, db, me) {
+  const owner = DEMO_USERS['pemilik@demo.my'].id === me;
+  if (before && j.archived_at !== before.archived_at && !owner) j.archived_at = before.archived_at;
+  if (before && ['baru', 'disahkan', 'dalam_kerja'].includes(j.stage) && ['siap', 'selesai'].includes(before.stage)) { j.completed_at = null; j.warranty_until = null; }
+  if (j.archived_at) j.stage = 'batal';
+  if (j.stage !== 'batal') j.no_show = false;
+  if (j.stage === 'dalam_kerja' && !j.installer_id && me) j.installer_id = me;
+  if (!j.scheduled_date || !j.scheduled_slot || j.stage === 'batal') return null;
+  if (before && before.stage !== 'batal' && before.scheduled_date === j.scheduled_date && before.scheduled_slot === j.scheduled_slot) return null;
+  const used = db.jobs.filter((x) => x.id !== j.id && x.scheduled_date === j.scheduled_date && x.scheduled_slot === j.scheduled_slot && x.stage !== 'batal').length;
+  return used >= db.settings.cars_per_slot ? 'slot_full' : null;
 }
 
 function mint(j, db) {
@@ -189,7 +204,11 @@ export async function demoFetch(input, init = {}) {
     if (method === 'PATCH') {
       const j = db.jobs.find((x) => x.id === id);
       const before = { stage: j.stage, paid: j.paid_amount };
-      Object.assign(j, body, { updated_at: new Date().toISOString() });
+      const was = { ...j };
+      const next = { ...j, ...body };
+      const bad = rules(next, was, db, me);
+      if (bad) return fail(bad);
+      Object.assign(j, next, { updated_at: new Date().toISOString() });
       if (j.phone) j.phone = normPhone(j.phone) || j.phone;
       mint(j, db);
       if (before.stage !== j.stage) db.events.push({ id: Math.random(), job_id: j.id, at: j.updated_at, actor: me, kind: 'stage', from_stage: before.stage, to_stage: j.stage });
@@ -200,11 +219,13 @@ export async function demoFetch(input, init = {}) {
       const ph = normPhone(body.phone);
       if (!ph) return reply({ message: 'new row violates check constraint "jobs_phone_check"' }, 400);
       const j = job({ ...body, phone: ph, created_at: new Date().toISOString() });
+      const bad = rules(j, null, db, me);
+      if (bad) return fail(bad);
       mint(j, db); db.jobs.push(j);
       db.events.push({ id: Math.random(), job_id: j.id, at: j.created_at, actor: me, kind: 'created', to_stage: j.stage });
       save(db); return out([j]);
     }
-    if (method === 'DELETE') { db.jobs = db.jobs.filter((x) => x.id !== id); save(db); return reply(undefined, 204); }
+    if (method === 'DELETE') return reply({ message: 'permission denied for table jobs' }, 403);
     return out(id ? db.jobs.filter((j) => j.id === id) : db.jobs);
   }
   return reply({});

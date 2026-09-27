@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase } from './supabase.js';
 import { CAR_SIZES, JPJ, displayPhone } from '../shared/shop.js';
 import { shopDate } from '../shared/api.js';
-import { NEXT, vltWarnings, certUrl, balance, num, firstName, waCustomer } from './logic.js';
+import { NEXT, vltWarnings, certUrl, balance, num, firstName, waCustomer, slotUse, walkInSlot, isClosedDay } from './logic.js';
 import { DEMO } from '../shared/api.js';
 import { Sheet, StageChip, Icon, rmFmt } from './ui.jsx';
 
@@ -12,13 +12,16 @@ const NUMERIC = ['price', 'paid_amount', 'vlt_windscreen', 'vlt_front', 'vlt_rea
 const ERR = {
   jobs_phone_check: 'Nombor telefon tidak sah.',
   jobs_customer_name_check: 'Isi nama pelanggan.',
+  slot_full: 'Slot ini sudah penuh. Pilih masa lain.',
 };
 const errText = (e) => ERR[Object.keys(ERR).find((k) => String(e?.message).includes(k))] || 'Gagal simpan. Cuba lagi.';
 
-function toForm(job, settings) {
+function toForm(job, settings, jobs = []) {
   const f = {};
   for (const k of FIELDS) f[k] = job?.[k] ?? '';
-  if (!job) Object.assign(f, { car_size: 'small', film_id: settings?.films?.[0]?.id || 'standard', scheduled_date: shopDate(0), paid_amount: 0, no_followup: false });
+  // A new job is usually a walk-in being done now: today, in the slot running now.
+  if (!job) Object.assign(f, { car_size: 'small', film_id: settings?.films?.[0]?.id || 'standard', scheduled_date: shopDate(0),
+    scheduled_slot: walkInSlot(settings, jobs), paid_amount: 0, no_followup: false });
   // Staff read and type Malaysian numbers the local way; the DB stores 60xxxxxxxxx.
   if (job?.phone) f.phone = displayPhone(job.phone);
   if (job && (job.price === null || job.price === undefined) && job.quoted_price !== null) f.price = job.quoted_price ?? '';
@@ -35,9 +38,9 @@ function toRow(f) {
   return r;
 }
 
-export default function JobDrawer({ job, settings, staff, me, api, onClose, toast }) {
+export default function JobDrawer({ job, jobs = [], settings, staff, me, api, onClose, toast }) {
   const isNew = !job;
-  const [f, setF] = useState(() => toForm(job, settings));
+  const [f, setF] = useState(() => toForm(job, settings, jobs));
   const [source, setSource] = useState('walk_in');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
@@ -56,12 +59,17 @@ export default function JobDrawer({ job, settings, staff, me, api, onClose, toas
 
   const who = (id) => staff.find((s) => s.id === id)?.name || 'Pelanggan (online)';
   const warns = vltWarnings(f);
+  const cap = settings?.cars_per_slot || 1;
+  const use = f.scheduled_date ? slotUse(jobs, f.scheduled_date, job?.id) : {};
   const digits = String(f.phone).replace(/\D/g, '');
 
   async function save(extra = {}) {
     setErr('');
     if (!String(f.customer_name).trim()) return setErr('Isi nama pelanggan.'), null;
     if (digits.length < 9) return setErr('Nombor telefon terlalu pendek.'), null;
+    // A dated job with no slot is invisible to capacity: the website would sell that time again.
+    const moved = isNew || f.scheduled_date !== (job.scheduled_date || '') || f.scheduled_slot !== (job.scheduled_slot || '');
+    if (moved && f.scheduled_date && !f.scheduled_slot && (extra.stage || job?.stage) !== 'batal') return setErr('Pilih slot, supaya laman web tidak jual masa yang sama.'), null;
     setBusy(true);
     try {
       const row = { ...toRow(f), ...extra };
@@ -170,12 +178,19 @@ export default function JobDrawer({ job, settings, staff, me, api, onClose, toas
         <div className="grid2">
           <label className="fld"><span>Tarikh</span><input className="in" type="date" value={f.scheduled_date || ''} onChange={set('scheduled_date')} /></label>
           <label className="fld"><span>Slot</span><select className="in" value={f.scheduled_slot || ''} onChange={set('scheduled_slot')}>
-            <option value="">Tiada</option>{(settings?.slots || []).map((s) => <option key={s} value={s}>{s}</option>)}
+            <option value="">{f.scheduled_date ? 'Pilih slot' : 'Tiada'}</option>
+            {(settings?.slots || []).map((t) => {
+              const n = use[t] || 0;
+              const full = n >= cap && t !== job?.scheduled_slot;
+              return <option key={t} value={t} disabled={full}>{t} · {full ? 'penuh' : `${n}/${cap}`}</option>;
+            })}
             {f.scheduled_slot && !(settings?.slots || []).includes(f.scheduled_slot) && <option value={f.scheduled_slot}>{f.scheduled_slot}</option>}
           </select></label>
           <label className="fld"><span>Harga (RM)</span><input className="in tab-num" type="number" inputMode="decimal" min="0" value={f.price} onChange={set('price')} /></label>
           <label className="fld"><span>Sudah dibayar (RM)</span><input className="in tab-num" type="number" inputMode="decimal" min="0" value={f.paid_amount} onChange={set('paid_amount')} /></label>
         </div>
+        {isClosedDay(settings, f.scheduled_date) && <div className="warnline">Tarikh ini ditanda tutup dalam tetapan kedai.</div>}
+        {f.scheduled_date && (settings?.slots || []).length > 0 && settings.slots.every((t) => (use[t] || 0) >= cap && t !== job?.scheduled_slot) && <div className="warnline">Semua slot pada tarikh ini penuh.</div>}
         {job?.quoted_price !== null && job?.quoted_price !== undefined && <div className="muted" style={{ fontSize: 12 }}>Harga di laman web semasa tempah: {rmFmt(job.quoted_price)}</div>}
       </div>
 

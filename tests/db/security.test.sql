@@ -7,8 +7,10 @@
 insert into auth.users (id) values (:owner), (:worker), (:gone);
 insert into staff (id, name, role, active) values
   (:owner, 'Maliki', 'owner', true), (:worker, 'Tam', 'staff', true), (:gone, 'Ex', 'staff', false);
-update shop_settings set films = jsonb_set(films, '{1,warranty_years}', '5'),
-                         closed_weekdays = '{}';   -- keep tests independent of the weekday
+-- Fixed test films, so the owner's real price list can change without breaking this.
+update shop_settings set closed_weekdays = '{}',   -- keep tests independent of the weekday
+  films = '[{"id":"standard","name":"Standard","warranty_years":3,"prices":{"small":250,"sedan":null,"suv":null,"large":null}},
+            {"id":"ceramic","name":"Ceramic","warranty_years":5,"prices":{"small":600,"sedan":null,"suv":null,"large":null}}]';
 
 create temp table t_ctx as select (shop_today() + 2) as d;
 grant select on t_ctx to anon, authenticated;
@@ -111,12 +113,12 @@ end $$;
 commit;
 \echo 'ok 6 certificate minted by trigger, unforgeable, masked for anon'
 
--- 7. Only the owner changes settings, staff and deletes jobs (RLS filters silently,
+-- 7. Only the owner changes settings and the staff list; nobody hard-deletes jobs (RLS filters silently,
 --    so check the rows did not change rather than expecting an error).
 begin; set local role authenticated; set local request.jwt.claim.sub = '22222222-2222-2222-2222-222222222222';
 update shop_settings set cars_per_slot = 9;
 update staff set role = 'owner' where id = '22222222-2222-2222-2222-222222222222';
-delete from jobs;
+select pg_temp.expect_error('delete from jobs', 'permission denied');
 commit;
 begin; set local role authenticated; set local request.jwt.claim.sub = '11111111-1111-1111-1111-111111111111';
 do $$ begin
@@ -124,10 +126,11 @@ do $$ begin
   if (select role from staff where name = 'Tam') <> 'staff' then raise exception 'staff promoted self'; end if;
   if (select count(*) from jobs) <> 3 then raise exception 'staff deleted jobs'; end if;
 end $$;
+select pg_temp.expect_error('delete from jobs', 'permission denied');
 update shop_settings set cars_per_slot = 2;
 do $$ begin if (select cars_per_slot from shop_settings) <> 2 then raise exception 'owner cannot edit settings'; end if; end $$;
 commit;
-\echo 'ok 7 settings, staff list and deletes are owner-only'
+\echo 'ok 7 settings + staff list owner-only, no hard delete'
 
 -- 8. Push devices: one owner per endpoint, never readable by the public.
 begin; set local role authenticated; set local request.jwt.claim.sub = '22222222-2222-2222-2222-222222222222';
@@ -142,4 +145,46 @@ do $$ begin
   if (select user_id from push_subscriptions) <> '11111111-1111-1111-1111-111111111111' then raise exception 'endpoint not reclaimed'; end if;
 end $$;
 \echo 'ok 8 push endpoint claimed by last device owner'
+
+-- 9. Capacity holds for staff writes too (cars_per_slot is 2 after test 7).
+--    09:30 and 12:30 on day d each hold one web booking already.
+begin; set local role authenticated; set local request.jwt.claim.sub = '22222222-2222-2222-2222-222222222222';
+insert into jobs (source, stage, customer_name, phone, car_size, film_id, scheduled_date, scheduled_slot)
+  values ('walk_in', 'disahkan', 'Walk One', '0111111111', 'small', 'standard', (select d from t_ctx), '12:30');
+select pg_temp.expect_error($q$insert into jobs (source, stage, customer_name, phone, car_size, film_id, scheduled_date, scheduled_slot)
+  values ('phone', 'disahkan', 'Walk Two', '0122222222', 'small', 'standard', (select d from t_ctx), '12:30')$q$, 'slot_full');
+-- moving a job INTO a full slot fails; editing a job already in it does not
+select pg_temp.expect_error($q$update jobs set scheduled_slot = '12:30' where customer_name = 'Ali Bin Abu' and scheduled_slot = '15:30'$q$, 'slot_full');
+update jobs set notes = 'ok' where customer_name = 'Walk One';
+-- cancelling frees the slot, reopening re-checks it
+update jobs set stage = 'batal' where customer_name = 'Walk One';
+insert into jobs (source, stage, customer_name, phone, car_size, film_id, scheduled_date, scheduled_slot)
+  values ('phone', 'disahkan', 'Walk Two', '0122222222', 'small', 'standard', (select d from t_ctx), '12:30');
+select pg_temp.expect_error($q$update jobs set stage = 'baru' where customer_name = 'Walk One'$q$, 'slot_full');
+commit;
+\echo 'ok 9 slot capacity enforced on staff inserts, moves and reopens'
+
+-- 10. Reopen clears the finish date; installer stamped on start; archive is owner-only.
+begin; set local role authenticated; set local request.jwt.claim.sub = '22222222-2222-2222-2222-222222222222';
+update jobs set stage = 'disahkan' where scheduled_slot = '09:30';
+update jobs set stage = 'dalam_kerja' where customer_name = 'Walk Two';
+update jobs set archived_at = now() where customer_name = 'Walk Two';
+do $$ begin
+  if (select completed_at from jobs where scheduled_slot = '09:30') is not null then raise exception 'reopen kept completed_at'; end if;
+  if (select warranty_until from jobs where scheduled_slot = '09:30') is not null then raise exception 'reopen kept warranty'; end if;
+  if (select installer_id from jobs where customer_name = 'Walk Two') <> '22222222-2222-2222-2222-222222222222' then raise exception 'installer not stamped'; end if;
+  if (select archived_at from jobs where customer_name = 'Walk Two') is not null then raise exception 'staff archived a job'; end if;
+end $$;
+commit;
+begin; set local role authenticated; set local request.jwt.claim.sub = '11111111-1111-1111-1111-111111111111';
+update jobs set archived_at = now() where customer_name = 'Walk Two';
+do $$ begin
+  if (select stage from jobs where customer_name = 'Walk Two') <> 'batal' then raise exception 'archive did not cancel'; end if;
+  if push_device_count() <> 1 then raise exception 'device count wrong'; end if;
+end $$;
+commit;
+begin; set local role anon;
+select pg_temp.expect_error('select push_device_count()', 'permission denied');
+commit;
+\echo 'ok 10 reopen clears finish, installer stamped, archive owner-only, device count staff-only'
 \echo 'ALL DB TESTS PASSED'
