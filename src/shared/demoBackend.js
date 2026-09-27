@@ -5,7 +5,7 @@
 // closely enough to demo, not to trust: the real rules are in 0001_init.sql.
 import catalog from './catalog.default.json';
 
-const KEY = 'cs-demo-db-v3';
+const KEY = 'cs-demo-db-v4';
 const TZ = 'Asia/Kuala_Lumpur';
 const day = (n) => new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date(Date.now() + n * 864e5));
 const iso = (n, hh = 10) => new Date(`${day(n)}T${String(hh).padStart(2, '0')}:00:00+08:00`).toISOString();
@@ -24,16 +24,21 @@ export const DEMO_PASSWORD = 'demo1234';
 const SAMPLE_UP = { sedan: 1.2, suv: 1.4, large: 1.7 };
 const FILMS = catalog.films.map((f) => ({ ...f, prices: { small: f.prices.small,
   ...Object.fromEntries(Object.entries(SAMPLE_UP).map(([k, m]) => [k, Math.round(f.prices.small * m / 10) * 10])) } }));
+// Sample add-on prices (the owner has not given real ones yet; the demo banner says "contoh").
+const ADDON_SMALL = { depan: 80, belakang: 40, sunroof: 60, buang: 50 };
+const ADDONS = catalog.addons.map((a) => ({ ...a, prices: { small: ADDON_SMALL[a.id],
+  ...Object.fromEntries(Object.entries(SAMPLE_UP).map(([k, m]) => [k, Math.round(ADDON_SMALL[a.id] * m / 10) * 10])) } }));
 
 function job(o) {
   const created = o.created_at || iso(-2);
   return { id: uid(), ref: ref(), created_at: created, updated_at: created, source: 'walk_in', stage: 'disahkan',
     customer_name: '', phone: '60123456789', car_model: null, plate: null, car_size: 'small', film_id: 'nano_ceramic',
-    scheduled_date: day(0), scheduled_slot: '09:30', quoted_price: null, price: null, paid_amount: 0,
+    scheduled_date: day(0), scheduled_slot: '09:00', quoted_price: null, price: null, paid_amount: 0,
     vlt_windscreen: null, vlt_front: null, vlt_rear: null, notes: null, lost_reason: null, consent_at: null,
     confirmed_msg_at: null, reminded_at: null, cert_sent_at: null, thanked_at: null, no_followup: false,
     completed_at: null, warranty_until: null, cert_token: null,
-    no_show: false, archived_at: null, installer_id: null, payment_method: null, nagged_at: null, ...o };
+    no_show: false, archived_at: null, installer_id: null, payment_method: null, nagged_at: null,
+    addons: [], wait_mode: null, heard_from: null, manage_token: token(), customer_confirmed_at: null, waitlist_at: null, ...o };
 }
 const done = (daysAgo, o) => {
   const c = iso(-daysAgo, 16);
@@ -45,12 +50,12 @@ function seed() {
   const O = DEMO_USERS['pemilik@demo.my'].id;
   const T = DEMO_USERS['staf@demo.my'].id;
   const jobs = [
-    job({ source: 'web', stage: 'baru', customer_name: 'Nurul Huda', phone: '60134567821', car_model: 'Myvi 2021', car_size: 'small', scheduled_date: day(1), scheduled_slot: '12:30', quoted_price: 300, consent_at: iso(0, 8), created_at: iso(0, 8), notes: 'Cermin belakang sahaja kalau boleh lebih gelap' }),
-    job({ source: 'web', stage: 'baru', customer_name: 'Faizal Rahim', phone: '60195552310', car_model: 'X50', car_size: 'suv', film_id: 'carbon_ceramic', scheduled_date: day(2), scheduled_slot: '09:30', quoted_price: 280, consent_at: iso(-1, 21), created_at: iso(-1, 21) }),
-    job({ source: 'whatsapp', stage: 'disahkan', customer_name: 'Ah Chong', phone: '60126654321', car_model: 'Wira', car_size: 'sedan', film_id: 'black_uv', scheduled_date: day(-1), scheduled_slot: '12:30', price: 70 }),
-    job({ stage: 'dalam_kerja', installer_id: T, customer_name: 'Siti Aminah', phone: '60123348876', car_model: 'Axia', plate: 'PNA 8821', scheduled_slot: '09:30', price: 300 }),
-    job({ source: 'whatsapp', stage: 'disahkan', customer_name: 'Rosli Hamid', phone: '60174412098', car_model: 'City', plate: 'PKR 551', car_size: 'sedan', scheduled_slot: '15:30', price: 360 }),
-    job({ source: 'web', stage: 'disahkan', customer_name: 'Hafiz Zulkifli', phone: '60112093344', car_model: 'Hilux', car_size: 'large', film_id: 'black_smoke', scheduled_date: day(1), scheduled_slot: '09:30', quoted_price: 170, price: 170, consent_at: iso(-3), confirmed_msg_at: iso(-3) }),
+    job({ source: 'web', stage: 'baru', customer_name: 'Nurul Huda', phone: '60134567821', car_model: 'Myvi 2021', car_size: 'small', scheduled_date: day(1), scheduled_slot: '13:00', quoted_price: 300, consent_at: iso(0, 8), created_at: iso(0, 8), notes: 'Cermin belakang sahaja kalau boleh lebih gelap' }),
+    job({ source: 'web', stage: 'baru', customer_name: 'Faizal Rahim', phone: '60195552310', car_model: 'X50', car_size: 'suv', film_id: 'carbon_ceramic', scheduled_date: day(2), scheduled_slot: '09:00', quoted_price: 280, consent_at: iso(-1, 21), created_at: iso(-1, 21) }),
+    job({ source: 'whatsapp', stage: 'disahkan', customer_name: 'Ah Chong', phone: '60126654321', car_model: 'Wira', car_size: 'sedan', film_id: 'black_uv', scheduled_date: day(-1), scheduled_slot: '13:00', price: 70 }),
+    job({ stage: 'dalam_kerja', installer_id: T, customer_name: 'Siti Aminah', phone: '60123348876', car_model: 'Axia', plate: 'PNA 8821', scheduled_slot: '09:00', price: 300 }),
+    job({ source: 'whatsapp', stage: 'disahkan', customer_name: 'Rosli Hamid', phone: '60174412098', car_model: 'City', plate: 'PKR 551', car_size: 'sedan', scheduled_slot: '15:00', price: 360 }),
+    job({ source: 'web', stage: 'disahkan', customer_name: 'Hafiz Zulkifli', phone: '60112093344', car_model: 'Hilux', car_size: 'large', film_id: 'black_smoke', scheduled_date: day(1), scheduled_slot: '09:00', quoted_price: 170, price: 170, consent_at: iso(-3), confirmed_msg_at: iso(-3) }),
     job({ stage: 'siap', customer_name: 'Lim Wei Jie', phone: '60162217788', car_model: 'Vios', plate: 'PMB 3302', car_size: 'sedan', scheduled_date: day(-1), price: 360, paid_amount: 70, completed_at: iso(-1, 17), cert_token: token(), vlt_windscreen: 72, vlt_front: 52, vlt_rear: 15, warranty_until: day(-1 + 365 * 5) }),
     done(5, { installer_id: T, payment_method: 'qr', customer_name: 'Aisyah Kamal', phone: '60137789012', car_model: 'Bezza', plate: 'PNC 772', car_size: 'sedan', price: 360, paid_amount: 360 }),
     done(9, { installer_id: O, payment_method: 'tunai', customer_name: 'Kamarul Ariffin', phone: '60129981234', car_model: 'Ativa', car_size: 'suv', film_id: 'carbon_ceramic', price: 280, paid_amount: 280, thanked_at: iso(-4) }),
@@ -61,7 +66,8 @@ function seed() {
   return {
     jobs,
     events: jobs.map((j) => ({ id: Math.random(), job_id: j.id, at: j.created_at, actor: j.source === 'web' ? null : O, kind: 'created', from_stage: null, to_stage: j.stage, note: null })),
-    settings: { id: 1, slots: ['09:30', '12:30', '15:30'], cars_per_slot: 1, closed_weekdays: [0], closed_dates: [], booking_days_ahead: 30, films: FILMS, updated_at: iso(-10) },
+    // 5 blocks x 2 bays, 1 bay per block sold online, 1 kept for walk-ins (owner's rule).
+    settings: { id: 1, slots: ['09:00', '11:00', '13:00', '15:00', '17:00'], cars_per_slot: 2, online_per_slot: 1, closed_weekdays: [0], closed_dates: [], booking_days_ahead: 30, films: FILMS, addons: ADDONS, updated_at: iso(-10) },
     staff: Object.values(DEMO_USERS).map((u) => ({ ...u, active: true })),
   };
 }
@@ -84,8 +90,10 @@ function slots(db, from, days) {
     if (i > s.booking_days_ahead || s.closed_weekdays.includes(dow(d)) || s.closed_dates.includes(d)) continue;
     for (const t of s.slots) {
       if (Date.parse(`${d}T${t}:00+08:00`) < Date.now() + 36e5) continue;
-      const used = db.jobs.filter((j) => j.scheduled_date === d && j.scheduled_slot === t && j.stage !== 'batal').length;
-      out.push({ day: d, slot: t, remaining: Math.max(0, s.cars_per_slot - used) });
+      const held = db.jobs.filter((j) => j.scheduled_date === d && j.scheduled_slot === t && j.stage !== 'batal');
+      const online = Math.min(s.online_per_slot ?? s.cars_per_slot, s.cars_per_slot);
+      const web = held.filter((j) => j.source === 'web').length;
+      out.push({ day: d, slot: t, remaining: Math.max(0, Math.min(s.cars_per_slot - held.length, online - web)) });
     }
   }
   return out;
@@ -95,6 +103,8 @@ function slots(db, from, days) {
 function rules(j, before, db, me) {
   const owner = DEMO_USERS['pemilik@demo.my'].id === me;
   if (before && j.archived_at !== before.archived_at && !owner) j.archived_at = before.archived_at;
+  if (before) j.manage_token = before.manage_token;
+  if (before && (j.scheduled_date !== before.scheduled_date || j.scheduled_slot !== before.scheduled_slot)) j.customer_confirmed_at = null;
   if (before && ['baru', 'disahkan', 'dalam_kerja'].includes(j.stage) && ['siap', 'selesai'].includes(before.stage)) { j.completed_at = null; j.warranty_until = null; }
   if (j.archived_at) j.stage = 'batal';
   if (before?.archived_at && !j.archived_at) {
@@ -158,7 +168,7 @@ export async function demoFetch(input, init = {}) {
   // --- the four public functions + push
   if (p === '/rest/v1/rpc/get_catalog') {
     const s = db.settings;
-    return reply({ films: s.films, slots: s.slots, closed_weekdays: s.closed_weekdays, booking_days_ahead: s.booking_days_ahead });
+    return reply({ films: s.films, addons: s.addons || [], slots: s.slots, closed_weekdays: s.closed_weekdays, booking_days_ahead: s.booking_days_ahead });
   }
   if (p === '/rest/v1/rpc/available_slots') return reply(slots(db, body.p_from, body.p_days));
   if (p === '/rest/v1/rpc/book_slot') {
@@ -166,18 +176,24 @@ export async function demoFetch(input, init = {}) {
     if (String(body.p_name || '').trim().length < 2) return fail('bad_name');
     const ph = normPhone(body.p_phone);
     if (!ph) return fail('bad_phone');
+    if (String(body.p_plate || '').replace(/\s/g, '').length < 2) return fail('bad_plate');
     const film = db.settings.films.find((f) => f.id === body.p_film_id);
+    const addons = [...new Set(body.p_addons || [])].sort();
+    if (addons.some((a) => !(db.settings.addons || []).some((x) => x.id === a))) return fail('bad_addon');
+    const parts = [film?.prices?.[body.p_car_size], ...addons.map((a) => db.settings.addons.find((x) => x.id === a).prices?.[body.p_car_size])];
+    const quoted = parts.every((p) => p !== null && p !== undefined) ? parts.reduce((x, y) => x + Number(y), 0) : null;
     if (!film) return fail('bad_film');
     const open = slots(db, body.p_date, 1).find((r) => r.day === body.p_date && r.slot === body.p_slot);
     if (!open) return fail('slot_closed');
     if (open.remaining < 1) return fail('slot_full');
     const j = job({ source: 'web', stage: 'baru', created_at: new Date().toISOString(), customer_name: body.p_name.trim(), phone: ph,
       car_model: body.p_car_model || null, plate: body.p_plate ? body.p_plate.toUpperCase() : null, car_size: body.p_car_size, film_id: film.id,
-      scheduled_date: body.p_date, scheduled_slot: body.p_slot, quoted_price: film.prices[body.p_car_size], notes: body.p_notes || null, consent_at: new Date().toISOString() });
+      scheduled_date: body.p_date, scheduled_slot: body.p_slot, quoted_price: quoted, notes: body.p_notes || null, consent_at: new Date().toISOString(),
+      addons, wait_mode: body.p_wait_mode || null, heard_from: body.p_heard_from || null });
     db.jobs.push(j);
     db.events.push({ id: Math.random(), job_id: j.id, at: j.created_at, actor: null, kind: 'created', to_stage: 'baru' });
     save(db);
-    return reply({ ref: j.ref, date: j.scheduled_date, slot: j.scheduled_slot, quoted_price: j.quoted_price });
+    return reply({ ref: j.ref, date: j.scheduled_date, slot: j.scheduled_slot, quoted_price: j.quoted_price, manage_token: j.manage_token });
   }
   if (p === '/rest/v1/rpc/get_certificate') {
     const j = db.jobs.find((x) => x.cert_token === body.p_token && ['siap', 'selesai'].includes(x.stage));
@@ -187,6 +203,23 @@ export async function demoFetch(input, init = {}) {
       plate: pl ? pl.slice(0, Math.max(pl.length - 3, 1)) + '*'.repeat(Math.min(3, pl.length - 1)) : null,
       film: db.settings.films.find((f) => f.id === j.film_id)?.name, vlt_windscreen: j.vlt_windscreen, vlt_front: j.vlt_front, vlt_rear: j.vlt_rear,
       completed_at: j.completed_at?.slice(0, 10), warranty_until: j.warranty_until });
+  }
+  // The customer's own link (get_booking / manage_booking in 0003).
+  if (p === '/rest/v1/rpc/get_booking' || p === '/rest/v1/rpc/manage_booking') {
+    const j = db.jobs.find((x) => x.manage_token === body.p_token && !x.archived_at);
+    const view = (x) => ({ ref: x.ref, customer: x.customer_name.split(' ')[0], date: x.scheduled_date, slot: x.scheduled_slot, stage: x.stage,
+      film: db.settings.films.find((f) => f.id === x.film_id)?.name, confirmed: Boolean(x.customer_confirmed_at),
+      can_change: ['baru', 'disahkan'].includes(x.stage) && Boolean(x.scheduled_slot) && Date.parse(`${x.scheduled_date}T${x.scheduled_slot}:00+08:00`) > Date.now() });
+    if (p.endsWith('get_booking')) return reply(j ? view(j) : null);
+    if (!j) return fail('not_found');
+    if (!view(j).can_change) return fail('too_late');
+    if (body.p_action === 'confirm') j.customer_confirmed_at = new Date().toISOString();
+    else {
+      const was = j.stage;
+      Object.assign(j, { stage: 'batal', lost_reason: 'Dibatalkan oleh pelanggan', updated_at: new Date().toISOString() });
+      db.events.push({ id: Math.random(), job_id: j.id, at: j.updated_at, actor: null, kind: 'stage', from_stage: was, to_stage: 'batal' });
+    }
+    save(db); return reply(view(j));
   }
   if (p.startsWith('/rest/v1/rpc/')) return reply(undefined, 204);
 

@@ -373,3 +373,5 @@ main:has(> .page-head), main:has(> .wrap > .page-head), main.book { background: 
 .demo-bar { background: var(--ink); color: rgba(255,255,255,.8); font-size: 13px; text-align: center; padding: 8px 16px; line-height: 1.4; }
 .demo-bar b { color: #fff; margin-right: 6px; text-transform: uppercase; letter-spacing: .08em; font-size: 11px; }
 .demo-bar a { color: #fff; margin-left: 6px; }
+.price-sub { font-size: 18px; margin: 32px 0 12px; }
+.summary .total .from { font-size: 14px; font-weight: 600; color: var(--muted); }

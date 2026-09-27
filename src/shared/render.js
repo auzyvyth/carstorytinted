@@ -169,6 +169,33 @@ export function tintStudio(catalog) {
 ${panels}`;
 }
 
+// What a booking costs: side-window film + chosen add-ons, per car size. Mirrors the
+// DB's quote_price(): the total is null when any part has no published price, so the
+// site never passes off a partial sum as the price.
+export function quote(catalog, size, filmId, addonIds = []) {
+  const f = catalog.films.find((x) => x.id === filmId);
+  if (!size || !f) return { lines: [], total: null, known: 0 };
+  const lines = [{ name: `${f.name} (cermin sisi)`, price: hasNum(f.prices?.[size]) ? Number(f.prices[size]) : null }];
+  for (const a of catalog.addons || []) {
+    if (addonIds.includes(a.id)) lines.push({ name: a.name, price: hasNum(a.prices?.[size]) ? Number(a.prices[size]) : null });
+  }
+  const known = lines.reduce((s, l) => s + (l.price ?? 0), 0);
+  return { lines, total: lines.every((l) => l.price !== null) ? known : null, known };
+}
+
+// The /harga/ page body: film prices (side windows) then the add-ons, both per size.
+export const pricesHtml = (catalog) => `${priceTable(catalog)}${(catalog.addons || []).length ? `<h3 class="price-sub">Tambahan, ikut saiz kereta</h3>${addonTable(catalog)}` : ''}`;
+
+export function addonTable(catalog) {
+  const addons = catalog.addons || [];
+  if (!addons.length) return '';
+  const head = CAR_SIZES.map((s) => `<th scope="col">${s.label}</th>`).join('');
+  const rows = addons.map((a) => `<tr><th scope="row">${esc(a.name)}</th>${
+    CAR_SIZES.map((s) => { const p = a.prices?.[s.id]; return `<td>${hasNum(p) ? rm(p) : '<span class="ask">Tanya</span>'}</td>`; }).join('')
+  }</tr>`).join('');
+  return `<div class="table-scroll"><table class="prices"><thead><tr><th scope="col">Tambahan</th>${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
 export function priceTable(catalog) {
   const head = catalog.films.map((f) => `<th scope="col">${esc(f.name)}</th>`).join('');
   const rows = CAR_SIZES.map((s) => `<tr><th scope="row">${s.label}<small>${esc(s.eg)}</small></th>${

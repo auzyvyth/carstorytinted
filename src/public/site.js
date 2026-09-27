@@ -3,7 +3,7 @@
 import './site.css';
 import './nav.js';
 import { rpc, apiReady, shopDate, dayParts } from '../shared/api.js';
-import { tintStudio, priceTable } from '../shared/render.js';
+import { tintStudio, pricesHtml } from '../shared/render.js';
 import { mountStudio } from './tint.js';
 
 export async function loadCatalog() {
@@ -18,7 +18,7 @@ async function paintPrices() {
   const cat = await loadCatalog();
   if (!cat?.films) return;
   if (films) { films.innerHTML = tintStudio(cat); mountStudio(); }
-  if (prices) prices.innerHTML = priceTable(cat);
+  if (prices) prices.innerHTML = pricesHtml(cat);
 }
 
 // Three soonest days that still have a free slot, each linking straight into

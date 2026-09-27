@@ -90,5 +90,47 @@
   0
  ],
  "booking_days_ahead": 30,
- "_source": "Owner's WhatsApp price list, 4 Nov 2025: Compact car (= small), 4 side windows. Other sizes not given yet (null = 'Tanya')."
+ "_source": "Owner's WhatsApp price list, 4 Nov 2025: Compact car (= small), 4 side windows. Other sizes not given yet (null = 'Tanya').",
+ "addons": [
+  {
+   "id": "depan",
+   "name": "Cermin depan",
+   "prices": {
+    "small": null,
+    "sedan": null,
+    "suv": null,
+    "large": null
+   }
+  },
+  {
+   "id": "belakang",
+   "name": "Cermin belakang",
+   "prices": {
+    "small": null,
+    "sedan": null,
+    "suv": null,
+    "large": null
+   }
+  },
+  {
+   "id": "sunroof",
+   "name": "Sunroof / bumbung panorama",
+   "prices": {
+    "small": null,
+    "sedan": null,
+    "suv": null,
+    "large": null
+   }
+  },
+  {
+   "id": "buang",
+   "name": "Buang tinted lama",
+   "prices": {
+    "small": null,
+    "sedan": null,
+    "suv": null,
+    "large": null
+   }
+  }
+ ]
 }

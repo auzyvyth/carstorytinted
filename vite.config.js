@@ -2,7 +2,7 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'node:path';
 import catalog from './src/shared/catalog.default.json' with { type: 'json' };
-import { SHOP, JPJ, fullAddress, displayPhone } from './src/shared/shop.js';
+import { SHOP, JPJ, POLICY, fullAddress, displayPhone } from './src/shared/shop.js';
 import * as R from './src/shared/render.js';
 
 // Public pages. Each is plain HTML with <!--@slot--> markers the plugin below
@@ -12,6 +12,7 @@ const PAGES = {
   tempah: 'tempah/index.html',
   sijil: 'sijil/index.html',
   harga: 'harga/index.html',
+  urus: 'urus/index.html',
   jpj: 'panduan-jpj/index.html',
   privasi: 'privasi/index.html',
   staff: 'staff/index.html',
@@ -24,7 +25,7 @@ const DEMO_BANNER = `<div class="demo-bar" role="note"><b>Versi demo</b> Data da
 function shopPages(siteUrl, demo) {
   const slots = {
     films: () => R.tintStudio(catalog),
-    prices: () => R.priceTable(catalog),
+    prices: () => R.pricesHtml(catalog),
     car: () => R.carDiagram(),
     faq: () => R.faqHtml(),
     footer: () => R.footer(),
@@ -38,7 +39,7 @@ function shopPages(siteUrl, demo) {
   const vars = {
     SITE_URL: siteUrl, ADDRESS: fullAddress(), TOWN: SHOP.town, STATE: SHOP.state,
     AREAS: SHOP.areaServed.join(', '), JPJ_WS: JPJ.windscreen, JPJ_FS: JPJ.frontSide, JPJ_FINE: JPJ.fine,
-    PHONE1: displayPhone(SHOP.contacts[0].phone), MAP_EMBED: R.mapEmbedUrl(), YEAR: new Date().getFullYear(),
+    PHONE1: displayPhone(SHOP.contacts[0].phone), POLICY_WALKIN: POLICY.walkIn, MAP_EMBED: R.mapEmbedUrl(), YEAR: new Date().getFullYear(),
   };
   return {
     name: 'shop-pages',
@@ -56,7 +57,7 @@ function shopPages(siteUrl, demo) {
         .replace(/<body>/, demo && !staffPage ? `<body>\n${DEMO_BANNER}` : '<body>');
     },
     generateBundle() {
-      const robots = demo ? ['User-agent: *', 'Disallow: /'] : ['User-agent: *', 'Allow: /', 'Disallow: /staff/', 'Disallow: /sijil/'];
+      const robots = demo ? ['User-agent: *', 'Disallow: /'] : ['User-agent: *', 'Allow: /', 'Disallow: /staff/', 'Disallow: /sijil/', 'Disallow: /urus/'];
       if (siteUrl && !demo) {
         robots.push(`Sitemap: ${siteUrl}/sitemap.xml`);
         const urls = PUBLIC_PATHS.map((p) => `<url><loc>${siteUrl}${p}</loc></url>`).join('');

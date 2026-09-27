@@ -53,3 +53,37 @@ export const waLink = (phone, text = '') =>
   `https://wa.me/${phone}${text ? `?text=${encodeURIComponent(text)}` : ''}`;
 export const displayPhone = (p) => p.replace(/^60(\d{2})(\d{3,4})(\d{4})$/, '0$1-$2 $3');
 export const fullAddress = () => `${SHOP.street}, ${SHOP.postcode} ${SHOP.town}, ${SHOP.state}`;
+
+// Owner's rule (2026-09-27): a booking holds its slot, walk-ins get what is left.
+// Shown on the booking page and in every confirmation/reminder, so nobody feels cheated.
+export const LATE_MINUTES = 15;
+export const POLICY = {
+  walkIn: 'Walk-in dialu-alukan, tetapi pelanggan yang tempah didahulukan. Tempah online untuk jamin slot.',
+  late: `Lewat lebih ${LATE_MINUTES} minit tanpa khabar, slot diberi kepada pelanggan walk-in dan tempahan anda dipindah ke slot kosong seterusnya.`,
+};
+
+export const WAIT_MODES = [['tunggu', 'Tunggu di kedai'], ['tinggal', 'Tinggal kereta, ambil nanti']];
+export const HEARD_FROM = [['facebook', 'Facebook'], ['tiktok', 'TikTok'], ['google', 'Google'], ['kawan', 'Kawan / keluarga'],
+  ['lalu', 'Lalu depan kedai'], ['dealer', 'Kedai kereta / dealer'], ['lain', 'Lain-lain']];
+
+// Common models -> size, so the customer names their car and the size picks itself.
+// Same groups as CAR_SIZES' examples. Anything not listed: they pick the size by hand.
+export const CAR_MODELS = [
+  ...['Perodua Axia', 'Perodua Myvi', 'Perodua Kancil', 'Perodua Kelisa', 'Perodua Kenari', 'Perodua Viva', 'Proton Saga', 'Proton Iriz',
+    'Proton Savvy', 'Honda Jazz', 'Toyota Yaris', 'Suzuki Swift'].map((m) => [m, 'small']),
+  ...['Perodua Bezza', 'Proton Persona', 'Proton Wira', 'Proton Waja', 'Proton Preve', 'Proton Inspira', 'Proton S70', 'Honda City',
+    'Honda Civic', 'Honda Accord', 'Toyota Vios', 'Toyota Corolla', 'Toyota Camry', 'Nissan Almera', 'Mazda 3'].map((m) => [m, 'sedan']),
+  ...['Perodua Ativa', 'Perodua Aruz', 'Perodua Alza', 'Proton X50', 'Proton X70', 'Proton X90', 'Proton Exora', 'Honda HR-V', 'Honda CR-V',
+    'Honda BR-V', 'Honda WR-V', 'Toyota Rush', 'Toyota Veloz', 'Toyota Avanza', 'Toyota Innova', 'Toyota Corolla Cross', 'Nissan X-Trail',
+    'Mazda CX-3', 'Mazda CX-5'].map((m) => [m, 'suv']),
+  ...['Toyota Hilux', 'Toyota Fortuner', 'Toyota Alphard', 'Toyota Vellfire', 'Toyota Hiace', 'Mitsubishi Triton', 'Mitsubishi Pajero Sport',
+    'Nissan Navara', 'Ford Ranger', 'Isuzu D-Max', 'Hyundai Starex', 'Nissan Urvan'].map((m) => [m, 'large']),
+];
+// "myvi 2021" / "Myvi" / "perodua myvi" -> 'small'. Longest name wins ("Corolla Cross" before "Corolla").
+export function sizeForModel(text) {
+  const t = String(text || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  if (t.length < 3) return null;
+  const hit = [...CAR_MODELS].sort((a, b) => b[0].length - a[0].length)
+    .find(([m]) => { const short = m.split(' ').slice(1).join(' ').toLowerCase(); return t.includes(m.toLowerCase()) || t.includes(short); });
+  return hit ? hit[1] : null;
+}

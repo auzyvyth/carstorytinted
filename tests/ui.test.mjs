@@ -129,7 +129,10 @@ await p.screenshot({ path: `${SHOTS}/1-home-375.png`, fullPage: true });
 
 // 2. Booking wizard end to end.
 await p.goto(`${BASE}/tempah/`);
-await p.click('[data-size="suv"]');
+await p.fill('#f-model', 'Ativa 2023');
+await p.locator('#f-model').blur();
+await p.waitForTimeout(150);
+check(await p.locator('[data-size="suv"]').getAttribute('aria-pressed') === 'true', 'naming the car picks its size');
 await p.click('[data-film="ceramic"]');
 check((await p.locator('.summary .total').innerText()).includes('850'), 'booking summary shows SUV ceramic RM850');
 check(await noSideScroll(p), 'booking step 1 fits 375px');
@@ -144,8 +147,11 @@ await p.screenshot({ path: `${SHOTS}/3-book-step2-375.png`, fullPage: true });
 await p.click('[data-next]');
 await p.fill('#f-name', 'Ahmad Faizal');
 await p.fill('#f-phone', '0171234567');
-await p.fill('#f-car', 'Ativa 2023');
+await p.click('[data-wait="tunggu"]');
 check(await noSideScroll(p), 'booking step 3 fits 375px');
+await p.click('button:has-text("Sahkan tempahan")');
+check(await p.locator('.err').innerText().then((t) => t.includes('plat')).catch(() => false), 'booking requires the plate');
+await p.fill('#f-plate', 'PKA 1234');
 await p.click('button:has-text("Sahkan tempahan")');
 check(await p.locator('.err').innerText().then((t) => t.includes('privasi')).catch(() => false), 'booking blocks submit without consent');
 await p.check('input[name=consent]');
