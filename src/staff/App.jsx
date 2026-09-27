@@ -117,6 +117,7 @@ function Workspace({ me, signOut }) {
     const patch = a.alt && !sendWa ? { ...a.alt.patch } : {};
     if (a.stamp) patch[a.stamp] = new Date().toISOString();
     if (a.advance) patch.stage = a.advance;
+    if (!Object.keys(patch).length) return;  // a WhatsApp-only row: nothing to record
     try { await update(a.job.id, patch); toast(a.alt && !sendWa ? a.alt.done : a.advance ? 'Disahkan' : 'Ditanda selesai'); } catch { toast('Gagal kemaskini. Cuba lagi.'); }
   }
 

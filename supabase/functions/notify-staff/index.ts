@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST' || !sameSecret(req.headers.get('x-notify-secret') ?? '', env('NOTIFY_SECRET'))) {
     return new Response('forbidden', { status: 403 });
   }
-  const { job_id, nag } = await req.json().catch(() => ({}));
+  const { job_id, nag, event } = await req.json().catch(() => ({}));
   if (typeof job_id !== 'string') return new Response('bad request', { status: 400 });
 
   const { data: job } = await db.from('jobs')
@@ -47,8 +47,10 @@ Deno.serve(async (req) => {
   const when = d ? `${DAY[d.getUTCDay()]} ${d.getUTCDate()}/${d.getUTCMonth() + 1}${job.scheduled_slot ? ` ${job.scheduled_slot}` : ''}` : '';
   // Title + car + time only. No phone number on a lock screen.
   const payload = JSON.stringify({
-    title: nag ? `Belum disahkan 30 minit: ${job.customer_name}` : `Tempahan online: ${job.customer_name}`,
-    body: [job.car_model, when].filter(Boolean).join(' · ') || 'Buka untuk sahkan slot',
+    // event 'cancel' = the customer cancelled from their own link (manage_booking, 0003):
+    // a slot just freed, so the walk-in waitlist should hear about it.
+    title: event === 'cancel' ? `Pelanggan batal: ${job.customer_name}` : nag ? `Belum disahkan 30 minit: ${job.customer_name}` : `Tempahan online: ${job.customer_name}`,
+    body: event === 'cancel' ? `Slot ${when} kosong. Tawarkan kepada senarai menunggu.` : ([job.car_model, when].filter(Boolean).join(' · ') || 'Buka untuk sahkan slot'),
     tag: `job-${job.id}`,
     job: job.id,
   });

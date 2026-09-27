@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from './supabase.js';
-import { CAR_SIZES, JPJ, displayPhone } from '../shared/shop.js';
+import { CAR_SIZES, JPJ, WAIT_MODES, HEARD_FROM, displayPhone } from '../shared/shop.js';
+import { quote, rm as rmExact } from '../shared/render.js';
 import { shopDate } from '../shared/api.js';
 import { NEXT, vltWarnings, certUrl, balance, num, firstName, waCustomer, slotUse, walkInSlot, isClosedDay, receiptText } from './logic.js';
 import { METHODS } from './report.js';
@@ -8,7 +9,7 @@ import { DEMO } from '../shared/api.js';
 import { Sheet, StageChip, Icon, rmFmt } from './ui.jsx';
 
 const FIELDS = ['customer_name', 'phone', 'car_model', 'plate', 'car_size', 'film_id', 'scheduled_date', 'scheduled_slot',
-  'price', 'paid_amount', 'vlt_windscreen', 'vlt_front', 'vlt_rear', 'notes', 'no_followup', 'installer_id', 'payment_method'];
+  'price', 'paid_amount', 'vlt_windscreen', 'vlt_front', 'vlt_rear', 'notes', 'no_followup', 'installer_id', 'payment_method', 'addons', 'wait_mode', 'heard_from'];
 const NUMERIC = ['price', 'paid_amount', 'vlt_windscreen', 'vlt_front', 'vlt_rear'];
 const ERR = {
   jobs_phone_check: 'Nombor telefon tidak sah.',
@@ -20,6 +21,8 @@ const errText = (e) => ERR[Object.keys(ERR).find((k) => String(e?.message).inclu
 function toForm(job, settings, jobs = []) {
   const f = {};
   for (const k of FIELDS) f[k] = job?.[k] ?? '';
+  // Add-ons as a sorted string, so "unchanged" compares equal (arrays never do).
+  f.addons = [...(job?.addons || [])].sort().join(',');
   // A new job is usually a walk-in being done now: today, in the slot running now.
   if (!job) Object.assign(f, { car_size: 'small', film_id: settings?.films?.[0]?.id || 'standard', scheduled_date: shopDate(0),
     scheduled_slot: walkInSlot(settings, jobs), paid_amount: 0, no_followup: false });
@@ -33,6 +36,7 @@ function toRow(f) {
   const r = {};
   for (const k of FIELDS) {
     const v = f[k];
+    if (k === 'addons') { r[k] = v ? v.split(',').filter(Boolean) : []; continue; }
     r[k] = NUMERIC.includes(k) ? (v === '' || v === null ? (k === 'paid_amount' ? 0 : null) : Number(v))
       : k === 'no_followup' ? Boolean(v) : (typeof v === 'string' ? v.trim() || null : v);
   }
@@ -43,6 +47,8 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
   const isNew = !job;
   const [f, setF] = useState(() => toForm(job, settings, jobs));
   const [source, setSource] = useState('walk_in');
+  // New walk-in with no free bay: put them on today's waitlist (no slot yet).
+  const [waitlist, setWaitlist] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [menu, setMenu] = useState(false);
@@ -79,6 +85,8 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
 
   const who = (id) => staff.find((s) => s.id === id)?.name || 'Pelanggan (online)';
   const warns = vltWarnings(f);
+  const addonList = f.addons ? f.addons.split(',').filter(Boolean) : [];
+  const listed = quote(settings || { films: [] }, f.car_size, f.film_id, addonList);
   const cap = settings?.cars_per_slot || 1;
   const use = f.scheduled_date ? slotUse(jobs, f.scheduled_date, job?.id) : {};
   const digits = String(f.phone).replace(/\D/g, '');
@@ -93,11 +101,17 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
     const paying = (num(extra.paid_amount ?? f.paid_amount) || 0) > 0
       && (isNew || String(extra.paid_amount ?? f.paid_amount) !== String(base.current.paid_amount) || extra.stage === 'selesai');
     if (paying && !f.payment_method) return setErr('Pilih kaedah bayaran (tunai, pindahan, QR atau kad).'), null;
-    if (moved && f.scheduled_date && !f.scheduled_slot && (extra.stage || job?.stage) !== 'batal') return setErr('Pilih slot, supaya laman web tidak jual masa yang sama.'), null;
+    const onWaitlist = isNew ? waitlist : Boolean(job?.waitlist_at) && !f.scheduled_slot;
+    if (moved && f.scheduled_date && !f.scheduled_slot && !onWaitlist && (extra.stage || job?.stage) !== 'batal') return setErr('Pilih slot, atau masukkan ke senarai menunggu.'), null;
     setBusy(true);
     try {
       const all = toRow(f);
-      if (isNew) return await api.create({ ...all, ...extra, source, stage: extra.stage || 'disahkan' });
+      if (isNew) {
+        return await api.create({ ...all, ...extra, source, stage: extra.stage || (waitlist ? 'baru' : 'disahkan'),
+          ...(waitlist ? { scheduled_date: shopDate(0), scheduled_slot: null, waitlist_at: new Date().toISOString() } : {}) });
+      }
+      // Given a bay: off the waitlist.
+      if (job.waitlist_at && f.scheduled_slot) extra = { ...extra, waitlist_at: null };
       // Only what changed: a full-row save would overwrite whatever the other phone
       // saved since this drawer opened (a payment, the tint readings...).
       const changed = Object.fromEntries(FIELDS.filter((k) => f[k] !== base.current[k]).map((k) => [k, all[k]]));
@@ -195,6 +209,8 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
             </span>
           </div>
           {job.archived_at && <div className="warnline">Dipadam. Tidak dikira dalam senarai atau laporan.</div>}
+          {job.customer_confirmed_at && job.stage !== 'batal' && <div className="okline">Pelanggan sahkan akan datang (melalui pautan)</div>}
+          {job.waitlist_at && !job.scheduled_slot && job.stage !== 'batal' && <div className="warnline">Dalam senarai menunggu walk-in. Pilih slot bila bay kosong.</div>}
           {job.lost_reason && <div className="muted">Sebab batal: {job.lost_reason}</div>}
           {['siap', 'selesai'].includes(job.stage) && balance({ ...job, price: f.price, paid_amount: f.paid_amount }) > 0 &&
             <div className="warnline">Baki belum bayar: {rmFmt(balance({ ...job, price: f.price, paid_amount: f.paid_amount }))}</div>}
@@ -205,6 +221,12 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
           <select className="in" value={source} onChange={(e) => setSource(e.target.value)}>
             <option value="walk_in">Walk-in</option><option value="whatsapp">WhatsApp</option><option value="phone">Telefon</option>
           </select></label>
+      )}
+      {isNew && (
+        <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13 }}>
+          <input type="checkbox" checked={waitlist} onChange={(e) => setWaitlist(e.target.checked)} />
+          Tiada bay kosong sekarang: masukkan ke senarai menunggu hari ini
+        </label>
       )}
 
       <div className="card box">
@@ -221,7 +243,24 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
             <option value="">Belum ditentukan</option>
             {staff.filter((p) => p.active || p.id === f.installer_id).map((p) => <option key={p.id} value={p.id}>{p.name}{p.id === me.id ? ' (anda)' : ''}</option>)}
           </select></label>
+          <label className="fld"><span>Semasa kerja</span><select className="in" value={f.wait_mode || ''} onChange={set('wait_mode')}>
+            <option value="">Tidak pasti</option>{WAIT_MODES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+          </select></label>
+          <label className="fld"><span>Tahu dari</span><select className="in" value={f.heard_from || ''} onChange={set('heard_from')}>
+            <option value="">Tidak direkod</option>{HEARD_FROM.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+          </select></label>
         </div>
+        {(settings?.addons || []).length > 0 && (
+          <div className="fld"><span>Tambahan</span>
+            <div className="chips" role="group" aria-label="Tambahan">
+              {settings.addons.map((a) => {
+                const on = addonList.includes(a.id);
+                return <button key={a.id} type="button" className="chipbtn" aria-pressed={on}
+                  onClick={() => setF((p) => ({ ...p, addons: (on ? addonList.filter((x) => x !== a.id) : [...addonList, a.id]).sort().join(',') }))}>{a.name}</button>;
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="card box">
@@ -250,6 +289,7 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
         )}
         {isClosedDay(settings, f.scheduled_date) && <div className="warnline">Tarikh ini ditanda tutup dalam tetapan kedai.</div>}
         {f.scheduled_date && (settings?.slots || []).length > 0 && settings.slots.every((t) => (use[t] || 0) >= cap && t !== job?.scheduled_slot) && <div className="warnline">Semua slot pada tarikh ini penuh.</div>}
+        {listed.lines.length > 0 && <div className="muted" style={{ fontSize: 12 }}>Harga senarai untuk pilihan ini: {listed.total !== null ? rmExact(listed.total) : `dari ${rmExact(listed.known)} (ada bahagian tanpa harga)`}</div>}
         {job?.quoted_price !== null && job?.quoted_price !== undefined && <div className="muted" style={{ fontSize: 12 }}>Harga di laman web semasa tempah: {rmFmt(job.quoted_price)}</div>}
       </div>
 

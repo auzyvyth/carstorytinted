@@ -178,3 +178,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .bar-track i { display: block; height: 100%; min-width: 4px; background: var(--blue); border-radius: 4px; }
 .section + .tiles { margin-top: 24px; }
 .section-h { flex-wrap: wrap; gap: 2px 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chipbtn { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 12px; font-size: 13px; cursor: pointer; min-height: 36px; }
+.chipbtn[aria-pressed="true"] { background: var(--ink-2); border-color: var(--ink-2); color: #fff; }

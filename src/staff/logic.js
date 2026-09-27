@@ -1,5 +1,5 @@
 // Pure rules for the staff app: no React, no network, so they can be tested.
-import { SHOP, JPJ, STAGES, waLink } from '../shared/shop.js';
+import { SHOP, JPJ, STAGES, POLICY, LATE_MINUTES, waLink } from '../shared/shop.js';
 import { dayLabel, slotLabel, shopDate, DEMO } from '../shared/api.js';
 
 // WhatsApp to a CUSTOMER. In the demo the sample numbers are invented and could
@@ -18,6 +18,11 @@ export const num = (v) => (v === null || v === undefined || v === '' ? null : Nu
 export const balance = (j) => Math.max(0, (num(j.price) ?? num(j.quoted_price) ?? 0) - (num(j.paid_amount) || 0));
 export const firstName = (j) => (j.customer_name || '').split(' ')[0] || 'tuan/puan';
 export const certUrl = (j) => (j.cert_token ? `${location.origin}/sijil/?t=${j.cert_token}` : '');
+// The customer's own confirm/cancel page (0003 get_booking / manage_booking).
+export const manageUrl = (j) => (j.manage_token ? `${location.origin}/urus/?t=${j.manage_token}` : '');
+// Shop clock as HH:MM (slot times are shop-local).
+export const klNowHm = (now = new Date()) => new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Asia/Kuala_Lumpur' }).format(now);
+const addMin = (hm, m) => { const [h, mm] = hm.split(':').map(Number); const t = h * 60 + mm + m; return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; };
 
 // The one forward move from each stage: the drawer's primary button.
 export const NEXT = {
@@ -41,24 +46,46 @@ const daysSince = (iso, today) => Math.round((Date.parse(today) - Date.parse(Str
 // "Perlu tindakan": one row per JOB (never one per reason), highest priority first.
 // Each row names the column its WhatsApp button stamps so it doesn't come back.
 // Nothing is ever sent automatically: the button opens WhatsApp, a person sends.
-export function actionsFor(jobs, today = shopDate(0)) {
+export function actionsFor(jobs, today = shopDate(0), { settings = null, now = new Date() } = {}) {
   const tomorrow = shopDate(1);
+  const hm = klNowHm(now);
+  const cap = settings?.cars_per_slot || 1;
+  const slots = settings?.slots || [];
   const out = [];
+  const link = (j) => (manageUrl(j) ? ` Sahkan kehadiran atau batal di sini: ${manageUrl(j)}` : '');
   for (const j of jobs) {
     const n = firstName(j), when = j.scheduled_date ? `${dayLabel(j.scheduled_date)}${j.scheduled_slot ? `, ${slotLabel(j.scheduled_slot)}` : ''}` : '';
     let a = null;
-    // Date gone by and nobody moved it on: either they didn't turn up, or the job
-    // was done and never updated. Never offer "confirm" for a date in the past.
-    if (['baru', 'disahkan'].includes(j.stage) && j.scheduled_date && j.scheduled_date < today) {
+    // Waitlisted walk-in (no bay yet): the moment a bay is free today, offer it to them.
+    if (j.waitlist_at && !j.scheduled_slot && j.stage !== 'batal' && j.scheduled_date === today) {
+      const free = settings ? walkInSlot(settings, jobs, now) : '';
+      if (free) {
+        a = { rank: -1, kind: 'waitlist', why: `Senarai menunggu · bay kosong ${slotLabel(free)}`, stamp: null, cta: 'WhatsApp: slot kosong',
+          alt: { label: `Beri slot ${free}`, done: `Slot ${free} diberi`, patch: { scheduled_slot: free, stage: 'disahkan', waitlist_at: null } },
+          text: `Salam ${n}, ini ${SHOP.name}. Slot kosong sekarang (${slotLabel(free)}). Masih mahu datang? Balas "YA" dan kami simpan untuk anda.` };
+      }
+    } else if (['baru', 'disahkan'].includes(j.stage) && j.scheduled_date === today && j.scheduled_slot
+      && addMin(j.scheduled_slot, LATE_MINUTES) < hm) {
+      // Owner's rule: 15 minutes late with no word = the bay goes to walk-ins; the booked
+      // customer moves to the next free block. Never bump someone who is on time.
+      const use = slotUse(jobs, today, j.id);
+      const next = slots.find((t) => t > j.scheduled_slot && t > hm && (use[t] || 0) < cap);
+      a = { rank: -1, kind: 'late', why: `Lewat lebih ${LATE_MINUTES} minit`, cta: 'Tanya di WhatsApp',
+        alt: next ? { label: `Pindah ke ${next}`, done: `Dipindah ke ${next}`, patch: { scheduled_slot: next } }
+                  : { label: 'Tidak datang', done: 'Ditanda tidak datang', patch: { stage: 'batal', no_show: true, lost_reason: 'Tidak datang' } },
+        text: `Salam ${n}, kami tunggu kereta anda untuk slot ${slotLabel(j.scheduled_slot)} hari ini. Masih dalam perjalanan?${next ? ` Kalau lewat, kami boleh pindah ke ${slotLabel(next)}.` : ''}` };
+    } else if (['baru', 'disahkan'].includes(j.stage) && j.scheduled_date && j.scheduled_date < today) {
+      // Date gone by and nobody moved it on: either they didn't turn up, or the job
+      // was done and never updated. Never offer "confirm" for a date in the past.
       a = { rank: 0, kind: 'past', why: 'Tarikh sudah lepas', cta: 'Buka kerja', open: true,
         alt: { label: 'Tidak datang', done: 'Ditanda tidak datang', patch: { stage: 'batal', no_show: true, lost_reason: 'Tidak datang' } } };
     } else if (j.stage === 'baru') {
       a = { rank: 0, kind: 'confirm', why: j.source === 'web' ? 'Tempahan online baru' : 'Belum disahkan', stamp: 'confirmed_msg_at', advance: 'disahkan',
         cta: 'Sahkan & WhatsApp',
-        text: `Salam ${n}, ini ${SHOP.name}. Tempahan tinted anda (${j.ref}) pada ${when} DISAHKAN. Alamat: ${SHOP.street}, ${SHOP.town}. Jumpa nanti!` };
+        text: `Salam ${n}, ini ${SHOP.name}. Tempahan tinted anda (${j.ref}) pada ${when} DISAHKAN. Alamat: ${SHOP.street}, ${SHOP.town}. ${POLICY.late}${link(j)}` };
     } else if (j.stage === 'disahkan' && j.scheduled_date === tomorrow && !j.reminded_at) {
       a = { rank: 1, kind: 'remind', why: 'Temujanji esok', stamp: 'reminded_at', cta: 'Hantar peringatan',
-        text: `Salam ${n}, peringatan: temujanji tinted anda di ${SHOP.name} esok, ${when}. Balas mesej ini jika perlu tukar masa.` };
+        text: `Salam ${n}, peringatan: temujanji tinted anda di ${SHOP.name} esok, ${when}.${link(j) || ' Balas mesej ini jika perlu tukar masa.'} ${POLICY.late}` };
     } else if (['siap', 'selesai'].includes(j.stage) && j.cert_token && !j.cert_sent_at) {
       a = { rank: 2, kind: 'cert', why: 'Sijil belum dihantar', stamp: 'cert_sent_at', cta: 'Hantar sijil',
         text: `Terima kasih ${n}! Ini sijil tinted anda (bacaan VLT dan waranti). Simpan pautan ini: ${certUrl(j)}` };
@@ -123,15 +150,19 @@ export function slotUse(jobs, date, exceptId = null) {
   return use;
 }
 
-// A walk-in is being worked on now: the slot running at this moment (the latest
-// one already started), or the first free one after it. '' if today is full.
+// A walk-in is being worked on now: the block running at this moment, or the first
+// free one after it. A block runs until the next one starts; the last block gets the
+// same length as the gap before it. '' when nothing is left today.
 export function walkInSlot(settings, jobs, now = new Date()) {
   const slots = settings?.slots || [];
   const cap = settings?.cars_per_slot || 1;
-  const hm = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Asia/Kuala_Lumpur' }).format(now);
-  const use = slotUse(jobs, shopDate(0));
-  const started = slots.filter((t) => t <= hm);
-  const from = started.length ? slots.indexOf(started[started.length - 1]) : 0;
+  const hm = klNowHm(now);
+  const use = slotUse(jobs, klDate(now.toISOString()));
+  const mins = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+  const gap = slots.length > 1 ? mins(slots[slots.length - 1]) - mins(slots[slots.length - 2]) : 120;
+  const endOf = (i) => (i + 1 < slots.length ? mins(slots[i + 1]) : mins(slots[i]) + gap);
+  const from = slots.findIndex((t, i) => endOf(i) > mins(hm));
+  if (from < 0) return '';
   return slots.slice(from).find((t) => (use[t] || 0) < cap) || '';
 }
 

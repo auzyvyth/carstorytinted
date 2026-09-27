@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { actionsFor, monthStats, byScheduled, klDate } from './logic.js';
 import { StageChip, Tile, Icon, rmFmt } from './ui.jsx';
 import { shopDate, dayParts, slotLabel } from '../shared/api.js';
@@ -58,8 +58,13 @@ function WeekStrip({ jobs, settings }) {
 
 export default function Dashboard({ me, jobs, settings, staff = [], push, devices, onOpen, onAction, onNew, error }) {
   const today = shopDate(0);
-  const todays = useMemo(() => jobs.filter((j) => j.scheduled_date === today && j.stage !== 'batal').sort(byScheduled), [jobs, today]);
-  const actions = useMemo(() => actionsFor(jobs, today), [jobs, today]);
+  const todays = useMemo(() => jobs.filter((j) => j.scheduled_date === today && j.stage !== 'batal' && !(j.waitlist_at && !j.scheduled_slot)).sort(byScheduled), [jobs, today]);
+  // Re-evaluated every minute: "15 minutes late" and "a bay just freed up" are about the clock.
+  const [tick, setTick] = useState(0);
+  useEffect(() => { const t = setInterval(() => setTick((x) => x + 1), 60e3); return () => clearInterval(t); }, []);
+  const actions = useMemo(() => actionsFor(jobs, today, { settings }), [jobs, today, settings, tick]);
+  const waiting = useMemo(() => jobs.filter((j) => j.waitlist_at && !j.scheduled_slot && j.stage !== 'batal' && j.scheduled_date === today)
+    .sort((a, b) => String(a.waitlist_at).localeCompare(String(b.waitlist_at))), [jobs, today]);
   const stats = useMemo(() => monthStats(jobs, today), [jobs, today]);
   const size = (id) => CAR_SIZES.find((s) => s.id === id)?.label || '';
   const fitter = (id) => (id === me.id ? 'Anda' : staff.find((p) => p.id === id)?.name || '');
@@ -102,12 +107,27 @@ export default function Dashboard({ me, jobs, settings, staff = [], push, device
             <button key={j.id} className="row" onClick={() => onOpen(j)}>
               <span className="row-time">{j.scheduled_slot || '--:--'}</span>
               <span className="row-main"><span className="row-title">{j.customer_name}</span>
-                <span className="row-sub">{[j.car_model, j.plate, size(j.car_size), fitter(j.installer_id)].filter(Boolean).join(' · ')}</span></span>
+                <span className="row-sub">{[j.car_model, j.plate, size(j.car_size), fitter(j.installer_id), j.wait_mode === 'tinggal' ? 'tinggal kereta' : j.wait_mode === 'tunggu' ? 'tunggu di kedai' : '', j.customer_confirmed_at ? 'pelanggan sahkan' : ''].filter(Boolean).join(' · ')}</span></span>
               <StageChip stage={j.stage} />
             </button>
           )) : <div className="empty">Tiada kereta dijadualkan hari ini.</div>}
         </div>
       </div>
+
+      {waiting.length > 0 && (
+        <div className="section">
+          <div className="section-h"><span className="micro">Senarai menunggu walk-in · {waiting.length}</span><span className="muted" style={{ fontSize: 12 }}>yang pertama ditawarkan bay kosong dulu</span></div>
+          <div className="card rows">
+            {waiting.map((j, i) => (
+              <button key={j.id} className="row" onClick={() => onOpen(j)}>
+                <span className="row-time">#{i + 1}</span>
+                <span className="row-main"><span className="row-title">{j.customer_name}</span>
+                  <span className="row-sub">{[j.car_model, size(j.car_size), `sejak ${new Date(j.waitlist_at).toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kuala_Lumpur' })}`].filter(Boolean).join(' · ')}</span></span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="section">
         <div className="section-h"><span className="micro">Perlu tindakan · {actions.length}</span></div>
