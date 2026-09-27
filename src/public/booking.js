@@ -158,13 +158,22 @@ function go(step) {
   root.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+// The form is long on a phone: after each pick, bring the next question into view.
+const calm = matchMedia('(prefers-reduced-motion: reduce)');
+function ahead(sel) {
+  const el = root.querySelector(sel);
+  if (!el) return;
+  const button = el.matches('[data-next]');
+  el.scrollIntoView({ behavior: calm.matches ? 'auto' : 'smooth', block: button ? 'center' : 'start' });
+}
+
 root.addEventListener('click', (e) => {
   const b = e.target.closest('button');
   if (!b || b.disabled) return;
-  if (b.dataset.size) { st.size = b.dataset.size; render(); }
-  else if (b.dataset.film) { st.film = b.dataset.film; render(); }
-  else if (b.dataset.date) { st.date = b.dataset.date; st.slot = null; render(); }
-  else if (b.dataset.slot) { st.slot = b.dataset.slot; render(); }
+  if (b.dataset.size) { st.size = b.dataset.size; render(); ahead(film() ? '[data-next]' : '#l-film'); }
+  else if (b.dataset.film) { st.film = b.dataset.film; render(); ahead(st.size ? '[data-next]' : '#l-size'); }
+  else if (b.dataset.date) { st.date = b.dataset.date; st.slot = null; render(); ahead('#l-slot'); }
+  else if (b.dataset.slot) { st.slot = b.dataset.slot; render(); ahead('[data-next]'); }
   else if ('next' in b.dataset) go(st.step + 1);
   else if ('back' in b.dataset) go(st.step - 1);
   else if ('ics' in b.dataset) downloadIcs();

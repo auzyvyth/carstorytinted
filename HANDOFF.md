@@ -36,10 +36,13 @@ with its own Supabase + Vercel. Outside this folder the branch touches only `CLA
 ## Rules that apply here
 - Anything NEW (feature/page) = research + ask the owner in detail before coding.
 - Film options = a tint preview (`tintStudio` + `carSvg` in render.js, `src/public/tint.js`):
-  a rounded dark showroom panel, film pills, an SVG sedan whose rear windows darken with
-  a slider, and a spec bar with the price. The circuit-board version was dropped
-  (owner, 2026-09-27: wrong fit for a tint shop). Windscreen + front side windows are
+  a rounded dark showroom panel, film pills, the side windows of a car (glass only, no
+  body: owner found the full car too blocky) with "Need a tint?" in yellow behind the
+  glass, rear windows darkening with a slider, and a spec bar with the price. The
+  circuit-board version was dropped (owner, 2026-09-27: wrong fit for a tint shop). Windscreen + front side windows are
   ALWAYS drawn at the JPJ limits; only the rear follows the slider. Keep it that way.
+- Booking form (`/tempah/`) scrolls to the next question after each pick
+  (`ahead()` in src/public/booking.js). Owner asked for it: the form is long on a phone.
 - Phone spacing: one side margin (`--gutter`), equal left/right. A checker that flags
   lopsided blocks at 375px lives in the session scratchpad only; re-measure after layout work.
 - Never advertise darker than JPJ on the windscreen / front side windows (the
