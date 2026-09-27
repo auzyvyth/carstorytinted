@@ -42,7 +42,12 @@ export function actionsFor(jobs, today = shopDate(0)) {
   for (const j of jobs) {
     const n = firstName(j), when = j.scheduled_date ? `${dayLabel(j.scheduled_date)}${j.scheduled_slot ? `, ${slotLabel(j.scheduled_slot)}` : ''}` : '';
     let a = null;
-    if (j.stage === 'baru') {
+    // Date gone by and nobody moved it on: either they didn't turn up, or the job
+    // was done and never updated. Never offer "confirm" for a date in the past.
+    if (['baru', 'disahkan'].includes(j.stage) && j.scheduled_date && j.scheduled_date < today) {
+      a = { rank: 0, kind: 'past', why: 'Tarikh sudah lepas', cta: 'Buka kerja', open: true,
+        alt: { label: 'Tidak datang', done: 'Ditanda tidak datang', patch: { stage: 'batal', no_show: true, lost_reason: 'Tidak datang' } } };
+    } else if (j.stage === 'baru') {
       a = { rank: 0, kind: 'confirm', why: j.source === 'web' ? 'Tempahan online baru' : 'Belum disahkan', stamp: 'confirmed_msg_at', advance: 'disahkan',
         cta: 'Sahkan & WhatsApp',
         text: `Salam ${n}, ini ${SHOP.name}. Tempahan tinted anda (${j.ref}) pada ${when} DISAHKAN. Alamat: ${SHOP.street}, ${SHOP.town}. Jumpa nanti!` };

@@ -38,6 +38,13 @@ begin
   end if;
   -- Archiving takes the job out of every count and frees its slot.
   if new.archived_at is not null then new.stage := 'batal'; end if;
+  -- Restoring puts it back where it was (a paid job stays paid), read from the
+  -- stage history the after-write trigger keeps. The slot is re-checked below.
+  if tg_op = 'UPDATE' and old.archived_at is not null and new.archived_at is null then
+    new.stage := coalesce((select from_stage from job_events
+                            where job_id = new.id and kind = 'stage' and to_stage = 'batal'
+                            order by at desc, id desc limit 1), 'baru');
+  end if;
   if new.stage <> 'batal' then new.no_show := false; end if;
   -- Whoever starts the work is the installer, unless someone already picked one.
   if new.stage = 'dalam_kerja' and new.installer_id is null and is_staff() then

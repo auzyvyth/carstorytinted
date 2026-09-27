@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from './supabase.js';
 import { useJobs, clearJobCache } from './useJobs.js';
 import { usePush, forgetThisDevice } from './usePush.js';
@@ -68,9 +68,12 @@ function Workspace({ me, signOut }) {
   const [toastMsg, setToastMsg] = useState('');
   const toast = useCallback((m) => { setToastMsg(m); setTimeout(() => setToastMsg(''), 2600); }, []);
   // App open when a customer books: say so on screen too (push may be off on this phone).
-  const { jobs, loading, error, update, create, remove } = useJobs(me.id, {
+  const { jobs: allJobs, loading, error, update, create } = useJobs(me.id, {
     onWebBooking: (j) => { toast(`Tempahan online baru: ${j.customer_name}`); navigator.vibrate?.([120, 80, 120]); },
   });
+  // Archived (owner "delete") jobs leave every list and count; the owner can reopen them from Batal.
+  const jobs = useMemo(() => allJobs.filter((j) => !j.archived_at), [allJobs]);
+  const archived = useMemo(() => (me.role === 'owner' ? allJobs.filter((j) => j.archived_at) : []), [allJobs, me.role]);
   const push = usePush();
   const [devices, setDevices] = useState(null);
   useEffect(() => { supabase.rpc('push_device_count').then(({ data }) => setDevices(typeof data === 'number' ? data : null)); }, [push.state]);
@@ -104,15 +107,15 @@ function Workspace({ me, signOut }) {
     if (pushed.current) { pushed.current = false; history.back(); return; }  // popstate clears the job
     setView((v) => ({ ...v, job: null })); writeUrl(view.tab, null, false);
   }, [view.tab]);
-  const openJobRow = view.job ? jobs.find((j) => j.id === view.job) : null;
+  const openJobRow = view.job ? allJobs.find((j) => j.id === view.job) : null;
 
   // "Perlu tindakan" buttons. WhatsApp opens synchronously (popup blockers), then we stamp.
   async function onAction(a, sendWa) {
     if (sendWa && a.wa) window.open(a.wa, '_blank', 'noopener');
-    const patch = {};
+    const patch = a.alt && !sendWa ? { ...a.alt.patch } : {};
     if (a.stamp) patch[a.stamp] = new Date().toISOString();
     if (a.advance) patch.stage = a.advance;
-    try { await update(a.job.id, patch); toast(a.advance ? 'Disahkan' : 'Ditanda selesai'); } catch { toast('Gagal kemaskini. Cuba lagi.'); }
+    try { await update(a.job.id, patch); toast(a.alt && !sendWa ? a.alt.done : a.advance ? 'Disahkan' : 'Ditanda selesai'); } catch { toast('Gagal kemaskini. Cuba lagi.'); }
   }
 
   const tabs = [['dashboard', 'Dashboard', Icon.home], ['pipeline', 'Pipeline', Icon.board]];
@@ -131,14 +134,14 @@ function Workspace({ me, signOut }) {
 
       {loading ? <div className="page"><div className="card empty">Memuatkan kerja...</div></div>
         : view.tab === 'pipeline'
-          ? <Pipeline jobs={jobs} onOpen={openJob} onNew={() => setCreating(true)} />
+          ? <Pipeline jobs={jobs} archived={archived} onOpen={openJob} onNew={() => setCreating(true)} />
           : <Dashboard me={me} jobs={jobs} settings={settings} push={push} devices={devices} onOpen={openJob} onAction={onAction} onNew={() => setCreating(true)} error={error} />}
 
       <nav className="bnav">{tabs.map(([id, label, icon]) => <button key={id} aria-current={view.tab === id ? 'page' : undefined} onClick={() => go(id)}>{icon}{label}</button>)}</nav>
 
       {(openJobRow || creating) && settings && (
         <JobDrawer key={openJobRow?.id || 'new'} job={creating ? null : openJobRow} jobs={jobs} settings={settings} staff={staff} me={me}
-          api={{ update, create, remove }} toast={toast}
+          api={{ update, create }} toast={toast}
           onClose={() => (creating ? setCreating(false) : closeJob())} />
       )}
       {showSettings && <Settings settings={settings} staff={staff} me={me} toast={toast} onClose={() => setShowSettings(false)}

@@ -107,6 +107,7 @@ export default function Dashboard({ me, jobs, settings, push, devices, onOpen, o
               </span>
               <span className="row-actions" onClick={(e) => e.stopPropagation()}>
                 {a.stamp && <button className="btn btn-sm" onClick={() => onAction(a, false)} title="Tandakan selesai tanpa WhatsApp">Dah buat</button>}
+                {a.alt && <button className="btn btn-sm" onClick={() => onAction(a, false)}>{a.alt.label}</button>}
                 {a.wa ? <button className="btn btn-sm btn-wa" onClick={() => onAction(a, true)}>{Icon.wa}{a.cta}</button>
                   : <button className="btn btn-sm" onClick={() => onOpen(a.job)}>{a.cta}</button>}
               </span>

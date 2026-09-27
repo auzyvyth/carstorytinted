@@ -76,13 +76,9 @@ export function useJobs(uid, { onWebBooking } = {}) {
     return data;
   }, []);
 
-  const remove = useCallback(async (id) => {
-    const { error: e } = await supabase.from('jobs').delete().eq('id', id);
-    if (e) throw e;
-    setJobs((cur) => cur.filter((j) => j.id !== id));
-  }, []);
+  // No remove(): jobs are never hard-deleted (0002_dashboard.sql). The owner archives.
 
-  return { jobs, loading: loading && !cached.current, error, refresh, update, create, remove };
+  return { jobs, loading: loading && !cached.current, error, refresh, update, create };
 }
 
 // Search older jobs the preload skipped.
@@ -92,6 +88,6 @@ export async function searchAllJobs(q) {
   const digits = s.replace(/\D/g, '').replace(/^0/, '');
   const ors = [`customer_name.ilike.%${s}%`, `plate.ilike.%${s}%`, `ref.ilike.%${s}%`];
   if (digits.length >= 4) ors.push(`phone.like.%${digits}%`);
-  const { data } = await supabase.from('jobs').select('*').or(ors.join(',')).order('created_at', { ascending: false }).limit(50);
+  const { data } = await supabase.from('jobs').select('*').is('archived_at', null).or(ors.join(',')).order('created_at', { ascending: false }).limit(50);
   return data || [];
 }

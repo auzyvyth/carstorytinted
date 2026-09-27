@@ -5,7 +5,7 @@
 // closely enough to demo, not to trust: the real rules are in 0001_init.sql.
 import catalog from './catalog.default.json';
 
-const KEY = 'cs-demo-db-v2';
+const KEY = 'cs-demo-db-v3';
 const TZ = 'Asia/Kuala_Lumpur';
 const day = (n) => new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date(Date.now() + n * 864e5));
 const iso = (n, hh = 10) => new Date(`${day(n)}T${String(hh).padStart(2, '0')}:00:00+08:00`).toISOString();
@@ -43,17 +43,19 @@ const done = (daysAgo, o) => {
 
 function seed() {
   const O = DEMO_USERS['pemilik@demo.my'].id;
+  const T = DEMO_USERS['staf@demo.my'].id;
   const jobs = [
     job({ source: 'web', stage: 'baru', customer_name: 'Nurul Huda', phone: '60134567821', car_model: 'Myvi 2021', car_size: 'small', scheduled_date: day(1), scheduled_slot: '12:30', quoted_price: 300, consent_at: iso(0, 8), created_at: iso(0, 8), notes: 'Cermin belakang sahaja kalau boleh lebih gelap' }),
     job({ source: 'web', stage: 'baru', customer_name: 'Faizal Rahim', phone: '60195552310', car_model: 'X50', car_size: 'suv', film_id: 'carbon_ceramic', scheduled_date: day(2), scheduled_slot: '09:30', quoted_price: 280, consent_at: iso(-1, 21), created_at: iso(-1, 21) }),
-    job({ stage: 'dalam_kerja', customer_name: 'Siti Aminah', phone: '60123348876', car_model: 'Axia', plate: 'PNA 8821', scheduled_slot: '09:30', price: 300 }),
+    job({ source: 'whatsapp', stage: 'disahkan', customer_name: 'Ah Chong', phone: '60126654321', car_model: 'Wira', car_size: 'sedan', film_id: 'black_uv', scheduled_date: day(-1), scheduled_slot: '12:30', price: 70 }),
+    job({ stage: 'dalam_kerja', installer_id: T, customer_name: 'Siti Aminah', phone: '60123348876', car_model: 'Axia', plate: 'PNA 8821', scheduled_slot: '09:30', price: 300 }),
     job({ source: 'whatsapp', stage: 'disahkan', customer_name: 'Rosli Hamid', phone: '60174412098', car_model: 'City', plate: 'PKR 551', car_size: 'sedan', scheduled_slot: '15:30', price: 360 }),
     job({ source: 'web', stage: 'disahkan', customer_name: 'Hafiz Zulkifli', phone: '60112093344', car_model: 'Hilux', car_size: 'large', film_id: 'black_smoke', scheduled_date: day(1), scheduled_slot: '09:30', quoted_price: 170, price: 170, consent_at: iso(-3), confirmed_msg_at: iso(-3) }),
     job({ stage: 'siap', customer_name: 'Lim Wei Jie', phone: '60162217788', car_model: 'Vios', plate: 'PMB 3302', car_size: 'sedan', scheduled_date: day(-1), price: 360, paid_amount: 70, completed_at: iso(-1, 17), cert_token: token(), vlt_windscreen: 72, vlt_front: 52, vlt_rear: 15, warranty_until: day(-1 + 365 * 5) }),
-    done(5, { customer_name: 'Aisyah Kamal', phone: '60137789012', car_model: 'Bezza', plate: 'PNC 772', car_size: 'sedan', price: 360, paid_amount: 360 }),
-    done(9, { customer_name: 'Kamarul Ariffin', phone: '60129981234', car_model: 'Ativa', car_size: 'suv', film_id: 'carbon_ceramic', price: 280, paid_amount: 280, thanked_at: iso(-4) }),
-    done(33, { customer_name: 'Mei Ling', phone: '60168830021', car_model: 'Saga', price: 100, paid_amount: 100, film_id: 'black_smoke', thanked_at: iso(-28) }),
-    done(38, { customer_name: 'Azman Yusof', phone: '60193302211', car_model: 'Alza', car_size: 'suv', price: 420, paid_amount: 420, thanked_at: iso(-30) }),
+    done(5, { installer_id: T, payment_method: 'qr', customer_name: 'Aisyah Kamal', phone: '60137789012', car_model: 'Bezza', plate: 'PNC 772', car_size: 'sedan', price: 360, paid_amount: 360 }),
+    done(9, { installer_id: O, payment_method: 'tunai', customer_name: 'Kamarul Ariffin', phone: '60129981234', car_model: 'Ativa', car_size: 'suv', film_id: 'carbon_ceramic', price: 280, paid_amount: 280, thanked_at: iso(-4) }),
+    done(33, { installer_id: T, payment_method: 'tunai', customer_name: 'Mei Ling', phone: '60168830021', car_model: 'Saga', price: 100, paid_amount: 100, film_id: 'black_smoke', thanked_at: iso(-28) }),
+    done(38, { installer_id: O, payment_method: 'pindahan', customer_name: 'Azman Yusof', phone: '60193302211', car_model: 'Alza', car_size: 'suv', price: 420, paid_amount: 420, thanked_at: iso(-30) }),
     job({ stage: 'batal', customer_name: 'Zainal Abidin', phone: '60145523300', car_model: 'Persona', car_size: 'sedan', scheduled_date: day(-3), lost_reason: 'Harga lebih murah di tempat lain' }),
   ];
   return {
@@ -95,6 +97,10 @@ function rules(j, before, db, me) {
   if (before && j.archived_at !== before.archived_at && !owner) j.archived_at = before.archived_at;
   if (before && ['baru', 'disahkan', 'dalam_kerja'].includes(j.stage) && ['siap', 'selesai'].includes(before.stage)) { j.completed_at = null; j.warranty_until = null; }
   if (j.archived_at) j.stage = 'batal';
+  if (before?.archived_at && !j.archived_at) {
+    const ev = db.events.filter((e) => e.job_id === j.id && e.kind === 'stage' && e.to_stage === 'batal').sort((x, y) => String(y.at).localeCompare(String(x.at)))[0];
+    j.stage = ev?.from_stage || 'baru';
+  }
   if (j.stage !== 'batal') j.no_show = false;
   if (j.stage === 'dalam_kerja' && !j.installer_id && me) j.installer_id = me;
   if (!j.scheduled_date || !j.scheduled_slot || j.stage === 'batal') return null;

@@ -180,11 +180,15 @@ begin; set local role authenticated; set local request.jwt.claim.sub = '11111111
 update jobs set archived_at = now() where customer_name = 'Walk Two';
 do $$ begin
   if (select stage from jobs where customer_name = 'Walk Two') <> 'batal' then raise exception 'archive did not cancel'; end if;
+end $$;
+update jobs set archived_at = null where customer_name = 'Walk Two';
+do $$ begin
+  if (select stage from jobs where customer_name = 'Walk Two') <> 'dalam_kerja' then raise exception 'restore lost the stage'; end if;
   if push_device_count() <> 1 then raise exception 'device count wrong'; end if;
 end $$;
 commit;
 begin; set local role anon;
 select pg_temp.expect_error('select push_device_count()', 'permission denied');
 commit;
-\echo 'ok 10 reopen clears finish, installer stamped, archive owner-only, device count staff-only'
+\echo 'ok 10 reopen clears finish, installer stamped, archive owner-only + restores its stage, device count staff-only'
 \echo 'ALL DB TESTS PASSED'

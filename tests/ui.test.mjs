@@ -32,6 +32,7 @@ const jobs = [
   job({ customer_name: 'Lim Ah Kow', car_model: 'City', car_size: 'sedan', stage: 'siap', price: 700, paid_amount: 200, completed_at: now, cert_token: 'a'.repeat(36), vlt_windscreen: 72, vlt_front: 52, vlt_rear: 15 }),
 ];
 const calls = [];
+const patches = [];
 
 function slotsFrom(from, days) {
   const rows = [];
@@ -86,7 +87,7 @@ async function mockSupabase(route) {
   if (p === '/rest/v1/job_events') return json([]);
   if (p === '/rest/v1/jobs') {
     const id = url.searchParams.get('id')?.replace('eq.', '');
-    if (req.method() === 'PATCH') { const j = jobs.find((x) => x.id === id); Object.assign(j, body, { updated_at: new Date().toISOString() });
+    if (req.method() === 'PATCH') { patches.push(body); const j = jobs.find((x) => x.id === id); Object.assign(j, body, { updated_at: new Date().toISOString() });
       if (['siap', 'selesai'].includes(j.stage) && !j.cert_token) { j.completed_at = now; j.cert_token = 'b'.repeat(36); }
       return json(single ? j : [j]); }
     if (req.method() === 'POST') { const j = job({ ...body }); jobs.push(j); return json(single ? j : [j], 201); }
@@ -204,6 +205,27 @@ await p.click('.sheet-f button:has-text("Tandakan siap")');
 await p.waitForTimeout(300);
 const siti = jobs.find((j) => j.customer_name === 'Siti Aminah');
 check(siti.stage === 'siap' && siti.vlt_front === 52 && Boolean(siti.cert_token), 'marking done saves VLT and mints a certificate');
+const last = patches[patches.length - 1] || {};
+check(!('customer_name' in last) && !('price' in last) && 'vlt_front' in last, `save sends only changed fields (${Object.keys(last).join(',')})`);
+// Two phones on one job: the other phone's save lands without wiping what you typed.
+await p.click('.sheet [aria-label="Tutup"]');
+await p.click('.pills button:has-text("Disahkan")');
+await p.click('.jcard:has-text("Hafiz Rahman")');
+await p.waitForSelector('.sheet');
+await p.fill('.sheet textarea', 'Tinted belakang dulu');
+const hafiz = jobs.find((j) => j.customer_name === 'Hafiz Rahman');
+hafiz.plate = 'VBA 1'; hafiz.updated_at = new Date().toISOString();
+await p.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+await p.waitForTimeout(400);
+check(await p.locator('.sheet textarea').inputValue() === 'Tinted belakang dulu'
+  && await p.locator('.sheet label:has-text("No. plat") input').inputValue() === 'VBA 1', 'remote save merges, your typing kept');
+await p.fill('.sheet label:has-text("Harga") input', '500');
+hafiz.price = 777;
+await p.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+await p.waitForTimeout(400);
+check(await p.locator('.sheet label:has-text("Harga") input').inputValue() === '500'
+  && await p.locator('.sheet [role=status]').isVisible(), 'same field changed on both phones: yours kept, warning shown');
+await p.click('.sheet [aria-label="Tutup"]');
 check(p.errors.length === 0, `staff app has no JS errors ${p.errors.join(' | ')}`);
 
 // 6. Staff role: no money tiles, no settings.

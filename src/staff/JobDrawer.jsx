@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from './supabase.js';
 import { CAR_SIZES, JPJ, displayPhone } from '../shared/shop.js';
 import { shopDate } from '../shared/api.js';
@@ -47,6 +47,10 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
   const [menu, setMenu] = useState(false);
   const [events, setEvents] = useState([]);
   const [note, setNote] = useState('');
+  const [clash, setClash] = useState(false);
+  // What the form looked like when it last matched the database. A field that
+  // differs from this is one YOU changed; only those are sent on Save.
+  const base = useRef(toForm(job, settings, jobs));
   const set = (k) => (e) => setF((p) => ({ ...p, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
 
   const loadEvents = useCallback(async () => {
@@ -55,7 +59,22 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
     setEvents(data || []);
   }, [job]);
   useEffect(() => { loadEvents(); }, [loadEvents, job?.stage, job?.paid_amount]);
-  useEffect(() => { if (job) setF(toForm(job, settings)); }, [job, settings]);
+  // The job changed underneath us (the other phone saved, or our own save came back).
+  // Take the new values for every field you have NOT touched; keep what you typed.
+  useEffect(() => {
+    if (!job) return;
+    const was = base.current, now = toForm(job, settings);
+    setF((cur) => {
+      const merged = { ...now };
+      let hit = false;
+      for (const k of FIELDS) {
+        if (cur[k] !== was[k]) { merged[k] = cur[k]; if (now[k] !== was[k] && now[k] !== cur[k]) hit = true; }
+      }
+      if (hit) setClash(true);
+      return merged;
+    });
+    base.current = now;
+  }, [job, settings]);
 
   const who = (id) => staff.find((s) => s.id === id)?.name || 'Pelanggan (online)';
   const warns = vltWarnings(f);
@@ -72,8 +91,14 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
     if (moved && f.scheduled_date && !f.scheduled_slot && (extra.stage || job?.stage) !== 'batal') return setErr('Pilih slot, supaya laman web tidak jual masa yang sama.'), null;
     setBusy(true);
     try {
-      const row = { ...toRow(f), ...extra };
-      const saved = isNew ? await api.create({ ...row, source, stage: extra.stage || 'disahkan' }) : await api.update(job.id, row);
+      const all = toRow(f);
+      if (isNew) return await api.create({ ...all, ...extra, source, stage: extra.stage || 'disahkan' });
+      // Only what changed: a full-row save would overwrite whatever the other phone
+      // saved since this drawer opened (a payment, the tint readings...).
+      const changed = Object.fromEntries(FIELDS.filter((k) => f[k] !== base.current[k]).map((k) => [k, all[k]]));
+      const patch = { ...changed, ...extra };
+      const saved = Object.keys(patch).length ? await api.update(job.id, patch) : job;
+      setClash(false);
       return saved;
     } catch (e) {
       setErr(errText(e)); return null;
@@ -94,7 +119,7 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
 
   async function setStage(stage, extra = {}) {
     setMenu(false);
-    const saved = await save({ stage, ...extra });
+    const saved = await save(stage ? { stage, ...extra } : extra);
     if (saved) toast('Dikemaskini');
   }
 
@@ -119,14 +144,22 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
       <button className="icon-btn" aria-label="Lagi" aria-expanded={menu} onClick={() => setMenu((m) => !m)}>{Icon.more}</button>
       {menu && (
         <div className="menu-list" role="menu">
-          {job.stage !== 'batal'
-            ? <button role="menuitem" onClick={() => { const r = window.prompt('Sebab batal? (pilihan)'); if (r !== null) setStage('batal', { lost_reason: r.slice(0, 200) || null }); }}>Batal kerja</button>
-            : <button role="menuitem" onClick={() => setStage('baru')}>Buka semula</button>}
-          {job.stage !== 'baru' && job.stage !== 'batal' && <button role="menuitem" onClick={() => setStage('baru')}>Kembali ke Baru</button>}
-          {me.role === 'owner' && <button role="menuitem" className="btn-danger" onClick={async () => {
-            setMenu(false);
-            if (window.confirm('Padam kerja ini terus? Tidak boleh dibatalkan.')) { await api.remove(job.id); toast('Dipadam'); onClose(); }
-          }}>Padam</button>}
+          {job.archived_at
+            ? (me.role === 'owner' && <button role="menuitem" onClick={() => setStage(undefined, { archived_at: null })}>Pulihkan</button>)
+            : <>
+              {['baru', 'disahkan'].includes(job.stage) && <button role="menuitem" onClick={() => setStage('batal', { no_show: true, lost_reason: 'Tidak datang' })}>Tidak datang</button>}
+              {job.stage !== 'batal'
+                ? <button role="menuitem" onClick={() => { const r = window.prompt('Sebab batal? (pilihan)'); if (r !== null) setStage('batal', { lost_reason: r.slice(0, 200) || null }); }}>Batal kerja</button>
+                : <button role="menuitem" onClick={() => setStage('baru')}>Buka semula</button>}
+              {job.stage !== 'baru' && job.stage !== 'batal' && <button role="menuitem" onClick={() => setStage('baru')}>Kembali ke Baru</button>}
+              {/* Never a hard delete: archiving keeps the record (and its money) recoverable. */}
+              {me.role === 'owner' && <button role="menuitem" className="btn-danger" onClick={async () => {
+                setMenu(false);
+                if (window.confirm('Padam kerja ini? Ia hilang dari senarai dan kiraan. Anda boleh pulihkan dari Batal > Dipadam.')) {
+                  if (await save({ archived_at: new Date().toISOString() })) { toast('Dipadam'); onClose(); }
+                }
+              }}>Padam</button>}
+            </>}
         </div>
       )}
     </div>
@@ -141,6 +174,7 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
 
   return (
     <Sheet title={title} onClose={onClose} footer={footer} headerExtra={menuEl}>
+      {clash && <div className="warnline" role="status">Kerja ini baru dikemaskini di telefon lain. Perubahan anda yang belum disimpan dikekalkan; semak sebelum Simpan.</div>}
       {!isNew && (
         <div className="card box">
           <div className="box-h"><StageChip stage={job.stage} />
@@ -149,6 +183,7 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
               <a className="btn btn-sm" href={waCustomer(job.phone)} target="_blank" rel="noopener">{Icon.wa}WhatsApp</a>
             </span>
           </div>
+          {job.archived_at && <div className="warnline">Dipadam. Tidak dikira dalam senarai atau laporan.</div>}
           {job.lost_reason && <div className="muted">Sebab batal: {job.lost_reason}</div>}
           {['siap', 'selesai'].includes(job.stage) && balance({ ...job, price: f.price, paid_amount: f.paid_amount }) > 0 &&
             <div className="warnline">Baki belum bayar: {rmFmt(balance({ ...job, price: f.price, paid_amount: f.paid_amount }))}</div>}
