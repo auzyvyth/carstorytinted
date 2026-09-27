@@ -17,7 +17,7 @@ const vltRow = (label, v, min) => {
 function show(c) {
   document.title = `Sijil ${c.ref} | ${SHOP.name}`;
   box.innerHTML = `<div class="cert" style="margin:0 auto;max-width:520px">
-  <div class="cert-head"><span class="wordmark wordmark-ink" style="font-size:24px"><span>Tinted</span> Carstory</span><span class="muted" style="font-size:13px">No. ${esc(c.ref)}</span></div>
+  <div class="cert-head"><span class="wordmark"><span>Tinted</span> Carstory</span><span class="muted" style="font-size:13px">No. ${esc(c.ref)}</span></div>
   <p class="eyebrow" style="margin:4px 0 2px">Sijil pemasangan tinted</p>
   <p class="muted" style="font-size:14px;margin-bottom:8px">Untuk ${esc(c.customer)}</p>
   <div class="cert-row"><span>Kereta</span><b>${esc([c.car_model, c.plate].filter(Boolean).join(' · ') || '-')}</b></div>

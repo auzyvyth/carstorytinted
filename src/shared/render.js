@@ -36,7 +36,7 @@ export function footer() {
   return `<footer class="foot">
   <div class="wrap foot-in">
     <div>
-      <div class="wordmark wordmark-ink"><span>Tinted</span> Carstory</div>
+      <div class="wordmark"><span>Tinted</span> Carstory</div>
       <p class="foot-sub">${esc(SHOP.legalName)} · ${esc(SHOP.tagline)}</p>
       <p class="foot-sub">${esc(fullAddress())}</p>
     </div>
