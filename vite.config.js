@@ -23,7 +23,7 @@ const DEMO_BANNER = `<div class="demo-bar" role="note"><b>Versi demo</b> Data da
 
 function shopPages(siteUrl, demo) {
   const slots = {
-    films: () => R.filmBoard(catalog),
+    films: () => R.tintStudio(catalog),
     prices: () => R.priceTable(catalog),
     car: () => R.carDiagram(),
     faq: () => R.faqHtml(),

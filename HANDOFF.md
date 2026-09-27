@@ -35,8 +35,13 @@ with its own Supabase + Vercel. Outside this folder the branch touches only `CLA
 
 ## Rules that apply here
 - Anything NEW (feature/page) = research + ask the owner in detail before coding.
-- Film options = a circuit board (`filmBoard` in render.js + `src/public/board.js`),
-  same idea as ShiftOS PlanTour: chips joined by a trace drawn on scroll.
+- Film options = a tint preview (`tintStudio` + `carSvg` in render.js, `src/public/tint.js`):
+  a rounded dark showroom panel, film pills, an SVG sedan whose rear windows darken with
+  a slider, and a spec bar with the price. The circuit-board version was dropped
+  (owner, 2026-09-27: wrong fit for a tint shop). Windscreen + front side windows are
+  ALWAYS drawn at the JPJ limits; only the rear follows the slider. Keep it that way.
+- Phone spacing: one side margin (`--gutter`), equal left/right. A checker that flags
+  lopsided blocks at 375px lives in the session scratchpad only; re-measure after layout work.
 - Never advertise darker than JPJ on the windscreen / front side windows (the
   owner's WhatsApp copy says "5% if the customer asks"): the site offers 5% on the
   REAR only. Verified 2026-09-27: 70% / 50% / rear no limit, Kaedah 1991 as amended 2019.
