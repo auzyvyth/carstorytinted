@@ -4,13 +4,6 @@ From the security, CRM, feature and SEO/GEO audit (2026-09-28). Nothing below is
 built. Only the "Sell" section is being done now. Everything after it waits for
 the owner (Maliki) to agree and pay.
 
-## 0. Pending deploy
-- [ ] **Apply `supabase/migrations/0004_customer_page.sql`** to the live DB after 22:00 MYT
-      (no DDL in shop hours). It widens `get_booking` so `/urus/` shows the receipt and
-      certificate. Frontend works without it (the page just omits those two blocks), so
-      order does not matter, but apply it before telling customers "your receipt is there".
-- [ ] Merge `claude/tinted-carstory-audit-zlin08` -> `main` (live) once the owner OKs.
-
 ## 1. Sell (now, before any paid work)
 - [ ] **Demo build.** Turn Vercel project `carstorytinted` into the sales demo
       (env `VITE_DEMO=1`, no Supabase keys) so the pitch never touches the real DB.
