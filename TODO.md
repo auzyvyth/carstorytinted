@@ -15,6 +15,10 @@ the owner (Maliki) to agree and pay.
       "owner asked". Questions: VLT meter yes/no, sedan/SUV/large prices,
       windscreen/rear/sunroof/removal prices, opening hours, how he pays workers
       (per car?), does he track film stock, warranty claims, fleet/Grab rates.
+- [ ] **Grant check (Geran Digital PMKS Madani, BSN).** 50% matching, max RM5,000,
+      but ONLY for solutions bought from an MDEC Digitalisation Partner (MD-status
+      company). We are not one, so he can't claim it on this build today. Confirm
+      2026 intake on bsn.com.my before mentioning it in the pitch.
 - [ ] **Agree price + scope in writing** (WhatsApp is fine): what is included in
       setup, what is monthly, what is a paid add-on.
 
