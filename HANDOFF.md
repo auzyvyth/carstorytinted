@@ -15,12 +15,18 @@ history kept. It shares no code, database or deploy with ShiftOS.
   get_booking -> confirm -> finish -> certificate all work; anon cannot read `jobs`.
   NOT done yet: push keys, `notify-staff` deploy + secrets, `app_config` rows, staff
   users, turning off public sign-ups (README Setup steps 2-4).
-- Sales demo live on Vercel project `tinted-carstory-demo` (owner's current account),
-  `VITE_DEMO=1`, working. Sample data lives in each visitor's browser; nothing real.
+- **Live site (2026-09-28): Vercel project `carstorytint` -> https://carstorytint.vercel.app**
+  (shop's own Vercel account, team `carstory`). REAL mode: `VITE_SUPABASE_URL` +
+  `VITE_SUPABASE_ANON_KEY` set for Production only, so only production builds reach the
+  database; preview builds have no keys and the staff app shows "Belum disambung".
+  Booking form = `/tempah/`. Until README Setup steps 2-4 are done, bookings land in the
+  DB but no staff can log in and no alert fires.
+- Same account also has `carstorytinted` and `carstorytinted2`: duplicates of the same
+  repo with no env vars (booking cannot submit). Delete both.
+- The old ShiftOS-account project `tinted-carstory-demo` built from the ShiftOS repo and
+  failed on every ShiftOS push (folder moved here). Owner disconnected it 2026-09-28.
 - `vercel.json` forces `ignoreCommand: exit 1` (always build). It was needed inside the
   monorepo; here it is harmless and can stay.
-- The old demo (`tinted-carstory-demo`) still builds from the ShiftOS branch. Point a new
-  demo project at this repo with `VITE_DEMO=1`, then retire the old one.
 - Real (non-demo) build is untested against a real Supabase: migrations, edge function
   `notify-staff` (push + Telegram backup), and push on real phones are all unverified.
   One real-Supabase bug was already found and fixed by making the test DB mirror
