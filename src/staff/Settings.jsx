@@ -32,6 +32,75 @@ const slice = {
 };
 const draftOf = (settings) => ({ ...clone(settings), slotsText: settings.slots.join(', ') });
 
+// Owner-only account actions run server-side (supabase/functions/staff-admin): a
+// browser cannot create logins. Every error comes back as a short code.
+const STAFF_ERR = {
+  not_owner: 'Hanya pemilik aktif boleh urus staf.',
+  email_taken: 'Emel ini sudah ada akaun. Guna emel lain.',
+  bad_email: 'Emel tidak sah.',
+  bad_name: 'Isi nama staf.',
+  weak_password: 'Kata laluan sekurang-kurangnya 8 aksara.',
+  not_found: 'Staf tidak dijumpai.',
+};
+async function staffAdmin(body) {
+  const { data, error } = await supabase.functions.invoke('staff-admin', { body });
+  if (!error) return data;
+  const code = await error.context?.json?.().then((j) => j?.error).catch(() => null);
+  throw new Error(STAFF_ERR[code] || 'Gagal. Semak internet dan cuba lagi.');
+}
+// Easy to read out loud or type on a phone: no 0/O or 1/l look-alikes.
+const tempPassword = () => {
+  const a = 'abcdefghjkmnpqrstuvwxyz23456789';
+  return Array.from(crypto.getRandomValues(new Uint8Array(10)), (n) => a[n % a.length]).join('');
+};
+
+function AddStaff({ onDone, toast }) {
+  const [f, setF] = useState({ name: '', email: '', password: tempPassword(), role: 'staff' });
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const [made, setMade] = useState(null);
+  const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
+  async function submit(e) {
+    e.preventDefault(); setBusy(true); setErr('');
+    try {
+      await staffAdmin({ action: 'create', ...f });
+      setMade({ ...f }); setF({ name: '', email: '', password: tempPassword(), role: 'staff' }); onDone();
+    } catch (x) { setErr(x.message); }
+    setBusy(false);
+  }
+  const login = `${location.origin}/staff/`;
+  if (made) {
+    const text = `Akaun staf Tinted Carstory\nLog masuk: ${login}\nEmel: ${made.email}\nKata laluan: ${made.password}`;
+    return (
+      <div className="card box">
+        <div className="okline">{made.name} boleh log masuk sekarang</div>
+        <div className="set-note">Beri butiran ini kepada {made.name}. Sebaik-baiknya beritahu secara bersemuka.</div>
+        <div className="cred"><span>Log masuk</span><b>{login}</b><span>Emel</span><b>{made.email}</b><span>Kata laluan</span><b className="tab-num">{made.password}</b></div>
+        <div className="row-actions" style={{ flexWrap: 'wrap' }}>
+          <button className="btn btn-sm" onClick={() => navigator.clipboard?.writeText(text).then(() => toast('Disalin'))}>Salin butiran</button>
+          <button className="btn btn-sm" onClick={() => setMade(null)}>Tambah seorang lagi</button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <form className="card box" onSubmit={submit}>
+      <div className="micro">Tambah staf</div>
+      <div className="grid2">
+        <label className="fld"><span>Nama</span><input className="in" value={f.name} onChange={set('name')} maxLength={60} required /></label>
+        <label className="fld"><span>Emel (untuk log masuk)</span><input className="in" type="email" value={f.email} onChange={set('email')} autoComplete="off" required /></label>
+        <label className="fld"><span>Kata laluan sementara</span>
+          <div style={{ display: 'flex', gap: 6 }}><input className="in tab-num" value={f.password} onChange={set('password')} minLength={8} maxLength={72} required autoComplete="off" />
+            <button type="button" className="btn btn-sm" onClick={() => setF({ ...f, password: tempPassword() })}>Jana</button></div></label>
+        <label className="fld"><span>Peranan</span><select className="in" value={f.role} onChange={set('role')}>
+          <option value="staff">Staf (tiada laporan / tetapan)</option><option value="owner">Pemilik (akses penuh)</option></select></label>
+      </div>
+      {err && <div className="warnline" role="alert">{err}</div>}
+      <div><button className="btn btn-primary" disabled={busy}>{busy ? 'Mencipta...' : 'Cipta akaun'}</button></div>
+    </form>
+  );
+}
+
 function Rm({ value, onChange, label }) {
   return (
     <div className="rm"><input className="in" type="number" inputMode="numeric" min="0" aria-label={label}
@@ -119,6 +188,15 @@ export default function Settings({ settings, staff, me, onSaved, toast, hidden }
     if (p.id === me.id) return;
     const { error } = await supabase.from('staff').update({ active: !p.active }).eq('id', p.id);
     if (!error) { toast(p.active ? `${p.name} tidak boleh log masuk lagi` : `${p.name} diaktifkan`); onSaved(); }
+  }
+
+  async function resetPassword(p) {
+    const pw = tempPassword();
+    if (!window.confirm(`Tetapkan kata laluan baru untuk ${p.name}? Kata laluan lama tidak boleh digunakan lagi.`)) return;
+    try {
+      await staffAdmin({ action: 'set_password', staff_id: p.id, password: pw });
+      window.prompt(`Kata laluan baru ${p.name} (salin dan beritahu dia):`, pw);
+    } catch (x) { toast(x.message); }
   }
 
   const filmName = (f) => <span className="nm">{f.name || 'Tanpa nama'}{f.grade && <small>Gred {f.grade}{f.warranty_years ? ` · waranti ${f.warranty_years} thn` : ''}</small>}</span>;
@@ -218,16 +296,24 @@ export default function Settings({ settings, staff, me, onSaved, toast, hidden }
       )}
 
       {tab === 'staf' && (
-        <div className="card rows">
-          {staff.map((p) => (
-            <div key={p.id} className="row" style={{ cursor: 'default' }}>
-              <span className="avatar">{(p.name || '?')[0].toUpperCase()}</span>
-              <span className="row-main"><span className="row-title">{p.name}</span>
-                <span className="row-sub">{p.role === 'owner' ? 'Pemilik' : 'Staf'}{p.active ? '' : ' · tidak aktif'}</span></span>
-              {p.id !== me.id && <button className="btn btn-sm" onClick={() => toggleStaff(p)}>{p.active ? 'Nyahaktif' : 'Aktifkan'}</button>}
-            </div>
-          ))}
-          <div className="box" style={{ borderTop: '1px solid var(--line-2)' }}><div className="set-note">Staf baru ditambah oleh pembangun anda (akaun log masuk perlu dicipta). Nyahaktif serta-merta menyekat akses. Perubahan di sini terus berkuat kuasa.</div></div>
+        <div className="set-grid">
+          <AddStaff onDone={onSaved} toast={toast} />
+          <div className="card rows">
+            {staff.map((p) => (
+              <div key={p.id} className="row row-act" style={{ cursor: 'default' }}>
+                <span className="avatar">{(p.name || '?')[0].toUpperCase()}</span>
+                <span className="row-main"><span className="row-title">{p.name}{p.id === me.id ? ' (anda)' : ''}</span>
+                  <span className="row-sub">{p.role === 'owner' ? 'Pemilik' : 'Staf'}{p.active ? '' : ' · tidak aktif'}</span></span>
+                {p.id !== me.id && (
+                  <span className="row-actions">
+                    <button className="btn btn-sm" onClick={() => resetPassword(p)}>Kata laluan baru</button>
+                    <button className="btn btn-sm" onClick={() => toggleStaff(p)}>{p.active ? 'Nyahaktif' : 'Aktifkan'}</button>
+                  </span>
+                )}
+              </div>
+            ))}
+            <div className="box" style={{ borderTop: '1px solid var(--line-2)' }}><div className="set-note">Nyahaktif serta-merta menyekat akses (rekod kerja mereka kekal). Staf lupa kata laluan? Tekan "Kata laluan baru" dan beritahu mereka.</div></div>
+          </div>
         </div>
       )}
 
