@@ -83,7 +83,10 @@ async function mockSupabase(route) {
     const rows = id ? who.filter((s) => `eq.${s.id}` === id) : who;
     return json(single ? rows[0] ?? null : rows);
   }
-  if (p === '/rest/v1/shop_settings') return json(single ? settings : [settings]);
+  if (p === '/rest/v1/shop_settings') {
+    if (req.method() === 'PATCH') { settingsPatches.push(body); Object.assign(settings, body); }
+    return json(single ? settings : [settings]);
+  }
   if (p === '/rest/v1/job_events') return json([]);
   if (p === '/rest/v1/jobs') {
     const id = url.searchParams.get('id')?.replace('eq.', '');
@@ -96,6 +99,7 @@ async function mockSupabase(route) {
   return json({});
 }
 
+const settingsPatches = [];
 const results = [];
 const check = (ok, name) => { results.push(`${ok ? 'ok  ' : 'FAIL'} ${name}`); if (!ok) process.exitCode = 1; };
 
@@ -250,6 +254,26 @@ await p.waitForSelector('.seg');
 check((await p.locator('.tile-v').first().innerText()).startsWith('RM'), 'owner report shows sales');
 check(await noSideScroll(p), 'owner report fits 375px');
 await p.screenshot({ path: `${SHOTS}/11-report-375.png`, fullPage: true });
+// Owner settings: one category per tab, one save for what changed.
+await p.click('.bnav button:has-text("Tetapan")');
+await p.waitForSelector('.subtabs [role=tab]');
+check((await p.locator('.page:not([hidden]) > .subtabs [role=tab]').allInnerTexts()).join('|') === 'Harga|Filem|Slot & bay|Hari tutup|Staf', 'settings split into 5 category tabs');
+check(await p.locator('.savebar').count() === 0, 'no save bar before any change');
+await p.locator('.price-phone .plist input').first().fill('275');
+check(await p.locator('.savebar').isVisible(), 'editing a price shows the save bar');
+check((await p.locator('[role=tab][aria-selected=true]').first().innerText()).includes('Harga'), 'still on the Harga tab');
+await p.click('[role=tab]:has-text("Slot & bay")');
+check(await p.locator('.savebar').isVisible(), 'unsaved edit survives switching category');
+check(await noSideScroll(p), 'settings fits 375px');
+await p.screenshot({ path: `${SHOTS}/12-settings-375.png`, fullPage: true });
+await p.click('.bnav button:has-text("Dashboard")');
+await p.click('.bnav button:has-text("Tetapan")');
+check(await p.locator('.savebar').isVisible(), 'unsaved edit survives leaving settings');
+await p.click('.savebar button:has-text("Simpan")');
+await p.waitForTimeout(300);
+const sp = settingsPatches[settingsPatches.length - 1];
+check(Boolean(sp) && sp.films[0].prices.small === 275, 'save writes the new price');
+check(await p.locator('.savebar').count() === 0, 'save bar clears after saving');
 check(p.errors.length === 0, `staff app has no JS errors ${p.errors.join(' | ')}`);
 
 // 6. Staff role: no money tiles, no settings.
@@ -258,10 +282,11 @@ await p.goto(`${BASE}/staff/`);
 await p.waitForSelector('.row');
 check((await p.locator('.tile').allInnerTexts()).every((t) => !t.includes('RM')), 'staff role sees no money figures');
 check((await p.locator('.tile').allInnerTexts()).some((t) => /kereta anda siap/i.test(t)), 'staff role sees their own car count');
-check((await p.locator('[aria-label="Tetapan kedai"]').count()) === 0, 'staff role has no settings');
-check((await p.locator('.top-tabs button:has-text("Laporan")').count()) === 0, 'staff role has no report tab');
+check((await p.locator('.side-nav button:has-text("Tetapan")').count()) === 0, 'staff role has no settings');
+check((await p.locator('.side-nav button:has-text("Laporan")').count()) === 0, 'staff role has no report tab');
+check((await p.locator('.side-nav button:has-text("Pipeline")').count()) === 1, 'desktop sidebar shows the nav');
 await p.screenshot({ path: `${SHOTS}/9-staff-dash-1280.png`, fullPage: true });
-await p.click('.top-tabs button:has-text("Pipeline")');
+await p.click('.side-nav button:has-text("Pipeline")');
 await p.screenshot({ path: `${SHOTS}/10-pipeline-1280.png`, fullPage: true });
 
 await browser.close();
