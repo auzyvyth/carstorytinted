@@ -16,6 +16,8 @@ export function mountStudio() {
 
   const paint = () => {
     const v = Number(range.value);
+    // Darker film = less glare: the light sweeping across the glass fades with it.
+    root.style.setProperty('--glare', (0.25 + (v / 100) * 0.75).toFixed(2));
     out.textContent = `${v}%`;
     rear.style.opacity = tintOpacity(v);
     if (tag) tag.textContent = `${v}%`;

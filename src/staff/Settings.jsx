@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { supabase } from './supabase.js';
 import { CAR_SIZES } from '../shared/shop.js';
+import { videoOf } from '../shared/render.js';
+import { DEMO } from '../shared/api.js';
 
 const DOW = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
 const numOrNull = (v) => (v === '' || v === null || v === undefined ? null : Number(v));
@@ -20,6 +22,7 @@ const TABS = [
   ['filem', 'Filem'],
   ['slot', 'Slot & bay'],
   ['cuti', 'Hari tutup'],
+  ['laman', 'Laman web'],
   ['staf', 'Staf'],
 ];
 
@@ -29,8 +32,107 @@ const slice = {
   filem: (s) => s.films.map(({ prices, ...rest }) => rest),
   slot: (s) => ({ t: s.slotsText, b: String(s.cars_per_slot), o: String(s.online_per_slot ?? ''), d: String(s.booking_days_ahead) }),
   cuti: (s) => ({ w: s.closed_weekdays, d: s.closed_dates }),
+  laman: (s) => s.site,
 };
-const draftOf = (settings) => ({ ...clone(settings), slotsText: settings.slots.join(', ') });
+const SITE0 = { services: [], team: [], videos: [] };
+const draftOf = (settings) => ({ ...clone(settings), site: { ...SITE0, ...clone(settings.site || {}) }, slotsText: settings.slots.join(', ') });
+const newId = () => Math.random().toString(36).slice(2, 10);
+
+// Team photo: shrunk on the phone to 480x600 WebP (tens of KB, not a 4 MB camera file),
+// then uploaded to the public 'site' bucket (owner-only writes, 0005_site_content.sql).
+async function uploadPhoto(file) {
+  const img = await createImageBitmap(file);
+  const W = 480, H = 600, r = Math.max(W / img.width, H / img.height);
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const w = img.width * r, h = img.height * r;
+  c.getContext('2d').drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
+  if (DEMO) return c.toDataURL('image/webp', 0.8);
+  const blob = await new Promise((res) => c.toBlob(res, 'image/webp', 0.82));
+  const path = `team/${crypto.randomUUID()}.webp`;
+  const { error } = await supabase.storage.from('site').upload(path, blob, { contentType: 'image/webp' });
+  if (error) throw error;
+  return supabase.storage.from('site').getPublicUrl(path).data.publicUrl;
+}
+
+function SiteEditor({ site, setSite, toast }) {
+  const upd = (key, i, patch) => setSite({ ...site, [key]: site[key].map((x, j) => (j === i ? { ...x, ...patch } : x)) });
+  const del = (key, i) => setSite({ ...site, [key]: site[key].filter((_, j) => j !== i) });
+  const add = (key, row) => setSite({ ...site, [key]: [...site[key], row] });
+  const move = (key, i, d) => { const a = [...site[key]]; const j = i + d; if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; setSite({ ...site, [key]: a }); };
+  const [busy, setBusy] = useState('');
+  async function pick(i, file) {
+    if (!file) return;
+    setBusy(String(i));
+    try { upd('team', i, { photo_url: await uploadPhoto(file) }); } catch { toast('Gagal muat naik gambar. Cuba lagi.'); }
+    setBusy('');
+  }
+  return (
+    <div className="set-grid">
+      <div className="card box">
+        <div className="micro">Servis lain (polish, karpet...)</div>
+        <div className="set-note">Tunjuk di laman web dengan butang WhatsApp. Belum boleh ditempah online. Harga kosong = "Tanya harga".</div>
+        {site.services.map((x, i) => (
+          <div key={x.id || i} className="site-row">
+            <div className="grid2">
+              <label className="fld"><span>Nama servis</span><input className="in" value={x.name || ''} maxLength={40} onChange={(e) => upd('services', i, { name: e.target.value })} /></label>
+              <label className="fld"><span>Harga dari (RM)</span><input className="in tab-num" type="number" inputMode="numeric" min="0" placeholder="Tanya" value={x.price_from ?? ''} onChange={(e) => upd('services', i, { price_from: e.target.value })} /></label>
+            </div>
+            <label className="fld"><span>Penerangan ringkas</span><textarea className="in" rows={2} maxLength={200} value={x.desc || ''} onChange={(e) => upd('services', i, { desc: e.target.value })} /></label>
+            <div className="row-actions"><button className="btn btn-sm" onClick={() => del('services', i)}>Buang</button></div>
+          </div>
+        ))}
+        <div><button className="btn btn-sm" onClick={() => add('services', { id: newId(), name: '', desc: '', price_from: null })}>+ Tambah servis</button></div>
+      </div>
+
+      <div className="card box">
+        <div className="micro">Pasukan kami</div>
+        <div className="set-note">Bahagian "Kenali pasukan kami" di laman utama. Kosong = bahagian itu tidak ditunjuk.</div>
+        {site.team.map((x, i) => (
+          <div key={x.id || i} className="site-row team-row">
+            <label className="photo-pick" aria-label={`Gambar ${x.name || 'ahli'}`}>
+              {x.photo_url ? <img src={x.photo_url} alt="" /> : <span>{busy === String(i) ? '...' : '+ Gambar'}</span>}
+              <input type="file" accept="image/*" onChange={(e) => pick(i, e.target.files?.[0])} hidden />
+            </label>
+            <div style={{ display: 'grid', gap: 8, minWidth: 0 }}>
+              <div className="grid2">
+                <label className="fld"><span>Nama</span><input className="in" value={x.name || ''} maxLength={40} onChange={(e) => upd('team', i, { name: e.target.value })} /></label>
+                <label className="fld"><span>Tugas</span><input className="in" value={x.role || ''} maxLength={40} placeholder="cth. Pemasang" onChange={(e) => upd('team', i, { role: e.target.value })} /></label>
+              </div>
+              <label className="fld"><span>Satu ayat (pilihan)</span><input className="in" value={x.bio || ''} maxLength={140} onChange={(e) => upd('team', i, { bio: e.target.value })} /></label>
+              <div className="row-actions" style={{ flexWrap: 'wrap' }}>
+                <button className="btn btn-sm" onClick={() => move('team', i, -1)} disabled={!i}>Naik</button>
+                <button className="btn btn-sm" onClick={() => move('team', i, 1)} disabled={i === site.team.length - 1}>Turun</button>
+                {x.photo_url && <button className="btn btn-sm" onClick={() => upd('team', i, { photo_url: null })}>Buang gambar</button>}
+                <button className="btn btn-sm" onClick={() => del('team', i)}>Buang</button>
+              </div>
+            </div>
+          </div>
+        ))}
+        <div><button className="btn btn-sm" onClick={() => add('team', { id: newId(), name: '', role: '', bio: '', photo_url: null })}>+ Tambah ahli</button></div>
+      </div>
+
+      <div className="card box">
+        <div className="micro">Video</div>
+        <div className="set-note">Tampal pautan YouTube (termasuk Shorts) atau TikTok. Video hanya dimuatkan bila pelawat tekan main.</div>
+        {site.videos.map((x, i) => {
+          const ok = videoOf(x.url);
+          return (
+            <div key={x.id || i} className="site-row">
+              <div className="grid2">
+                <label className="fld"><span>Pautan video</span><input className="in" value={x.url || ''} placeholder="https://youtu.be/..." onChange={(e) => upd('videos', i, { url: e.target.value })} /></label>
+                <label className="fld"><span>Tajuk (pilihan)</span><input className="in" value={x.title || ''} maxLength={80} onChange={(e) => upd('videos', i, { title: e.target.value })} /></label>
+              </div>
+              {x.url && !ok && <div className="warnline">Bukan pautan YouTube atau TikTok yang sah.</div>}
+              {ok && <div className="okline">{ok.kind === 'youtube' ? 'YouTube' : 'TikTok'}{ok.tall ? ' (menegak)' : ''}</div>}
+              <div className="row-actions"><button className="btn btn-sm" onClick={() => move('videos', i, -1)} disabled={!i}>Naik</button><button className="btn btn-sm" onClick={() => del('videos', i)}>Buang</button></div>
+            </div>
+          );
+        })}
+        <div><button className="btn btn-sm" onClick={() => add('videos', { id: newId(), url: '', title: '' })}>+ Tambah video</button></div>
+      </div>
+    </div>
+  );
+}
 
 // Owner-only account actions run server-side (supabase/functions/staff-admin): a
 // browser cannot create logins. Every error comes back as a short code.
@@ -172,9 +274,15 @@ export default function Settings({ settings, staff, me, onSaved, toast, hidden }
     const bays = Number(s.cars_per_slot);
     const online = s.online_per_slot === '' || s.online_per_slot === null || s.online_per_slot === undefined ? null : Number(s.online_per_slot);
     if (online !== null && (online < 0 || online > bays)) return fail('slot', 'Bay untuk online tidak boleh lebih dari jumlah bay.');
+    const site = {
+      services: s.site.services.filter((x) => (x.name || '').trim()).map((x) => ({ id: x.id || newId(), name: x.name.trim(), desc: (x.desc || '').trim(), price_from: numOrNull(x.price_from) })),
+      team: s.site.team.filter((x) => (x.name || '').trim()).map((x) => ({ id: x.id || newId(), name: x.name.trim(), role: (x.role || '').trim(), bio: (x.bio || '').trim(), photo_url: x.photo_url || null })),
+      videos: s.site.videos.filter((x) => (x.url || '').trim()).map((x) => ({ id: x.id || newId(), url: x.url.trim(), title: (x.title || '').trim() })),
+    };
+    if (site.videos.some((x) => !videoOf(x.url))) return fail('laman', 'Pautan video mesti YouTube atau TikTok.');
     setBusy(true);
     const { data, error } = await supabase.from('shop_settings').update({
-      films, addons, slots: [...new Set(slots)].sort(), cars_per_slot: bays, online_per_slot: online,
+      films, addons, site, slots: [...new Set(slots)].sort(), cars_per_slot: bays, online_per_slot: online,
       closed_weekdays: s.closed_weekdays, closed_dates: s.closed_dates, booking_days_ahead: Number(s.booking_days_ahead),
       updated_at: new Date().toISOString(),
     }).eq('id', 1).select().single();
@@ -269,6 +377,8 @@ export default function Settings({ settings, staff, me, onSaved, toast, hidden }
           <div className="set-note">Bay yang tidak dijual online dikhaskan untuk walk-in.</div>
         </div>
       )}
+
+      {tab === 'laman' && <SiteEditor site={s.site} setSite={(site) => setS((p) => ({ ...p, site }))} toast={toast} />}
 
       {tab === 'cuti' && (
         <div className="set-grid">
