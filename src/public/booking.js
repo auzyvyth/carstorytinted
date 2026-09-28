@@ -95,7 +95,7 @@ const VIEWS = {
     const days = [...byDay().entries()];
     if (!days.length) return screen('Hari apa?', '', `<p class="lead">Tiada slot kosong dalam 3 minggu. <a href="${waLink(SHOP.contacts[0].phone, 'Salam, saya nak tempah slot tinted.')}">WhatsApp kami</a> untuk tarikh lain.</p>`);
     // Nine days is a choice; eighteen is a calendar to read. The rest are one tap away.
-    const shown = st.moreDays || days.length <= 12 ? days : days.slice(0, 9);
+    const shown = st.moreDays || days.length <= 12 ? days : days.slice(0, matchMedia('(min-width: 720px)').matches ? 10 : 9);
     return screen('Hari apa?', 'Hanya hari kedai dibuka.', `<div class="tiles days">${shown.map(([iso, slots]) => {
       const p = dayParts(iso), free = slots.filter((x) => x.remaining > 0).length;
       return `<button type="button" class="tile day" data-date="${iso}" aria-pressed="${st.date === iso}" ${free ? '' : 'disabled'} aria-label="${dayLabel(iso)}, ${free} slot kosong">
@@ -155,9 +155,12 @@ function offlineView() {
 
 function render() {
   if (!apiReady) { root.innerHTML = offlineView(); return; }
-  if (st.done) { root.innerHTML = doneView(); return; }
+  if (st.done) { document.querySelector('main.book')?.classList.add('wiz-on'); root.innerHTML = doneView(); return; }
   const view = VIEWS[st.step] ? st.step : 'saiz';
-  root.innerHTML = `<div class="wiz">${progress()}<div class="wiz-card panel ${st.dir < 0 ? 'from-left' : 'from-right'}" data-screen="${view}">${VIEWS[view]()}${st.error && view !== 'butiran' ? `<p class="err" role="alert">${esc(st.error)}</p>` : ''}</div>${summaryBar()}</div>`;
+  // Past the first question the page title steps aside, so each screen (the details
+  // form included) fits a laptop screen without scrolling.
+  document.querySelector('main.book')?.classList.toggle('wiz-on', view !== STEPS()[0]);
+  root.innerHTML = `<div class="wiz">${progress()}${summaryBar()}<div class="wiz-card panel ${st.dir < 0 ? 'from-left' : 'from-right'}" data-screen="${view}">${VIEWS[view]()}${st.error && view !== 'butiran' ? `<p class="err" role="alert">${esc(st.error)}</p>` : ''}</div></div>`;
   st.dir = 0;  // slide only when the question changes, not on every repaint
 }
 
