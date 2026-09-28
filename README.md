@@ -34,8 +34,9 @@ is this build; it only rebuilds when this folder changes.
    **Backup alert (recommended):** create a Telegram bot with @BotFather, add it to a group with the owner (or message it once), get the chat id, then
    `supabase secrets set TELEGRAM_BOT_TOKEN=... TELEGRAM_CHAT_ID=...`. Every online booking (and the 30-minute reminder) then also lands in Telegram, so a booking is heard even if no staff phone has notifications on.
    In SQL: `insert into app_config values ('notify_url','https://<ref>.supabase.co/functions/v1/notify-staff'), ('notify_secret','<same random>');`
-4. **Staff accounts**: Authentication -> Users -> Add user (email + password, auto-confirm) for the owner and each worker. Then:
-   `insert into staff (id, name, role) values ('<owner uuid>', 'Maliki', 'owner'), ('<worker uuid>', 'Tam', 'staff');`
+4. **Staff accounts**: deploy `supabase functions deploy staff-admin --no-verify-jwt` (it checks the caller is an active owner itself). Create only the FIRST owner by hand: Authentication -> Users -> Add user (email + password, auto-confirm), then
+   `insert into staff (id, name, role) values ('<owner uuid>', 'Maliki', 'owner');`
+   After that the owner adds every worker (and a backup owner) himself in `/staff/` -> Tetapan -> Staf, and resets a forgotten password there with "Kata laluan baru".
    Turn OFF public sign-ups (Authentication -> Providers -> Email -> "Allow new users to sign up"). Staff are the only users.
 5. **Vercel**: new project from this repo, Root Directory left as the repo root, framework Vite. Env vars from `.env.example`. Add the domain, then set `SITE_URL` and redeploy (turns on canonical URLs + sitemap).
 6. **Google**: create/claim the Google Business Profile, put its review link in `shop.js` (`googleReviewUrl`), submit `sitemap.xml` in Search Console.
@@ -56,6 +57,6 @@ is this build; it only rebuilds when this folder changes.
 
 ## Known limits (v1)
 - Staff money totals are hidden from the `staff` role in the UI; a worker can still see a single job's price (they collect payment). The database does not hide prices per role.
-- No online deposit. Forgotten passwords are reset by the developer in Supabase.
+- No online deposit. A forgotten staff password is reset by the owner (Tetapan > Staf > "Kata laluan baru"); a forgotten OWNER password still needs the developer, unless a second owner account exists.
 - Jobs are never hard-deleted: the owner's "Padam" archives (restorable under Batal > Dipadam). Only the retention job (`purge_old_jobs`) removes rows.
 - iPhone push works only after "Add to Home Screen" (Apple rule, iOS 16.4+). The dashboard explains this.

@@ -4,6 +4,32 @@ From the security, CRM, feature and SEO/GEO audit (2026-09-28). Nothing below is
 built. Only the "Sell" section is being done now. Everything after it waits for
 the owner (Maliki) to agree and pay.
 
+## 0. Next build (agreed 2026-09-28)
+- [ ] **UI-1: staff + owner dashboards back to a WHITE theme, with the Salesman Premium
+      DESIGN (not its dark colours).** The 2026-09-28 restyle copied Premium's dark palette;
+      the owner meant its look: soft blurred colour smudges behind cards
+      (ShiftOS `src/pages/salesmanPremium/DashboardTab.jsx:290` corner blob,
+      `:730` blurred ellipse), glowing rows for things that need attention (red glow,
+      `DashboardTab.jsx:147`), same spacing/typography. Scope: `src/staff/staff.css` tokens
+      (`--bg/--card/--raised/--ink...`), the walk-in card, schedule, "Perlu tindakan" rows
+      glow, theme-color in `staff/index.html` + `public/staff/manifest.webmanifest`.
+      Update HANDOFF.md "Staff app look" (it says dark). Check 375px.
+- [ ] **CRM-1: far fewer typed fields in the job screen (`src/staff/JobDrawer.jsx`), still editable.**
+      Today ~20 inputs are always open. Target:
+      - What the customer already gave (web booking: name, phone, car, plate, size, film,
+        add-ons, time, quote, wait/leave, heard-from, notes) shows as a READ summary with
+        one "Ubah" (edit) toggle, not as empty-looking inputs.
+      - Staff only touch what they learn at the counter: VLT readings, payment.
+        "Bayar penuh" one tap = price; payment method as chips (Tunai / Pindahan / QR / Kad),
+        not a dropdown; installer already auto-fills on "mula kerja".
+      - Price: show the website quote with its breakdown (film + each add-on) and "Tanya"
+        on any part with no price. Root cause of "price not carried over": only COMPACT
+        prices exist, so sedan/SUV/large or any add-on books with `quoted_price = null`
+        (`quote_price()` returns null if any part is unpriced). Owner fills the rest in
+        Tetapan > Harga; the drawer must then say "harga belum ditetapkan" instead of a
+        blank box.
+      - Walk-in quick add: name + phone + car size + film only; everything else optional.
+
 ## 1. Sell (now, before any paid work)
 - [ ] **Demo build.** Turn Vercel project `carstorytinted` into the sales demo
       (env `VITE_DEMO=1`, no Supabase keys) so the pitch never touches the real DB.
@@ -27,7 +53,8 @@ the owner (Maliki) to agree and pay.
       `NOTIFY_SECRET`, `app_config` rows, Telegram backup (README Setup 2-3).
       Live check 2026-09-28: no edge function, `app_config` empty, 0 push devices,
       so `nag-unconfirmed` fires every 10 min and reaches nobody.
-- [ ] Staff accounts for each worker (README Setup 4).
+- [ ] Staff accounts: owner adds each worker himself in Tetapan > Staf (`staff-admin`
+      edge function, deployed 2026-09-28). Show him once during setup.
 - [ ] Auth: turn OFF public sign-ups; turn ON leaked-password protection.
 - [ ] A second owner account (backup): today there is exactly one owner, and
       `staff_owner_write` (0001_init.sql:338) lets that owner switch themselves off.
@@ -58,8 +85,8 @@ the owner (Maliki) to agree and pay.
       customer on the phone; a deactivated worker's copy survives (App.jsx:207).
 - [ ] Security headers in `vercel.json` (at least `frame-ancestors 'none'`).
 - [ ] Pin `search_path` on `shop_today` + `normalize_phone` (Supabase advisor).
-- [ ] Owner: add a worker from Settings (today only on/off, Settings.jsx:118) and
-      reset a worker's password without the developer.
+- [ ] A worker changing their OWN password (today the owner sets a temporary one and
+      can reset it, but the worker has no "change password" screen).
 
 ## 4. Paid add-ons: features (each one: owner asks -> quote -> build)
 Owner dashboard

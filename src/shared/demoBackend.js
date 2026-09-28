@@ -101,7 +101,7 @@ function slots(db, from, days) {
 
 // Mirrors the DB triggers jobs_before_write + jobs_check_capacity (0002_dashboard.sql).
 function rules(j, before, db, me) {
-  const owner = DEMO_USERS['pemilik@demo.my'].id === me;
+  const owner = db.staff.some((x) => x.id === me && x.role === 'owner');
   if (before && j.archived_at !== before.archived_at && !owner) j.archived_at = before.archived_at;
   if (before) j.manage_token = before.manage_token;
   if (before && (j.scheduled_date !== before.scheduled_date || j.scheduled_slot !== before.scheduled_slot)) j.customer_confirmed_at = null;
@@ -130,9 +130,11 @@ function mint(j, db) {
 
 const reply = (data, status = 200) => new Response(data === undefined ? null : JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json' } });
 const fail = (code, status = 400) => reply({ message: code, code: 'P0001' }, status);
-function actorFrom(headers) {
+// Fixed demo logins plus any the owner creates in Tetapan > Staf (db.accounts).
+const accountsOf = (db) => ({ ...Object.fromEntries(Object.entries(DEMO_USERS).map(([e, u]) => [e, { ...u, password: DEMO_PASSWORD }])), ...(db.accounts || {}) });
+function actorFrom(headers, db) {
   const auth = new Headers(headers).get('Authorization') || '';
-  return Object.values(DEMO_USERS).find((u) => auth.includes(u.id))?.id || null;
+  return Object.values(accountsOf(db)).find((u) => auth.includes(u.id))?.id || null;
 }
 
 export async function demoFetch(input, init = {}) {
@@ -145,24 +147,51 @@ export async function demoFetch(input, init = {}) {
   const eq = (k) => q.get(k)?.replace(/^eq\./, '');
   const db = load();
   const p = url.pathname;
-  const me = actorFrom(init.headers);
+  const me = actorFrom(init.headers, db);
   const out = (rows) => reply(single ? rows[0] ?? null : rows);
 
   // --- auth: two fixed demo accounts. The access token just carries the user id.
   if (p === '/auth/v1/token') {
+    const accts = accountsOf(db);
     const byRefresh = q.get('grant_type') === 'refresh_token'
-      && Object.entries(DEMO_USERS).find(([, x]) => body?.refresh_token === `r.${x.id}`);
+      && Object.entries(accts).find(([, x]) => body?.refresh_token === `r.${x.id}`);
     if (byRefresh) body.email = byRefresh[0];
-    if (byRefresh) body.password = DEMO_PASSWORD;
-    const u = DEMO_USERS[String(body?.email).toLowerCase()];
-    if (!u || body?.password !== DEMO_PASSWORD) return reply({ error: 'invalid_grant', error_description: 'Invalid login credentials' }, 400);
+    if (byRefresh) body.password = byRefresh[1].password;
+    const u = accts[String(body?.email).toLowerCase()];
+    if (!u || body?.password !== u.password) return reply({ error: 'invalid_grant', error_description: 'Invalid login credentials' }, 400);
     const user = { id: u.id, aud: 'authenticated', role: 'authenticated', email: body.email, app_metadata: {}, user_metadata: {}, created_at: iso(-30) };
     return reply({ access_token: `demo.${u.id}`, refresh_token: `r.${u.id}`, token_type: 'bearer', expires_in: 86400, expires_at: Math.floor(Date.now() / 1000) + 86400, user });
   }
   if (p === '/auth/v1/logout') return reply(undefined, 204);
   if (p === '/auth/v1/user') {
-    const u = Object.entries(DEMO_USERS).find(([, x]) => x.id === me);
+    const u = Object.entries(accountsOf(db)).find(([, x]) => x.id === me);
     return u ? reply({ id: u[1].id, email: u[0], aud: 'authenticated', role: 'authenticated' }) : reply({ message: 'no user' }, 401);
+  }
+
+  // --- staff-admin edge function (supabase/functions/staff-admin): owner only.
+  if (p === '/functions/v1/staff-admin') {
+    const f = (error, status = 400) => reply({ error }, status);
+    const owner = db.staff.find((x) => x.id === me && x.active && x.role === 'owner');
+    if (!owner) return f('not_owner', 403);
+    const pw = String(body?.password || '');
+    if (pw.length < 8) return f('weak_password');
+    const accts = accountsOf(db);
+    if (body.action === 'create') {
+      const email = String(body.email || '').trim().toLowerCase(), name = String(body.name || '').trim();
+      if (!name) return f('bad_name');
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return f('bad_email');
+      if (accts[email]) return f('email_taken');
+      const row = { id: uid(), name, role: body.role === 'owner' ? 'owner' : 'staff', active: true };
+      db.accounts = { ...(db.accounts || {}), [email]: { ...row, password: pw } };
+      db.staff.push(row); save(db); return reply({ staff: row });
+    }
+    if (body.action === 'set_password') {
+      const hit = Object.entries(accts).find(([, x]) => x.id === body.staff_id);
+      if (!hit || hit[1].id === me) return f('not_found', 404);
+      db.accounts = { ...(db.accounts || {}), [hit[0]]: { ...hit[1], password: pw } };
+      save(db); return reply({ ok: true });
+    }
+    return f('bad_request');
   }
 
   // --- the four public functions + push

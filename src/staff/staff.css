@@ -269,3 +269,8 @@ select.in option { background: var(--raised); }
 .empty-bay { display: flex; align-items: center; gap: 6px; justify-content: center; min-height: 56px; background: none; border-style: dashed; color: var(--muted); font-size: 12px; }
 div.empty-bay { cursor: default; }
 .empty-bay svg { width: 14px; height: 14px; }
+
+/* new staff login details, shown once after "Cipta akaun" */
+.cred { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; font-size: 13px; padding: 10px 12px; border-radius: 10px; background: var(--raised); border: 1px solid var(--line); }
+.cred span { color: var(--muted); }
+.cred b { overflow-wrap: anywhere; }
