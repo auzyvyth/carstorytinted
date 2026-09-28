@@ -5,11 +5,14 @@ import './nav.js';
 import { rpc, apiReady, dateLabel } from '../shared/api.js';
 import { SHOP, fullAddress } from '../shared/shop.js';
 import { esc, vltRows } from '../shared/render.js';
+import { saveImage, vltData } from './saveImage.js';
 
 const box = document.querySelector('[data-cert]');
 const token = new URLSearchParams(location.search).get('t') || '';
 
+let current = null;
 function show(c) {
+  current = c;
   document.title = `Sijil ${c.ref} | ${SHOP.name}`;
   box.innerHTML = `<div class="cert" style="margin:0 auto;max-width:520px">
   <div class="cert-head"><span class="wordmark"><span>Tinted</span> Carstory</span><span class="muted" style="font-size:13px">No. ${esc(c.ref)}</span></div>
@@ -22,7 +25,7 @@ function show(c) {
   ${vltRows(c)}
   <div class="cert-row" style="border-top:1px solid var(--line);margin-top:10px;padding-top:14px"><span>Waranti hingga</span><b>${c.warranty_until ? dateLabel(c.warranty_until) : 'Rujuk kedai'}</b></div>
   <p class="note">${esc(SHOP.legalName)} · ${esc(fullAddress())}</p>
-  <div class="row-btns" style="margin-top:18px"><button class="btn btn-line btn-sm" onclick="window.print()">Cetak / simpan PDF</button></div>
+  <div class="row-btns" style="margin-top:18px"><button type="button" class="btn btn-line btn-sm" data-save>Simpan gambar sijil</button></div>
 </div>`;
 }
 
@@ -35,3 +38,16 @@ else if (!/^[0-9a-f]{36}$/.test(token)) missing('Pautan tidak lengkap. Buka semu
 else rpc('get_certificate', { p_token: token })
   .then((c) => (c ? show(c) : missing('Pautan ini tidak sah atau kerja belum siap.')))
   .catch(() => missing('Tidak dapat memuatkan sijil. Cuba lagi.'));
+
+box.addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-save]');
+  if (!btn || !current) return;
+  const c = current;
+  btn.disabled = true;
+  try {
+    await saveImage({ title: 'Sijil pemasangan tinted', ref: c.ref, customer: c.customer, blocks: [
+      { rows: [['Kereta', [c.car_model, c.plate].filter(Boolean).join(' · ') || '-'], ['Filem', c.film || '-'], ['Tarikh pasang', c.completed_at ? dateLabel(c.completed_at) : '-']] },
+      { heading: 'Bacaan VLT selepas pasang', rows: [...vltData(c), ['Waranti hingga', c.warranty_until ? dateLabel(c.warranty_until) : 'Rujuk kedai']] },
+    ] }, `Sijil-Tinted-Carstory-${c.ref}.png`);
+  } finally { btn.disabled = false; }
+});

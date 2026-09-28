@@ -8,6 +8,7 @@ import './nav.js';
 import { rpc, apiReady, dayLabel, dateLabel, slotLabel } from '../shared/api.js';
 import { SHOP, POLICY, waLink, fullAddress } from '../shared/shop.js';
 import { esc, rm, vltRows } from '../shared/render.js';
+import { saveImage, vltData } from './saveImage.js';
 
 const box = document.querySelector('[data-manage]');
 const token = new URLSearchParams(location.search).get('t') || '';
@@ -45,7 +46,9 @@ function certificate(b) {
   <div class="cert-row" style="border-top:1px solid var(--line);margin-top:10px;padding-top:14px"><span>Waranti hingga</span><b>${b.warranty_until ? dateLabel(b.warranty_until) : 'Rujuk kedai'}</b></div>`;
 }
 
+let current = null;
 function show(b, msg = '') {
+  current = b;
   document.title = `Tempahan ${b.ref} | ${SHOP.name}`;
   const when = b.date && b.slot ? `${dayLabel(b.date)}, ${slotLabel(b.slot)}` : '-';
   const state = b.stage === 'batal' ? 'Dibatalkan' : b.done ? 'Kereta anda siap' : b.confirmed ? 'Anda sudah sahkan kehadiran' : b.stage === 'baru' ? 'Menunggu pengesahan kedai' : 'Menunggu pengesahan anda';
@@ -71,7 +74,7 @@ function show(b, msg = '') {
   ${certificate(b)}
   <p class="note" style="margin-top:18px"><b>Simpan pautan ini.</b> Status, resit dan sijil anda sentiasa ada di halaman ini.</p>
   <p class="note">${esc(SHOP.legalName)} · ${esc(fullAddress())}</p>
-  ${b.done ? '<div class="row-btns" style="margin-top:14px"><button class="btn btn-line btn-sm" onclick="window.print()">Cetak / simpan PDF</button></div>' : ''}
+  ${b.done || hasMoney(b.price) ? `<div class="row-btns" style="margin-top:14px"><button type="button" class="btn btn-line btn-sm" data-save>Simpan gambar${b.done ? ' resit + sijil' : ''}</button></div>` : ''}
 </div>`;
 }
 
@@ -89,6 +92,31 @@ async function act(action) {
 }
 
 box.addEventListener('click', (e) => { const b = e.target.closest('[data-act]'); if (b) act(b.dataset.act); });
+
+// The receipt (+ certificate once done) as one image for the phone's gallery.
+function imageOf(b) {
+  const paid = Number(b.paid) || 0, owed = hasMoney(b.price) ? Math.max(0, Number(b.price) - paid) : 0;
+  return {
+    title: b.done ? 'Resit dan sijil tinted' : 'Tempahan tinted', ref: b.ref, customer: b.customer,
+    blocks: [
+      { rows: [['Masa', b.date && b.slot ? `${dayLabel(b.date)}, ${slotLabel(b.slot)}` : '-'], ['Kereta', [b.car_model, b.plate].filter(Boolean).join(' · ') || '-'],
+        ['Filem', [b.film, ...(b.addons || [])].filter(Boolean).join(' + ') || '-']] },
+      hasMoney(b.price) && { heading: b.done ? 'Resit' : 'Harga', rows: [
+        [b.price_final ? 'Harga' : 'Anggaran harga', rm(b.price)],
+        ...(paid > 0 ? [[`Dibayar${b.payment_method ? ` (${METHOD[b.payment_method] || b.payment_method})` : ''}`, rm(paid)]] : []),
+        ...(b.done && owed > 0 ? [['Baki', rm(owed), 'bad']] : [])],
+        note: b.done && owed === 0 && paid > 0 ? 'Dibayar penuh. Terima kasih!' : '' },
+      b.done && { heading: 'Sijil pemasangan', rows: [['Tarikh pasang', b.completed_at ? dateLabel(b.completed_at) : '-'], ...vltData(b),
+        ['Waranti hingga', b.warranty_until ? dateLabel(b.warranty_until) : 'Rujuk kedai']] },
+    ].filter(Boolean),
+  };
+}
+box.addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-save]');
+  if (!btn || !current) return;
+  btn.disabled = true;
+  try { await saveImage(imageOf(current), `Tinted-Carstory-${current.ref}.png`); } finally { btn.disabled = false; }
+});
 
 // Lost the link: the shop resends it from the staff app ("Hantar pautan"). There is
 // deliberately no "find my booking by phone number": that would let anyone who knows
