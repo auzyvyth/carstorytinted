@@ -22,7 +22,7 @@ function DemoBar() {
 
 // URL holds the view (?tab=pipeline&job=<id>) so a push notification can open
 // the exact job, and the phone's back button closes a drawer instead of the app.
-const TABS = ['dashboard', 'pipeline', 'report'];
+const TABS = ['dashboard', 'pipeline', 'report', 'settings'];
 const readUrl = () => { const p = new URLSearchParams(location.search); return { tab: TABS.includes(p.get('tab')) ? p.get('tab') : 'dashboard', job: p.get('job') }; };
 function writeUrl(tab, job, push) {
   const p = new URLSearchParams();
@@ -82,7 +82,6 @@ function Workspace({ me, signOut }) {
   const [view, setView] = useState(readUrl);
   const [settings, setSettings] = useState(null);
   const [staff, setStaff] = useState([]);
-  const [showSettings, setShowSettings] = useState(false);
   const [creating, setCreating] = useState(false);
   const loadMeta = useCallback(async () => {
     const [{ data: s }, { data: st }] = await Promise.all([
@@ -121,37 +120,57 @@ function Workspace({ me, signOut }) {
     try { await update(a.job.id, patch); toast(a.alt && !sendWa ? a.alt.done : a.advance ? 'Disahkan' : 'Ditanda selesai'); } catch { toast('Gagal kemaskini. Cuba lagi.'); }
   }
 
+  const owner = me.role === 'owner';
   const tabs = [['dashboard', 'Dashboard', Icon.home], ['pipeline', 'Pipeline', Icon.board],
-    ...(me.role === 'owner' ? [['report', 'Laporan', Icon.chart]] : [])];
+    ...(owner ? [['report', 'Laporan', Icon.chart], ['settings', 'Tetapan', Icon.gear]] : [])];
+  // A worker who follows an owner link lands on the dashboard, not a blank page.
+  const tab = tabs.some(([id]) => id === view.tab) ? view.tab : 'dashboard';
+  const title = tabs.find(([id]) => id === tab)[1];
   return (
     <>
       <DemoBar />
-      <header className="top"><div className="top-in">
-        <span className="wm"><span>Tinted</span> Carstory</span>
-        <nav className="top-tabs">{tabs.map(([id, label]) => <button key={id} aria-current={view.tab === id ? 'page' : undefined} onClick={() => go(id)}>{label}</button>)}</nav>
-        <div className="top-right">
-          <span className="who">{me.name}</span>
-          {me.role === 'owner' && settings && <button className="icon-btn" aria-label="Tetapan kedai" onClick={() => setShowSettings(true)}>{Icon.gear}</button>}
-          <button className="icon-btn" aria-label="Log keluar" onClick={signOut}>{Icon.out}</button>
+      <div className="shell">
+        <aside className="side-nav">
+          <div className="brand"><div className="wm"><span>Tinted</span> Carstory</div><small>· {owner ? 'Panel pemilik' : 'Panel staf'}</small></div>
+          <div className="micro side-label">Utama</div>
+          <nav aria-label="Menu utama">{tabs.map(([id, label, icon]) => <button key={id} aria-current={tab === id ? 'page' : undefined} onClick={() => go(id)}>{icon}{label}</button>)}</nav>
+          <div className="side-foot">
+            <span className="avatar">{(me.name || '?')[0].toUpperCase()}</span>
+            <span className="who"><b>{me.name}</b><span>{owner ? 'Pemilik' : 'Staf'}</span></span>
+            <button className="icon-btn" aria-label="Log keluar" onClick={signOut}>{Icon.out}</button>
+          </div>
+        </aside>
+
+        <div className="main">
+          <header className="top"><div className="top-in">
+            <span className="wm"><span>Tinted</span> Carstory</span>
+            <span className="top-title">{title}</span>
+            <div className="top-right">
+              <button className="icon-btn top-out" aria-label="Log keluar" onClick={signOut}>{Icon.out}</button>
+            </div>
+          </div></header>
+
+          {loading ? <div className="page"><div className="card empty">Memuatkan kerja...</div></div>
+            : tab === 'report'
+              ? <Report jobs={jobs} settings={settings} staff={staff} />
+            : tab === 'pipeline'
+              ? <Pipeline jobs={jobs} archived={archived} onOpen={openJob} onNew={() => setCreating(true)} />
+            : tab === 'settings' ? null
+              : <Dashboard me={me} jobs={jobs} settings={settings} staff={staff} push={push} devices={devices} onOpen={openJob} onAction={onAction} onNew={() => setCreating(true)} error={error} />}
+          {/* Kept mounted (just hidden) so switching tabs never throws away unsaved edits. */}
+          {owner && settings && <Settings hidden={tab !== 'settings'} settings={settings} staff={staff} me={me} toast={toast}
+            onSaved={(s) => { if (s) setSettings(s); loadMeta(); }} />}
+          {owner && tab === 'settings' && !settings && <div className="page"><div className="card empty">Memuatkan tetapan...</div></div>}
         </div>
-      </div></header>
+      </div>
 
-      {loading ? <div className="page"><div className="card empty">Memuatkan kerja...</div></div>
-        : view.tab === 'report' && me.role === 'owner'
-          ? <Report jobs={jobs} settings={settings} staff={staff} />
-        : view.tab === 'pipeline'
-          ? <Pipeline jobs={jobs} archived={archived} onOpen={openJob} onNew={() => setCreating(true)} />
-          : <Dashboard me={me} jobs={jobs} settings={settings} staff={staff} push={push} devices={devices} onOpen={openJob} onAction={onAction} onNew={() => setCreating(true)} error={error} />}
-
-      <nav className="bnav">{tabs.map(([id, label, icon]) => <button key={id} aria-current={view.tab === id ? 'page' : undefined} onClick={() => go(id)}>{icon}{label}</button>)}</nav>
+      <nav className="bnav">{tabs.map(([id, label, icon]) => <button key={id} aria-current={tab === id ? 'page' : undefined} onClick={() => go(id)}>{icon}{label}</button>)}</nav>
 
       {(openJobRow || creating) && settings && (
         <JobDrawer key={openJobRow?.id || 'new'} job={creating ? null : openJobRow} jobs={jobs} settings={settings} staff={staff} me={me}
           api={{ update, create }} toast={toast}
           onClose={() => (creating ? setCreating(false) : closeJob())} />
       )}
-      {showSettings && <Settings settings={settings} staff={staff} me={me} toast={toast} onClose={() => setShowSettings(false)}
-        onSaved={(s) => { if (s) setSettings(s); loadMeta(); }} />}
       {toastMsg && <div className="toast" role="status">{toastMsg}</div>}
     </>
   );

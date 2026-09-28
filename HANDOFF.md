@@ -15,12 +15,18 @@ history kept. It shares no code, database or deploy with ShiftOS.
   get_booking -> confirm -> finish -> certificate all work; anon cannot read `jobs`.
   NOT done yet: push keys, `notify-staff` deploy + secrets, `app_config` rows, staff
   users, turning off public sign-ups (README Setup steps 2-4).
-- Sales demo live on Vercel project `tinted-carstory-demo` (owner's current account),
-  `VITE_DEMO=1`, working. Sample data lives in each visitor's browser; nothing real.
+- **Live site (2026-09-28): Vercel project `carstorytint` -> https://carstorytint.vercel.app**
+  (shop's own Vercel account, team `carstory`). REAL mode: `VITE_SUPABASE_URL` +
+  `VITE_SUPABASE_ANON_KEY` set for Production only, so only production builds reach the
+  database; preview builds have no keys and the staff app shows "Belum disambung".
+  Booking form = `/tempah/`. Until README Setup steps 2-4 are done, bookings land in the
+  DB but no staff can log in and no alert fires.
+- Same account also has `carstorytinted` and `carstorytinted2`: duplicates of the same
+  repo with no env vars (booking cannot submit). Delete both.
+- The old ShiftOS-account project `tinted-carstory-demo` built from the ShiftOS repo and
+  failed on every ShiftOS push (folder moved here). Owner disconnected it 2026-09-28.
 - `vercel.json` forces `ignoreCommand: exit 1` (always build). It was needed inside the
   monorepo; here it is harmless and can stay.
-- The old demo (`tinted-carstory-demo`) still builds from the ShiftOS branch. Point a new
-  demo project at this repo with `VITE_DEMO=1`, then retire the old one.
 - Real (non-demo) build is untested against a real Supabase: migrations, edge function
   `notify-staff` (push + Telegram backup), and push on real phones are all unverified.
   One real-Supabase bug was already found and fixed by making the test DB mirror
@@ -42,13 +48,22 @@ history kept. It shares no code, database or deploy with ShiftOS.
    rear glass (the list covers 4 side windows only; site says "Tanya" for the rest).
    Ask him too: Black UV's lightest is 50% film, and JPJ measures glass + film
    together, so on the front side windows it likely reads under 50% (a fail).
-   Staff Settings cannot edit the new film fields yet (`ir`, `grade`, `vlt`).
+   Staff Settings > Filem now edits `ir`, `grade` and `vlt` too (2026-09-28).
    Customer photos go in `SHOP.gallery` (shop.js) with `car` + `film` captions;
    the demo shows 6 labelled empty frames until then.
 3. When owner signs: new Supabase (Singapore) + new Vercel, follow README "Setup".
    VAPID keys are generated once and never regenerated.
 4. Then a real-device test: book online -> push arrives on staff phone -> job flows
    to Selesai -> certificate link opens.
+
+## Staff app look (2026-09-28)
+Copied from ShiftOS Salesman Premium: dark navy surfaces, 200px sidebar on desktop, one
+blue accent (`src/staff/staff.css` tokens mirror ShiftOS `src/theme/tokens.js` `panel`).
+Owner's call: phones keep the BOTTOM BAR, not Premium's hamburger drawer (staff use it
+one-handed between cars). Owner settings is a nav tab, not a sheet, split into five
+category tabs: Harga | Filem | Slot & bay | Hari tutup | Staf (`src/staff/Settings.jsx`).
+One save bar for all tabs, a dot marks each tab with unsaved edits, and the page stays
+mounted while hidden so switching tabs never drops edits.
 
 ## Walk-ins + pricing (2026-09-27, migration `0003_walkins_addons.sql`)
 Owner's rule: a booking holds its slot, walk-ins get whatever is left.
