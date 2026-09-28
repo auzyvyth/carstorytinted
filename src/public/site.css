@@ -450,3 +450,49 @@ main:has(> .page-head), main:has(> .wrap > .page-head), main.book { background: 
 .reveal.pre { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
 .reveal.pre.in { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) { .reveal.pre { opacity: 1; transform: none; transition: none; } }
+
+/* ---- booking: one question per screen (src/public/booking.js) ---- */
+.wiz { max-width: 640px; margin: 0 auto; padding-bottom: 72px; overflow-x: clip; overflow-clip-margin: 12px; }  /* the slide-in starts 28px off to the side: never a sideways scroll */
+[data-booking] { scroll-margin-top: 80px; }  /* clears the site header, which slides back in on scroll-up */
+.wiz-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.wiz-back { flex: none; width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255,255,255,.8); font-size: 20px; color: var(--ink); cursor: pointer; }
+span.wiz-back { border: 0; background: none; }
+.wiz-bar { flex: 1; height: 6px; border-radius: 6px; background: rgba(20, 35, 95, 0.08); overflow: hidden; }
+.wiz-bar i { display: block; height: 100%; background: var(--grad); border-radius: 6px; transition: width .35s ease; }
+.wiz-count { flex: none; font-size: 13px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 3ch; text-align: right; }
+.wiz-card { background: rgba(255, 255, 255, 0.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.wiz-card.from-right { animation: wiz-in-r .32s ease both; }
+.wiz-card.from-left { animation: wiz-in-l .32s ease both; }
+@keyframes wiz-in-r { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes wiz-in-l { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .wiz-card.from-right, .wiz-card.from-left { animation: none; } .wiz-bar i { transition: none; } }
+.wiz-q { font-size: clamp(24px, 4vw, 30px); margin-bottom: 4px; }
+.wiz-hint { font-size: 14px; margin-bottom: 18px; }
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.tiles.one { grid-template-columns: minmax(0, 1fr); }
+.tiles.days { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (min-width: 560px) { .tiles.days { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.tiles .skeleton { height: 76px; }
+.tile { display: grid; gap: 4px; align-content: center; min-height: 76px; padding: 14px 16px; text-align: left; border-radius: 14px; border: 1.5px solid var(--line); background: #fff; font: inherit; color: var(--ink); cursor: pointer; transition: border-color .15s, background .15s, transform .1s; }
+.tile:hover { border-color: var(--line-2); }
+.tile:active { transform: scale(.98); }
+.tile[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 3px rgba(29, 63, 196, 0.12); }
+.tile b { font-size: 17px; font-weight: 700; }
+.tile small { font-size: 13px; color: var(--muted); line-height: 1.4; }
+.tile:disabled { opacity: .4; cursor: not-allowed; }
+.tile.day { text-align: center; justify-items: center; padding: 10px 6px; }
+.tile.day b { font-size: 16px; }
+.tile-price { font-weight: 800; color: var(--ink); }
+.tile-price.ask { font-weight: 600; color: var(--muted); }
+.wiz-foot { display: flex; margin-top: 22px; }
+.wiz-foot .btn { flex: 1; }
+.more { margin-top: 18px; }
+.more summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--accent); }
+/* running choices + price, pinned to the bottom of the screen */
+.wiz-sum { position: sticky; bottom: 12px; z-index: 5; display: flex; align-items: center; gap: 10px; margin-top: 16px; padding: 10px 12px; border-radius: 16px;
+  background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(255, 255, 255, 0.9); box-shadow: 0 10px 30px rgba(20, 35, 95, 0.14); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.wiz-chips { flex: 1; min-width: 0; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.wiz-chip { flex: none; min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: #fff; font: 600 13px/1 var(--body); color: var(--text); cursor: pointer; }
+.wiz-chip:hover { border-color: var(--accent); color: var(--accent); }
+.wiz-total { flex: none; font-size: 20px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
+.wiz-total small { font-size: 12px; font-weight: 600; color: var(--muted); }

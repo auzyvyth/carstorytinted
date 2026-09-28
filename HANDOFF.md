@@ -102,8 +102,11 @@ Owner's rule: a booking holds its slot, walk-ins get whatever is left.
   the glass, rear windows darkening with a slider, and a spec bar with the price. The
   circuit-board version was dropped (owner, 2026-09-27: wrong fit for a tint shop). Windscreen + front side windows are
   ALWAYS drawn at the JPJ limits; only the rear follows the slider. Keep it that way.
-- Booking form (`/tempah/`) scrolls to the next question after each pick
-  (`ahead()` in src/public/booking.js). Owner asked for it: the form is long on a phone.
+- Booking form (`/tempah/`) is ONE question per screen (owner, 2026-09-28): size -> film ->
+  add-ons -> day -> time -> wait/leave -> details. A tap answers and slides to the next
+  unanswered question (`advance()` in src/public/booking.js); only the last screen types.
+  Summary chips at the bottom jump back to a question; the phone's back gesture steps back.
+  Don't bring back a long scrolling form or a second column: it is the same on desktop.
 - Phone spacing: one side margin (`--gutter`), equal left/right. A checker that flags
   lopsided blocks at 375px lives in the session scratchpad only; re-measure after layout work.
 - Never advertise darker than JPJ on the windscreen / front side windows (the

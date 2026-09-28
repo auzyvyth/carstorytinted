@@ -1,10 +1,12 @@
-// Self-service booking: car + film -> day + slot -> details -> book_slot().
+// Self-service booking, ONE question per screen (owner's call, 2026-09-28): size ->
+// film -> add-ons -> day -> time -> wait/leave -> details -> book_slot(). A tap answers
+// and slides to the next unanswered question; only the last screen needs typing.
 // The database re-checks everything (slot still free, phone valid, rate limit),
 // so this page only has to be pleasant, never trusted.
 import './site.css';
 import './nav.js';
 import { rpc, apiReady, shopDate, dayParts, dayLabel, slotLabel, DEMO } from '../shared/api.js';
-import { SHOP, CAR_SIZES, waLink, displayPhone, fullAddress, POLICY, WAIT_MODES, HEARD_FROM, CAR_MODELS, sizeForModel } from '../shared/shop.js';
+import { SHOP, CAR_SIZES, waLink, displayPhone, fullAddress, POLICY, WAIT_MODES, HEARD_FROM, CAR_MODELS } from '../shared/shop.js';
 import { esc, rm, hasNum, quote } from '../shared/render.js';
 import defaults from '../shared/catalog.default.json';
 
@@ -30,105 +32,101 @@ const errText = (code) => ERRORS[code] || 'Ada masalah. Cuba lagi atau WhatsApp 
 const root = document.querySelector('[data-booking]');
 const params = new URLSearchParams(location.search);
 const st = {
-  step: 1, catalog: defaults, model: '', size: null, film: params.get('film'), addons: [], date: params.get('date'),
-  slot: null, wait: null, days: [], busy: false, error: '', done: null,
+  step: 'saiz', catalog: defaults, model: '', size: null, film: params.get('film'), addons: [], addonsDone: false,
+  date: params.get('date'), moreDays: false, slot: null, wait: null, days: [], daysLoaded: false, busy: false, error: '', done: null, dir: 1,
 };
 
 const film = () => st.catalog.films.find((f) => f.id === st.film);
 const q = () => quote(st.catalog, st.size, st.film, st.addons);
+const byDay = () => { const m = new Map(); for (const r of st.days) { if (!m.has(r.day)) m.set(r.day, []); m.get(r.day).push(r); } return m; };
+const dayFree = (iso) => (byDay().get(iso) || []).some((r) => r.remaining > 0);
 
-function stepper() {
-  const names = ['Kereta', 'Slot', 'Butiran'];
-  return `<ol class="stepper">${names.map((n, i) => {
-    const s = i + 1, cls = s === st.step ? 'on' : s < st.step ? 'done' : '';
-    return `<li class="${cls}"${s === st.step ? ' aria-current="step"' : ''}>${s}. ${n}</li>`;
-  }).join('')}</ol>`;
+// The questions, in order. Add-ons only when the shop lists some.
+const STEPS = () => ['saiz', 'filem', ...((st.catalog.addons || []).length ? ['tambahan'] : []), 'hari', 'masa', 'tunggu', 'butiran'];
+const answered = {
+  saiz: () => Boolean(st.size), filem: () => Boolean(film()), tambahan: () => st.addonsDone,
+  hari: () => Boolean(st.date) && st.daysLoaded && dayFree(st.date), masa: () => Boolean(st.slot), tunggu: () => Boolean(st.wait), butiran: () => false,
+};
+// After an answer: the first question after this one still open (a ?film= link skips "filem").
+function advance() {
+  const list = STEPS(), at = list.indexOf(st.step);
+  go(list.slice(at + 1).find((k) => !answered[k]()) || 'butiran', 1);
 }
 
-function summary() {
-  const size = CAR_SIZES.find((x) => x.id === st.size), { lines, total, known } = q();
-  const items = lines.map((l) => `<div class="cert-row"><span>${esc(l.name)}</span><b>${l.price !== null ? rm(l.price) : 'Tanya'}</b></div>`).join('');
-  // Honest about what the number covers: a full total only when every part has a price.
-  const head = !lines.length ? '&nbsp;' : total !== null ? rm(total) : known ? `<span class="from">dari</span> ${rm(known)}` : 'Sebut harga di kedai';
-  const note = !lines.length ? ''
-    : total !== null ? 'Jumlah untuk pilihan di atas. Bayar di kedai selepas siap. Tiada deposit.'
-    : 'Sebahagian pilihan belum ada harga di laman web. Kami sahkan jumlah sebelum mula kerja. Tiada deposit.';
-  return `<aside class="panel summary" aria-label="Ringkasan tempahan">
-  <p class="eyebrow" style="margin:0">Ringkasan</p>
-  <div class="cert-row" style="margin-top:12px"><span>Kereta</span><b>${esc([st.model, size?.label].filter(Boolean).join(' · ')) || '-'}</b></div>
-  ${items || '<div class="cert-row"><span>Filem</span><b>-</b></div>'}
-  <div class="cert-row"><span>Tarikh</span><b>${st.date && st.step > 1 ? dayLabel(st.date) : '-'}</b></div>
-  <div class="cert-row"><span>Masa</span><b>${st.slot ? slotLabel(st.slot) : '-'}</b></div>
-  <div class="total">${head}</div>
-  ${note ? `<p class="note" style="margin-top:6px">${note}</p>` : ''}
-</aside>`;
+function progress() {
+  const list = STEPS(), at = list.indexOf(st.step);
+  return `<div class="wiz-top">
+  ${at > 0 ? '<button type="button" class="wiz-back" data-back aria-label="Soalan sebelum">&larr;</button>' : '<span class="wiz-back" aria-hidden="true"></span>'}
+  <div class="wiz-bar" role="progressbar" aria-valuemin="1" aria-valuemax="${list.length}" aria-valuenow="${at + 1}" aria-label="Langkah ${at + 1} daripada ${list.length}"><i style="width:${((at + 1) / list.length) * 100}%"></i></div>
+  <span class="wiz-count">${at + 1}/${list.length}</span></div>`;
 }
 
-function step1() {
-  const sizes = CAR_SIZES.map((x) => `<button type="button" class="opt" data-size="${x.id}" aria-pressed="${st.size === x.id}"><b>${x.label}</b><small>${esc(x.eg)}</small></button>`).join('');
-  const films = st.catalog.films.map((f) => {
-    const p = st.size ? f.prices?.[st.size] : null;
-    const sub = st.size ? (hasNum(p) ? `${rm(p)} · 4 cermin sisi` : 'Tanya harga') : esc(f.tagline);
-    return `<button type="button" class="opt" data-film="${esc(f.id)}" aria-pressed="${st.film === f.id}"><b>${esc(f.name)}</b><small>${sub}</small></button>`;
-  }).join('');
-  const addons = (st.catalog.addons || []).map((a) => {
-    const p = st.size ? a.prices?.[st.size] : null;
-    const sub = !st.size ? 'Pilih saiz dulu untuk harga' : hasNum(p) ? `+ ${rm(p)}` : 'Tanya harga';
-    return `<button type="button" class="opt" data-addon="${esc(a.id)}" aria-pressed="${st.addons.includes(a.id)}"><b>${esc(a.name)}</b><small>${sub}</small></button>`;
-  }).join('');
-  return `<div class="panel"><h2>Kereta anda</h2><p class="muted">Harga ikut saiz kereta, jenis filem dan cermin yang dipilih.</p>
-  <label class="field-label" for="f-model">Model kereta</label>
-  <input class="input" id="f-model" list="car-models" maxlength="60" autocomplete="off" placeholder="cth. Perodua Myvi 2021" value="${esc(st.model)}">
-  <datalist id="car-models">${CAR_MODELS.map(([m]) => `<option value="${esc(m)}">`).join('')}</datalist>
-  <span class="field-label" id="l-size">Saiz kereta</span><div class="opts" role="group" aria-labelledby="l-size">${sizes}</div>
-  <span class="field-label" id="l-film">Filem untuk cermin sisi</span><div class="opts" role="group" aria-labelledby="l-film">${films}</div>
-  ${addons ? `<span class="field-label" id="l-addon">Tambahan <span class="muted">(pilih jika perlu)</span></span><div class="opts" role="group" aria-labelledby="l-addon">${addons}</div>
-  <p class="note">Ada tinted lama pada kereta? Pilih "Buang tinted lama": ia ambil masa lebih dan kami perlu tahu awal.</p>` : ''}
-  <div class="nav-btns"><button type="button" class="btn btn-cta" data-next ${st.size && film() ? '' : 'disabled'}>Pilih slot</button></div></div>`;
+// What is picked so far, one tap to change any of it, and the running price.
+function summaryBar() {
+  const size = CAR_SIZES.find((x) => x.id === st.size), f = film(), { lines, total, known } = q();
+  const chip = (step, text) => `<button type="button" class="wiz-chip" data-goto="${step}">${esc(text)}</button>`;
+  const chips = [
+    size && chip('saiz', size.label), f && chip('filem', f.name),
+    st.addons.length && chip('tambahan', `+${st.addons.length} tambahan`),
+    st.date && st.step !== 'hari' && answered.hari() && chip('hari', dayLabel(st.date)), st.slot && chip('masa', slotLabel(st.slot)),
+  ].filter(Boolean).join('');
+  const price = !lines.length ? '' : total !== null ? rm(total) : known ? `<small>dari</small> ${rm(known)}` : 'Tanya harga';
+  if (!chips && !price) return '';
+  return `<div class="wiz-sum" aria-label="Pilihan anda"><div class="wiz-chips">${chips}</div>${price ? `<div class="wiz-total">${price}</div>` : ''}</div>`;
 }
 
-function step2() {
-  const byDay = new Map();
-  for (const r of st.days) { if (!byDay.has(r.day)) byDay.set(r.day, []); byDay.get(r.day).push(r); }
-  const days = [...byDay.entries()];
-  if (!days.length) {
-    return `<div class="panel"><h2>Pilih slot</h2><p class="lead" style="margin-top:12px">${st.busy ? 'Memuatkan slot...' : 'Tiada slot kosong dalam 3 minggu. WhatsApp kami untuk tarikh lain.'}</p>
-    <div class="nav-btns"><button type="button" class="btn btn-line" data-back>Kembali</button></div></div>`;
-  }
-  if (!st.date || !byDay.has(st.date)) st.date = (days.find(([, s]) => s.some((x) => x.remaining > 0)) || days[0])[0];
-  const dateBtns = days.map(([iso, slots]) => {
-    const p = dayParts(iso), free = slots.filter((x) => x.remaining > 0).length;
-    return `<button type="button" class="date" data-date="${iso}" aria-pressed="${st.date === iso}" ${free ? '' : 'disabled'} aria-label="${dayLabel(iso)}, ${free} slot kosong">
-      <small>${p.short}</small><b>${p.date}</b><small>${free ? `${free} slot` : 'Penuh'}</small></button>`;
-  }).join('');
-  const slotBtns = byDay.get(st.date).map((r) => `<button type="button" class="opt" data-slot="${r.slot}" aria-pressed="${st.slot === r.slot}" ${r.remaining > 0 ? '' : 'disabled'}>
-    <b>${slotLabel(r.slot)}</b><small>${r.remaining > 0 ? 'Kosong' : 'Penuh'}</small></button>`).join('');
-  return `<div class="panel"><h2>Pilih slot</h2><p class="muted">Hanya hari yang dibuka ditunjukkan.</p>
-  <span class="field-label" id="l-date">Hari</span><div class="dates" role="group" aria-labelledby="l-date">${dateBtns}</div>
-  <span class="field-label" id="l-slot">Masa · ${dayLabel(st.date)}</span><div class="opts" role="group" aria-labelledby="l-slot">${slotBtns}</div>
-  <div class="nav-btns"><button type="button" class="btn btn-line" data-back>Kembali</button><button type="button" class="btn btn-cta" data-next ${st.slot ? '' : 'disabled'}>Teruskan</button></div></div>`;
-}
+const tile = (attr, val, pressed, title, sub = '', disabled = false) => `<button type="button" class="tile" ${attr}="${esc(val)}" aria-pressed="${pressed}" ${disabled ? 'disabled' : ''}><b>${title}</b>${sub ? `<small>${sub}</small>` : ''}</button>`;
+const screen = (title, hint, body, foot = '') => `<h2 class="wiz-q">${title}</h2>${hint ? `<p class="muted wiz-hint">${hint}</p>` : ''}${body}${foot}`;
 
-function step3() {
-  const v = st.form || {};
-  return `<form class="panel" data-form novalidate><h2>Butiran anda</h2><p class="muted">Kami WhatsApp untuk sahkan slot.</p>
+const VIEWS = {
+  saiz: () => screen('Saiz kereta anda?', 'Harga ikut saiz.', `<div class="tiles">${CAR_SIZES.map((x) => tile('data-size', x.id, st.size === x.id, x.label, esc(x.eg))).join('')}</div>`),
+  filem: () => screen('Pilih filem', 'Untuk 4 cermin sisi. Semua sekat UV 99%.', `<div class="tiles one">${st.catalog.films.map((f) => {
+    const p = f.prices?.[st.size];
+    const bits = [hasNum(p) ? `<span class="tile-price">${rm(p)}</span>` : '<span class="tile-price ask">Tanya harga</span>', esc(f.tagline), hasNum(f.warranty_years) ? `waranti ${f.warranty_years} tahun` : ''].filter(Boolean);
+    return tile('data-film', f.id, st.film === f.id, esc(f.name), bits.join(' · '));
+  }).join('')}</div>`),
+  tambahan: () => screen('Perlu tambahan?', 'Pilih seberapa banyak yang perlu, atau terus.', `<div class="tiles">${(st.catalog.addons || []).map((a) => {
+    const p = a.prices?.[st.size];
+    return tile('data-addon', a.id, st.addons.includes(a.id), esc(a.name), hasNum(p) ? `+ ${rm(p)}` : 'Tanya harga');
+  }).join('')}</div><p class="note">Ada tinted lama? Pilih "Buang tinted lama": ia ambil masa lebih.</p>`,
+  `<div class="wiz-foot"><button type="button" class="btn btn-cta" data-addons-done>${st.addons.length ? `Teruskan · ${st.addons.length} dipilih` : 'Tiada tambahan, teruskan'}</button></div>`),
+  hari: () => {
+    if (!st.daysLoaded) return screen('Hari apa?', '', '<div class="tiles days">' + '<div class="skeleton"></div>'.repeat(6) + '</div>');
+    const days = [...byDay().entries()];
+    if (!days.length) return screen('Hari apa?', '', `<p class="lead">Tiada slot kosong dalam 3 minggu. <a href="${waLink(SHOP.contacts[0].phone, 'Salam, saya nak tempah slot tinted.')}">WhatsApp kami</a> untuk tarikh lain.</p>`);
+    // Nine days is a choice; eighteen is a calendar to read. The rest are one tap away.
+    const shown = st.moreDays || days.length <= 12 ? days : days.slice(0, 9);
+    return screen('Hari apa?', 'Hanya hari kedai dibuka.', `<div class="tiles days">${shown.map(([iso, slots]) => {
+      const p = dayParts(iso), free = slots.filter((x) => x.remaining > 0).length;
+      return `<button type="button" class="tile day" data-date="${iso}" aria-pressed="${st.date === iso}" ${free ? '' : 'disabled'} aria-label="${dayLabel(iso)}, ${free} slot kosong">
+        <small>${p.short}</small><b>${p.date} ${p.mon}</b><small>${free ? `${free} slot` : 'Penuh'}</small></button>`;
+    }).join('')}</div>${shown.length < days.length ? '<div class="wiz-foot"><button type="button" class="btn btn-line" data-more-days>Lebih banyak tarikh</button></div>' : ''}`);
+  },
+  masa: () => screen('Pukul berapa?', esc(dayLabel(st.date)), `<div class="tiles">${(byDay().get(st.date) || []).map((r) =>
+    tile('data-slot', r.slot, st.slot === r.slot, slotLabel(r.slot), r.remaining > 0 ? 'Kosong' : 'Penuh', r.remaining < 1)).join('')}</div>`),
+  tunggu: () => screen('Semasa kerja dibuat?', 'Supaya kami tahu bila perlu siap.', `<div class="tiles">${WAIT_MODES.map(([k, l]) => tile('data-wait', k, st.wait === k, l)).join('')}</div>`),
+  butiran: () => {
+    const v = st.form || {};
+    return `<form data-form novalidate>${screen('Butiran anda', 'Kami WhatsApp untuk sahkan slot.', `
   <div class="two">
     <div><label class="field-label" for="f-name">Nama</label><input class="input" id="f-name" name="name" autocomplete="name" required maxlength="80" value="${esc(v.name)}"></div>
     <div><label class="field-label" for="f-phone">No. telefon (WhatsApp)</label><input class="input" id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required placeholder="012-345 6789" value="${esc(v.phone)}"></div>
     <div><label class="field-label" for="f-plate">No. plat</label><input class="input" id="f-plate" name="plate" maxlength="12" required autocapitalize="characters" placeholder="cth. PKA 1234" value="${esc(v.plate)}"></div>
-    <div><label class="field-label" for="f-heard">Dari mana anda tahu tentang kami? <span class="muted">(pilihan)</span></label>
-      <select class="input" id="f-heard" name="heard"><option value="">Pilih</option>${HEARD_FROM.map(([k, l]) => `<option value="${k}"${v.heard === k ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
+    <div><label class="field-label" for="f-model">Model kereta <span class="muted">(pilihan)</span></label><input class="input" id="f-model" name="model" list="car-models" maxlength="60" autocomplete="off" placeholder="cth. Myvi 2021" value="${esc(st.model)}">
+      <datalist id="car-models">${CAR_MODELS.map(([m]) => `<option value="${esc(m)}">`).join('')}</datalist></div>
   </div>
-  <span class="field-label" id="l-wait">Semasa kerja dibuat</span>
-  <div class="opts" role="group" aria-labelledby="l-wait">${WAIT_MODES.map(([k, l]) => `<button type="button" class="opt" data-wait="${k}" aria-pressed="${st.wait === k}"><b>${l}</b></button>`).join('')}</div>
-  <label class="field-label" for="f-notes">Catatan <span class="muted">(pilihan)</span></label>
-  <textarea class="input" id="f-notes" name="notes" rows="3" maxlength="500" placeholder="cth. mahu cermin belakang lebih gelap">${esc(v.notes)}</textarea>
+  <details class="more"${v.heard || v.notes ? ' open' : ''}><summary>Tambah catatan (pilihan)</summary>
+    <label class="field-label" for="f-heard">Dari mana anda tahu tentang kami?</label>
+    <select class="input" id="f-heard" name="heard"><option value="">Pilih</option>${HEARD_FROM.map(([k, l]) => `<option value="${k}"${v.heard === k ? ' selected' : ''}>${l}</option>`).join('')}</select>
+    <label class="field-label" for="f-notes">Catatan</label>
+    <textarea class="input" id="f-notes" name="notes" rows="3" maxlength="500" placeholder="cth. mahu cermin belakang lebih gelap">${esc(v.notes)}</textarea>
+  </details>
   <div class="hp" aria-hidden="true"><label>Laman web<input name="website" tabindex="-1" autocomplete="off"></label></div>
   <label class="consent"><input type="checkbox" name="consent" ${v.consent ? 'checked' : ''} required><span>Saya setuju data ini digunakan untuk tempahan, sijil dan waranti saya seperti dalam <a href="/privasi/" target="_blank">notis privasi</a>.</span></label>
-  ${st.error ? `<p class="err" role="alert">${esc(st.error)}</p>` : ''}
-  <div class="nav-btns"><button type="button" class="btn btn-line" data-back>Kembali</button><button class="btn btn-cta" ${st.busy ? 'disabled' : ''}>${st.busy ? 'Menghantar...' : 'Sahkan tempahan'}</button></div>
-</form>`;
-}
+  ${st.error ? `<p class="err" role="alert">${esc(st.error)}</p>` : ''}`,
+    `<div class="wiz-foot"><button class="btn btn-cta" ${st.busy ? 'disabled' : ''}>${st.busy ? 'Menghantar...' : 'Sahkan tempahan'}</button></div>`)}</form>`;
+  },
+};
 
 function doneView() {
   const d = st.done, shopMsg = `Salam, saya dah tempah slot tinted. No. rujukan ${d.ref}, ${dayLabel(d.date)} ${slotLabel(d.slot)}.`;
@@ -158,63 +156,62 @@ function offlineView() {
 function render() {
   if (!apiReady) { root.innerHTML = offlineView(); return; }
   if (st.done) { root.innerHTML = doneView(); return; }
-  const body = st.step === 1 ? step1() : st.step === 2 ? step2() : step3();
-  root.innerHTML = `${stepper()}<div class="book-grid"><div>${body}</div>${summary()}</div>`;
+  const view = VIEWS[st.step] ? st.step : 'saiz';
+  root.innerHTML = `<div class="wiz">${progress()}<div class="wiz-card panel ${st.dir < 0 ? 'from-left' : 'from-right'}" data-screen="${view}">${VIEWS[view]()}${st.error && view !== 'butiran' ? `<p class="err" role="alert">${esc(st.error)}</p>` : ''}</div>${summaryBar()}</div>`;
+  st.dir = 0;  // slide only when the question changes, not on every repaint
 }
 
 function saveForm() {
   const f = root.querySelector('[data-form]');
   if (!f) return;
   const d = new FormData(f);
+  st.model = String(d.get('model') || '').trim();
   st.form = { name: d.get('name'), phone: d.get('phone'), plate: d.get('plate'), heard: d.get('heard'), notes: d.get('notes'), consent: d.get('consent') === 'on' };
 }
 
 async function loadDays() {
-  st.busy = true; render();
+  st.busy = true;
   try {
     st.days = await rpc('available_slots', { p_from: shopDate(0), p_days: 21 });
   } catch (e) { st.days = []; st.error = errText(e.code); }
-  st.busy = false; render();
+  st.daysLoaded = true; st.busy = false;
+  // A date from the home page that has no free slot left: ask again.
+  if (st.date && !dayFree(st.date)) st.date = null;
+  if (st.step === 'masa' && !st.date) st.step = 'hari';
+  // Came in with ?date= from the home page and it is still open: straight to the time.
+  if (st.step === 'hari' && answered.hari()) { advance(); return; }
+  render();
 }
 
-function go(step) {
+// Each question is a history entry, so the phone's back gesture goes back one question.
+function go(step, dir, { push = true } = {}) {
   saveForm();
-  st.step = step; st.error = '';
-  if (step === 2) loadDays(); else render();
-  root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  st.step = step; st.dir = dir; st.error = '';
+  if (push) history.pushState({ step }, '', location.pathname + location.search);
+  if ((step === 'hari' || step === 'masa') && !st.daysLoaded) loadDays();
+  render();
+  root.scrollIntoView({ behavior: calm.matches ? 'auto' : 'smooth', block: 'start' });
 }
-
-// The form is long on a phone: after each pick, bring the next question into view.
 const calm = matchMedia('(prefers-reduced-motion: reduce)');
-function ahead(sel) {
-  const el = root.querySelector(sel);
-  if (!el) return;
-  const button = el.matches('[data-next]');
-  el.scrollIntoView({ behavior: calm.matches ? 'auto' : 'smooth', block: button ? 'center' : 'start' });
-}
+history.replaceState({ step: st.step }, '', location.pathname + location.search);
+addEventListener('popstate', (e) => { if (!st.done && e.state?.step) go(e.state.step, -1, { push: false }); });
 
+// A tap answers; the pressed state shows for a beat, then the next question slides in.
+const soon = (fn) => setTimeout(fn, calm.matches ? 0 : 160);
 root.addEventListener('click', (e) => {
   const b = e.target.closest('button');
   if (!b || b.disabled) return;
-  if (b.dataset.size) { st.size = b.dataset.size; render(); ahead(film() ? '[data-next]' : '#l-film'); }
+  if (b.dataset.size) { st.size = b.dataset.size; render(); soon(advance); }
+  else if (b.dataset.film) { st.film = b.dataset.film; render(); soon(advance); }
   else if (b.dataset.addon) { const id = b.dataset.addon; st.addons = st.addons.includes(id) ? st.addons.filter((x) => x !== id) : [...st.addons, id]; render(); }
-  else if (b.dataset.wait) { saveForm(); st.wait = b.dataset.wait; render(); }
-  else if (b.dataset.film) { st.film = b.dataset.film; render(); ahead(st.size ? '[data-next]' : '#l-size'); }
-  else if (b.dataset.date) { st.date = b.dataset.date; st.slot = null; render(); ahead('#l-slot'); }
-  else if (b.dataset.slot) { st.slot = b.dataset.slot; render(); ahead('[data-next]'); }
-  else if ('next' in b.dataset) go(st.step + 1);
-  else if ('back' in b.dataset) go(st.step - 1);
+  else if ('addonsDone' in b.dataset) { st.addonsDone = true; advance(); }
+  else if (b.dataset.date) { st.date = b.dataset.date; st.slot = null; render(); soon(advance); }
+  else if (b.dataset.slot) { st.slot = b.dataset.slot; render(); soon(advance); }
+  else if (b.dataset.wait) { st.wait = b.dataset.wait; render(); soon(advance); }
+  else if ('moreDays' in b.dataset) { st.moreDays = true; render(); }
+  else if (b.dataset.goto) go(b.dataset.goto, -1);
+  else if ('back' in b.dataset) history.back();
   else if ('ics' in b.dataset) downloadIcs();
-});
-
-// Naming the car picks its size (still changeable). Only on 'change' (typed + left,
-// or picked from the list): re-rendering on every keystroke would steal the focus.
-root.addEventListener('input', (e) => { if (e.target.id === 'f-model') st.model = e.target.value; });
-root.addEventListener('change', (e) => {
-  if (e.target.id !== 'f-model') return;
-  st.model = e.target.value.trim();
-  const size = sizeForModel(st.model);
-  if (size && size !== st.size) { st.size = size; render(); ahead(film() ? '[data-next]' : '#l-film'); }
 });
 
 root.addEventListener('submit', async (e) => {
@@ -234,7 +231,7 @@ root.addEventListener('submit', async (e) => {
   } catch (err) {
     st.error = errText(err.code);
     // A slot that filled up meanwhile: send them back to pick another, with fresh counts.
-    if (err.code === 'slot_full' || err.code === 'slot_closed') { st.slot = null; st.busy = false; go(2); return; }
+    if (err.code === 'slot_full' || err.code === 'slot_closed') { const msg = st.error; st.slot = null; st.busy = false; st.daysLoaded = false; go('masa', -1); st.error = msg; render(); return; }
   }
   st.busy = false; render();
 });
