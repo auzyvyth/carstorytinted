@@ -23,9 +23,9 @@
 <!--@header-->
 
 <main id="main">
-<section class="hero">
+<section class="hero glow">
   <div class="wrap hero-grid">
-    <div>
+    <div class="reveal">
       <p class="eyebrow">Tinted Bumiputera · %TOWN%</p>
       <h1>Kereta sejuk.<br><span class="accent">Cermin lulus JPJ.</span></h1>
       <p class="lead">Tinted ikut had JPJ, diukur selepas pasang, dengan sijil digital untuk setiap kereta.</p>
@@ -39,7 +39,7 @@
         <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M3 8.5l3 3L13 4.5"/></svg>Sijil VLT digital</li>
       </ul>
     </div>
-    <aside class="slot-card" aria-labelledby="slot-h">
+    <aside class="slot-card glass-dark reveal" aria-labelledby="slot-h">
       <p class="eyebrow">Slot kosong terdekat</p>
       <h2 id="slot-h">Pilih hari</h2>
       <p class="muted">Tekan hari untuk terus tempah.</p>
@@ -51,22 +51,22 @@
   </div>
 </section>
 
-<section id="filem" class="alt">
+<section id="filem" class="studio">
   <div class="wrap">
-    <div class="studio">
-      <div class="sec-head">
-        <div><p class="eyebrow">Pilihan filem</p><h2>Lihat hasilnya <span class="accent">dulu</span>.</h2></div>
-        <p>Pilih filem, gelapkan cermin belakang, tengok rupa kereta anda. Semua filem sekat UV 99%. Harga penuh di <a href="/harga/">halaman harga</a>.</p>
-      </div>
-      <div data-films><!--@films--></div>
+    <div class="sec-head reveal">
+      <div><p class="eyebrow">Pilihan filem</p><h2>Lihat hasilnya <span class="accent">dulu</span>.</h2></div>
+      <p>Pilih filem, gelapkan cermin belakang, tengok rupa kereta anda. Semua filem sekat UV 99%. Harga penuh di <a href="/harga/">halaman harga</a>.</p>
     </div>
+    <div data-films class="reveal"><!--@films--></div>
   </div>
 </section>
 
-<section class="warm">
+<div data-services><!--@services--></div>
+
+<section class="glow alt">
   <div class="wrap">
-    <div class="sec-head"><div><p class="eyebrow">Cara tempah</p><h2>Siap dalam tiga langkah.</h2></div></div>
-    <div class="steps">
+    <div class="sec-head reveal"><div><p class="eyebrow">Cara tempah</p><h2>Siap dalam tiga langkah.</h2></div></div>
+    <div class="steps reveal">
       <div class="step"><h3>Pilih filem dan saiz</h3><p>Harga kereta kompak terus nampak. Saiz lain kami sahkan dulu.</p></div>
       <div class="step"><h3>Pilih slot kosong</h3><p>Tempah online 24 jam. Tiada deposit.</p></div>
       <div class="step"><h3>Datang, siap, dapat sijil</h3><p>Bayar di kedai selepas siap. Sijil dihantar ke WhatsApp.</p></div>
@@ -75,9 +75,9 @@
   </div>
 </section>
 
-<section id="sijil" class="alt">
+<section id="sijil" class="glow warm">
   <div class="wrap proof">
-    <div>
+    <div class="reveal">
       <p class="eyebrow">Had JPJ</p>
       <h2>Lulus JPJ. Ada bukti.</h2>
       <p class="lead">JPJ ukur cermin kilang dan filem bersama. Kami ukur selepas pasang dan rekod bacaannya dalam sijil anda.</p>
@@ -89,7 +89,7 @@
       <p class="note">Denda kesalahan pertama sehingga %JPJ_FINE%. <a href="/panduan-jpj/">Panduan penuh</a></p>
       <p class="note"><b>Cari sijil dan resit anda:</b> buka pautan tempahan yang kami WhatsApp kepada anda. Semuanya di satu halaman. Hilang pautan? <a href="https://wa.me/%WA1%?text=%WA_LOST%" rel="noopener">WhatsApp kami</a>, kami hantar semula.</p>
     </div>
-    <div class="cert" aria-label="Contoh sijil">
+    <div class="cert reveal" aria-label="Contoh sijil">
       <div class="cert-head"><span class="wordmark"><span>Tinted</span> Carstory</span><span class="muted" style="font-size:13px">Contoh sijil</span></div>
       <div class="cert-row"><span>Kereta</span><b>Perodua Myvi · PKA 1***</b></div>
       <div class="cert-row"><span>Filem</span><b>Nano Ceramic</b></div>
@@ -101,16 +101,20 @@
   </div>
 </section>
 
+<div data-videos><!--@videos--></div>
+
 <!--@gallery-->
 
-<section id="soalan" class="alt">
+<div data-team><!--@team--></div>
+
+<section id="soalan" class="glow alt">
   <div class="wrap">
-    <div class="sec-head"><div><p class="eyebrow">Soalan lazim</p><h2>Sebelum anda datang.</h2></div></div>
-    <div class="faqs"><!--@faq--></div>
+    <div class="sec-head reveal"><div><p class="eyebrow">Soalan lazim</p><h2>Sebelum anda datang.</h2></div></div>
+    <div class="faqs reveal"><!--@faq--></div>
   </div>
 </section>
 
-<section id="lokasi" class="warm">
+<section id="lokasi" class="glow warm">
   <div class="wrap">
     <div class="sec-head"><div><p class="eyebrow">Lokasi</p><h2>Datang ke kedai.</h2></div><p>Kami di %TOWN%, dekat %AREAS%.</p></div>
     <div class="loc">

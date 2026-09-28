@@ -23,6 +23,7 @@ export const hasNum = (v) => v !== null && v !== undefined && v !== '' && !Numbe
 const NAV = [
   ['/#filem', 'Filem'],
   ['/harga/', 'Harga'],
+  ['/#servis', 'Servis'],
   ['/panduan-jpj/', 'Had JPJ'],
   ['/#sijil', 'Sijil waranti'],
   ['/#lokasi', 'Lokasi'],
@@ -128,7 +129,8 @@ function carSvg(rearVlt) {
     <path d="M${cx} 60 L${cx} 74 M${cx - 8} 67 L${cx} 76 L${cx + 8} 67" stroke="#ffc71a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
   </g>`;
   return `<svg class="car-view" viewBox="0 0 520 318" role="img" aria-label="Pratonton tinted: cermin belakang ${rearVlt}%, cermin depan ${JPJ.frontSide}%">
-  <defs><linearGradient id="ts-glass-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22325f"/><stop offset="1" stop-color="#101a3a"/></linearGradient></defs>
+  <defs><linearGradient id="ts-glass-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22325f"/><stop offset="1" stop-color="#101a3a"/></linearGradient>
+    <linearGradient id="ts-glare" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
   <g font-family="Plus Jakarta Sans, system-ui, sans-serif">
     ${tag(135, 'BELAKANG', `<tspan data-rear-tag>${rearVlt}%</tspan>`)}
     ${tag(385, 'DEPAN', `${JPJ.frontSide}% (had JPJ)`)}
@@ -139,6 +141,8 @@ function carSvg(rearVlt) {
     <rect class="tint-rear" ${pane(20)} fill="${T}" style="opacity:${tintOpacity(rearVlt)}"/>
     <rect class="tint-front" ${pane(270)} fill="${T}" style="opacity:${tintOpacity(JPJ.frontSide)}"/>
     <rect ${pane(20)} fill="none" stroke="#2a3140" stroke-width="6"/><rect ${pane(270)} fill="none" stroke="#2a3140" stroke-width="6"/>
+    <clipPath id="ts-panes"><rect ${pane(20)}/><rect ${pane(270)}/></clipPath>
+    <g clip-path="url(#ts-panes)" aria-hidden="true"><rect class="glare" x="-140" y="60" width="90" height="300" fill="url(#ts-glare)" transform="skewX(-18)"/></g>
   </g>
 </svg>`;
 }
@@ -179,6 +183,78 @@ export function tintStudio(catalog) {
 </div>
 ${panels}`;
 }
+
+// ---------------------------------------------------------------- owner-edited site
+// Everything below reads shop_settings.site (0005_site_content.sql), edited in the staff
+// app under Tetapan > Laman web. The static build bakes catalog.default.json (services
+// only; team + videos start empty), then site.js repaints from the live catalog.
+export const siteOf = (catalog) => ({ services: [], team: [], videos: [], ...(catalog?.site || {}) });
+
+// Other services (polish, car carpet...). Not bookable online: the price and time depend
+// on the car, so every card ends in a WhatsApp ask, never an invented number.
+export function servicesHtml(catalog) {
+  const list = siteOf(catalog).services.filter((x) => x?.name);
+  if (!list.length) return '';
+  const c = SHOP.contacts[0];
+  return `<div class="svc-grid">${list.map((x) => `<article class="svc">
+  <h3>${esc(x.name)}</h3>
+  ${x.desc ? `<p>${esc(x.desc)}</p>` : ''}
+  <div class="svc-foot"><b>${hasNum(x.price_from) ? `<span>dari</span> ${rm(x.price_from)}` : 'Tanya harga'}</b>
+  <a class="btn btn-line btn-sm" href="${waLink(c.phone, `Salam, saya nak tanya pasal ${x.name}.`)}" rel="noopener">WhatsApp</a></div>
+</article>`).join('')}</div>`;
+}
+
+const safeImg = (u) => (/^(https:\/\/|data:image\/(webp|jpeg|png);base64,)/.test(String(u || '')) ? String(u) : '');
+export function teamHtml(catalog) {
+  const list = siteOf(catalog).team.filter((x) => x?.name);
+  if (!list.length) return '';
+  return `<div class="team">${list.map((x) => {
+    const img = safeImg(x.photo_url);
+    return `<figure class="member">
+  ${img ? `<img src="${esc(img)}" alt="${esc(x.name)}" loading="lazy" width="480" height="600">` : `<div class="member-ph" aria-hidden="true">${esc(x.name.trim()[0] || '?').toUpperCase()}</div>`}
+  <figcaption><b>${esc(x.name)}</b>${x.role ? `<span>${esc(x.role)}</span>` : ''}${x.bio ? `<p>${esc(x.bio)}</p>` : ''}</figcaption>
+</figure>`;
+  }).join('')}</div>`;
+}
+
+// A pasted YouTube / TikTok link -> what to embed. Anything else is refused (null), so
+// the page never iframes an arbitrary site.
+export function videoOf(url) {
+  const u = String(url || '').trim();
+  let m = u.match(/^https:\/\/(?:www\.|m\.)?youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/)([\w-]{11})/) || u.match(/^https:\/\/youtu\.be\/([\w-]{11})/);
+  if (m) return { kind: 'youtube', id: m[1], tall: /\/shorts\//.test(u) };
+  m = u.match(/^https:\/\/(?:www\.)?tiktok\.com\/@[\w.-]+\/video\/(\d{8,25})/);
+  if (m) return { kind: 'tiktok', id: m[1], tall: true };
+  return null;
+}
+export const videoSrc = (v) => (v.kind === 'youtube'
+  ? `https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&rel=0&playsinline=1`
+  : `https://www.tiktok.com/embed/v2/${v.id}`);
+
+// Click-to-play: nothing from YouTube/TikTok loads (no tracking, no weight) until tapped.
+export function videosHtml(catalog) {
+  const list = siteOf(catalog).videos.map((x) => ({ ...x, v: videoOf(x?.url) })).filter((x) => x.v);
+  if (!list.length) return '';
+  return `<div class="vids">${list.map((x) => `<figure class="vid${x.v.tall ? ' tall' : ''}">
+  <button type="button" class="vid-play" data-src="${esc(videoSrc(x.v))}" aria-label="Main video${x.title ? `: ${esc(x.title)}` : ''}"
+    ${x.v.kind === 'youtube' ? `style="background-image:url('https://i.ytimg.com/vi/${x.v.id}/hqdefault.jpg')"` : ''}>
+    <span class="vid-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span>
+    ${x.v.kind === 'tiktok' ? '<span class="vid-src">TikTok</span>' : ''}
+  </button>
+  ${x.title ? `<figcaption>${esc(x.title)}</figcaption>` : ''}
+</figure>`).join('')}</div>`;
+}
+
+// Whole sections, or '' when the owner has not filled that part yet (no empty frames).
+const sec = (id, cls, eyebrow, title, lead, body) => (body ? `<section id="${id}" class="${cls}">
+  <div class="wrap">
+    <div class="sec-head reveal"><div><p class="eyebrow">${eyebrow}</p><h2>${title}</h2></div>${lead ? `<p>${lead}</p>` : ''}</div>
+    <div class="reveal">${body}</div>
+  </div>
+</section>` : '');
+export const servicesSection = (c) => sec('servis', 'glow warm', 'Servis lain', 'Bukan tinted sahaja.', 'Harga ikut kereta anda. WhatsApp kami, kami sebut harga dulu sebelum mula.', servicesHtml(c));
+export const teamSection = (c) => sec('pasukan', 'glow', 'Pasukan kami', 'Kenali siapa yang pasang.', '', teamHtml(c));
+export const videosSection = (c) => sec('video', 'glow alt', 'Video', 'Tengok kami bekerja.', '', videosHtml(c));
 
 // What a booking costs: side-window film + chosen add-ons, per car size. Mirrors the
 // DB's quote_price(): the total is null when any part has no published price, so the
@@ -272,11 +348,12 @@ export function localBusinessLd(siteUrl, catalog) {
     areaServed: SHOP.areaServed.map((n) => ({ '@type': 'City', name: n })),
     hasMap: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(SHOP.mapsQuery)}`,
     sameAs: [SHOP.facebook],
-    makesOffer: catalog.films.map((f) => {
+    makesOffer: [...catalog.films.map((f) => {
       const from = minPrice(f);
       return { '@type': 'Offer', itemOffered: { '@type': 'Service', name: `Tinted kereta ${f.name}` },
         ...(from !== null ? { priceCurrency: 'MYR', price: from } : {}) };
-    }),
+    }), ...siteOf(catalog).services.filter((x) => x?.name).map((x) => ({ '@type': 'Offer', itemOffered: { '@type': 'Service', name: x.name },
+      ...(hasNum(x.price_from) ? { priceCurrency: 'MYR', price: Number(x.price_from) } : {}) }))],
   };
   if (siteUrl) { ld.url = siteUrl; ld['@id'] = `${siteUrl}/#shop`; }
   if (SHOP.hours.length) {

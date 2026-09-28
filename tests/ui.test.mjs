@@ -257,7 +257,7 @@ await p.screenshot({ path: `${SHOTS}/11-report-375.png`, fullPage: true });
 // Owner settings: one category per tab, one save for what changed.
 await p.click('.bnav button:has-text("Tetapan")');
 await p.waitForSelector('.subtabs [role=tab]');
-check((await p.locator('.page:not([hidden]) > .subtabs [role=tab]').allInnerTexts()).join('|') === 'Harga|Filem|Slot & bay|Hari tutup|Staf', 'settings split into 5 category tabs');
+check((await p.locator('.page:not([hidden]) > .subtabs [role=tab]').allInnerTexts()).join('|') === 'Harga|Filem|Slot & bay|Hari tutup|Laman web|Staf', 'settings split into 6 category tabs');
 check(await p.locator('.savebar').count() === 0, 'no save bar before any change');
 await p.locator('.price-phone .plist input').first().fill('275');
 check(await p.locator('.savebar').isVisible(), 'editing a price shows the save bar');

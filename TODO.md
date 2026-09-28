@@ -41,6 +41,15 @@ the owner (Maliki) to agree and pay.
       "owner asked". Questions: VLT meter yes/no, sedan/SUV/large prices,
       windscreen/rear/sunroof/removal prices, opening hours, how he pays workers
       (per car?), does he track film stock, warranty claims, fleet/Grab rates.
+      **Polish + karpet (new services, 2026-09-28):** what packages, price per car size,
+      and how long each takes. They show on the site as "Tanya harga" + WhatsApp only;
+      making them bookable needs durations, because a half-day polish breaks the
+      time-block/bay maths the booking runs on.
+- [ ] **Photos from the owner (the site's biggest remaining gap).** Shot list: 3 before/after
+      pairs (same car, same angle), 1 installer mid-job, 1 VLT meter reading on a window
+      (also settles the unconfirmed meter claim), 1 finished car outside the shop, one
+      portrait per team member (he uploads these himself in Tetapan > Laman web).
+      Then: before/after drag slider, and a real car window in the tint preview.
 - [ ] **Grant check (Geran Digital PMKS Madani, BSN).** 50% matching, max RM5,000,
       but ONLY for solutions bought from an MDEC Digitalisation Partner (MD-status
       company). We are not one, so he can't claim it on this build today. Confirm

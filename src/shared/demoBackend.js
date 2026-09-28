@@ -5,7 +5,7 @@
 // closely enough to demo, not to trust: the real rules are in 0001_init.sql.
 import catalog from './catalog.default.json';
 
-const KEY = 'cs-demo-db-v4';
+const KEY = 'cs-demo-db-v5';  // v5: settings.site (team / videos / services)
 const TZ = 'Asia/Kuala_Lumpur';
 const day = (n) => new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date(Date.now() + n * 864e5));
 const iso = (n, hh = 10) => new Date(`${day(n)}T${String(hh).padStart(2, '0')}:00:00+08:00`).toISOString();
@@ -67,7 +67,10 @@ function seed() {
     jobs,
     events: jobs.map((j) => ({ id: Math.random(), job_id: j.id, at: j.created_at, actor: j.source === 'web' ? null : O, kind: 'created', from_stage: null, to_stage: j.stage, note: null })),
     // 5 blocks x 2 bays, 1 bay per block sold online, 1 kept for walk-ins (owner's rule).
-    settings: { id: 1, slots: ['09:00', '11:00', '13:00', '15:00', '17:00'], cars_per_slot: 2, online_per_slot: 1, closed_weekdays: [0], closed_dates: [], booking_days_ahead: 30, films: FILMS, addons: ADDONS, updated_at: iso(-10) },
+    settings: { id: 1, slots: ['09:00', '11:00', '13:00', '15:00', '17:00'], cars_per_slot: 2, online_per_slot: 1, closed_weekdays: [0], closed_dates: [], booking_days_ahead: 30, films: FILMS, addons: ADDONS, updated_at: iso(-10),
+      // Website content (0005): the owner's real services list, and the two names on the
+      // signboard as a starter team with no photos (the site shows their initials).
+      site: { ...catalog.site, team: [{ id: 't1', name: 'Maliki', role: 'Pemilik', bio: '', photo_url: null }, { id: 't2', name: 'Tam', role: 'Pemasang', bio: '', photo_url: null }] } },
     staff: Object.values(DEMO_USERS).map((u) => ({ ...u, active: true })),
   };
 }
@@ -197,7 +200,7 @@ export async function demoFetch(input, init = {}) {
   // --- the four public functions + push
   if (p === '/rest/v1/rpc/get_catalog') {
     const s = db.settings;
-    return reply({ films: s.films, addons: s.addons || [], slots: s.slots, closed_weekdays: s.closed_weekdays, booking_days_ahead: s.booking_days_ahead });
+    return reply({ films: s.films, addons: s.addons || [], slots: s.slots, closed_weekdays: s.closed_weekdays, booking_days_ahead: s.booking_days_ahead, site: s.site || catalog.site });
   }
   if (p === '/rest/v1/rpc/available_slots') return reply(slots(db, body.p_from, body.p_days));
   if (p === '/rest/v1/rpc/book_slot') {

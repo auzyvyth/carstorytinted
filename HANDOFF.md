@@ -117,3 +117,19 @@ Owner's rule: a booking holds its slot, walk-ins get whatever is left.
   `src/public/site.css` (`--accent`, `--sun`, `--orange`, `--grad`), placeholders until the logo file.
 - Staff app colours are still placeholders (`--brand-*` in `src/staff/staff.css`).
 - No auto-send to customers: WhatsApp buttons open a draft, a person presses send.
+
+## Public site look + owner-edited content (2026-09-28)
+- Real shopfront photo in the hero (faded in from the right; below the text on phones).
+  Sections carry blurred shop-colour light (`.glow`), cards are frosted glass, content
+  eases in on scroll (`.reveal`, only after JS marks it, off for reduced motion).
+- The tint preview is a full-width section (`#filem.studio`), not a card; same `.wrap`
+  gutters as everything else. A glare sweep crosses the panes and fades as the rear
+  darkens (`--glare`, tint.js). Panes stay SQUARE (owner, 2026-09-27).
+- `shop_settings.site` (migration 0005) = services / team / videos, edited by the owner
+  in Tetapan > Laman web; public read only through `get_catalog`. Team photos go to the
+  public `site` bucket (owner-only writes), shrunk to 480x600 WebP on the phone.
+  Videos: YouTube / TikTok links only (`videoOf`, render.js), click-to-play, so nothing
+  from those sites loads until tapped. Empty list = that section is not rendered.
+- Polish + karpet are listed as services with "Tanya harga" + WhatsApp, NOT bookable
+  online (see TODO: needs packages + durations from the owner).
+- No stock photos, ever: every image on the site is the shop's own.

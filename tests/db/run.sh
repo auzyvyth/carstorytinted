@@ -11,4 +11,5 @@ psql -q -v ON_ERROR_STOP=1 -d $DB -f ../../supabase/migrations/0001_init.sql
 psql -q -v ON_ERROR_STOP=1 -d $DB -f ../../supabase/migrations/0002_dashboard.sql
 psql -q -v ON_ERROR_STOP=1 -d $DB -f ../../supabase/migrations/0003_walkins_addons.sql
 psql -q -v ON_ERROR_STOP=1 -d $DB -f ../../supabase/migrations/0004_customer_page.sql
+psql -q -v ON_ERROR_STOP=1 -d $DB -f ../../supabase/migrations/0005_site_content.sql
 psql -q -v ON_ERROR_STOP=1 -d $DB -f security.test.sql

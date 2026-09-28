@@ -274,3 +274,10 @@ div.empty-bay { cursor: default; }
 .cred { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; font-size: 13px; padding: 10px 12px; border-radius: 10px; background: var(--raised); border: 1px solid var(--line); }
 .cred span { color: var(--muted); }
 .cred b { overflow-wrap: anywhere; }
+
+/* Tetapan > Laman web: one row per service / team member / video */
+.site-row { display: grid; gap: 8px; padding: 12px 0; border-top: 1px solid var(--line-2); }
+.team-row { grid-template-columns: 96px minmax(0, 1fr); gap: 12px; align-items: start; }
+.photo-pick { display: grid; place-items: center; width: 96px; aspect-ratio: 4/5; border-radius: 10px; overflow: hidden; border: 1px dashed var(--line-3); background: var(--fill); color: var(--muted); font-size: 12px; cursor: pointer; }
+.photo-pick img { width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 420px) { .team-row { grid-template-columns: 72px minmax(0, 1fr); } .photo-pick { width: 72px; } }

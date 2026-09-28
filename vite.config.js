@@ -25,6 +25,9 @@ const DEMO_BANNER = `<div class="demo-bar" role="note"><b>Versi demo</b> Data da
 function shopPages(siteUrl, demo) {
   const slots = {
     films: () => R.tintStudio(catalog),
+    services: () => R.servicesSection(catalog),
+    team: () => R.teamSection(catalog),
+    videos: () => R.videosSection(catalog),
     prices: () => R.pricesHtml(catalog),
     car: () => R.carDiagram(),
     faq: () => R.faqHtml(),
@@ -85,6 +88,7 @@ function llmsTxt(siteUrl) {
 - Telefon / WhatsApp: ${SHOP.contacts.map((c) => `${c.name} ${displayPhone(c.phone)}`).join(', ')}
 - Kawasan: ${SHOP.areaServed.join(', ')}
 - Filem: ${catalog.films.map((f) => f.name).join(', ')}
+- Servis lain: ${(catalog.site?.services || []).map((x) => x.name).join(', ') || '-'} (sebut harga melalui WhatsApp)
 
 ## Had tinted JPJ (2026)
 - Cermin depan: sekurang-kurangnya ${JPJ.windscreen}% cahaya tembus
