@@ -109,6 +109,9 @@ function Workspace({ me, signOut }) {
     setView((v) => ({ ...v, job: null })); writeUrl(view.tab, null, false);
   }, [view.tab]);
   const openJobRow = view.job ? allJobs.find((j) => j.id === view.job) : null;
+  // "New job", optionally pre-filled from the schedule (an empty bay, the walk-in card).
+  // A plain button click passes its event, so only these three fields are read.
+  const startNew = (p) => setCreating({ date: p?.date || null, slot: p?.slot || null, waitlist: p?.waitlist === true });
 
   // "Perlu tindakan" buttons. WhatsApp opens synchronously (popup blockers), then we stamp.
   async function onAction(a, sendWa) {
@@ -154,9 +157,9 @@ function Workspace({ me, signOut }) {
             : tab === 'report'
               ? <Report jobs={jobs} settings={settings} staff={staff} />
             : tab === 'pipeline'
-              ? <Pipeline jobs={jobs} archived={archived} onOpen={openJob} onNew={() => setCreating(true)} />
+              ? <Pipeline jobs={jobs} archived={archived} onOpen={openJob} onNew={startNew} />
             : tab === 'settings' ? null
-              : <Dashboard me={me} jobs={jobs} settings={settings} staff={staff} push={push} devices={devices} onOpen={openJob} onAction={onAction} onNew={() => setCreating(true)} error={error} />}
+              : <Dashboard me={me} jobs={jobs} settings={settings} staff={staff} push={push} devices={devices} onOpen={openJob} onAction={onAction} onNew={startNew} error={error} />}
           {/* Kept mounted (just hidden) so switching tabs never throws away unsaved edits. */}
           {owner && settings && <Settings hidden={tab !== 'settings'} settings={settings} staff={staff} me={me} toast={toast}
             onSaved={(s) => { if (s) setSettings(s); loadMeta(); }} />}
@@ -168,7 +171,7 @@ function Workspace({ me, signOut }) {
 
       {(openJobRow || creating) && settings && (
         <JobDrawer key={openJobRow?.id || 'new'} job={creating ? null : openJobRow} jobs={jobs} settings={settings} staff={staff} me={me}
-          api={{ update, create }} toast={toast}
+          api={{ update, create }} toast={toast} preset={creating || null}
           onClose={() => (creating ? setCreating(false) : closeJob())} />
       )}
       {toastMsg && <div className="toast" role="status">{toastMsg}</div>}

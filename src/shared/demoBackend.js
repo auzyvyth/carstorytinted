@@ -209,7 +209,16 @@ export async function demoFetch(input, init = {}) {
     const j = db.jobs.find((x) => x.manage_token === body.p_token && !x.archived_at);
     const view = (x) => ({ ref: x.ref, customer: x.customer_name.split(' ')[0], date: x.scheduled_date, slot: x.scheduled_slot, stage: x.stage,
       film: db.settings.films.find((f) => f.id === x.film_id)?.name, confirmed: Boolean(x.customer_confirmed_at),
-      can_change: ['baru', 'disahkan'].includes(x.stage) && Boolean(x.scheduled_slot) && Date.parse(`${x.scheduled_date}T${x.scheduled_slot}:00+08:00`) > Date.now() });
+      can_change: ['baru', 'disahkan'].includes(x.stage) && Boolean(x.scheduled_slot) && Date.parse(`${x.scheduled_date}T${x.scheduled_slot}:00+08:00`) > Date.now(),
+      // Receipt + certificate, same shape as get_booking in 0004_customer_page.sql.
+      ...(() => {
+        const done = ['siap', 'selesai'].includes(x.stage), pl = x.plate;
+        return { addons: db.settings.addons.filter((a) => (x.addons || []).includes(a.id)).map((a) => a.name), car_model: x.car_model,
+          plate: pl ? pl.slice(0, Math.max(pl.length - 3, 1)) + '*'.repeat(Math.min(3, pl.length - 1)) : null,
+          price: x.price ?? x.quoted_price, price_final: x.price !== null && x.price !== undefined, paid: x.paid_amount, payment_method: x.payment_method, done,
+          completed_at: done ? x.completed_at?.slice(0, 10) : null, warranty_until: done ? x.warranty_until : null,
+          vlt_windscreen: done ? x.vlt_windscreen : null, vlt_front: done ? x.vlt_front : null, vlt_rear: done ? x.vlt_rear : null };
+      })() });
     if (p.endsWith('get_booking')) return reply(j ? view(j) : null);
     if (!j) return fail('not_found');
     if (!view(j).can_change) return fail('too_late');

@@ -7,6 +7,17 @@ import { SHOP, CAR_SIZES, JPJ, waLink, displayPhone, fullAddress } from './shop.
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export const rm = (n) => `RM${Math.round(Number(n)).toLocaleString('en-MY')}`;
+// VLT readings with the JPJ verdict. Shared by the certificate (/sijil/) and the
+// customer's own page (/urus/), so the two can never disagree about pass/fail.
+export function vltRows(c) {
+  const row = (label, v, min) => {
+    if (v === null || v === undefined) return '';
+    const verdict = min ? (v >= min ? '<span class="pass"><i class="dot"></i>Lulus JPJ</span>' : '<span class="fail"><i class="dot"></i>Bawah had</span>') : '<span class="muted">Tiada had</span>';
+    return `<div class="cert-row"><span>${label}${min ? ` <small class="muted">(min ${min}%)</small>` : ''}</span><b>${v}% ${verdict}</b></div>`;
+  };
+  const rows = row('Cermin depan', c.vlt_windscreen, JPJ.windscreen) + row('Tingkap sisi depan', c.vlt_front, JPJ.frontSide) + row('Belakang', c.vlt_rear, 0);
+  return rows || '<p class="note">Bacaan VLT tidak direkodkan untuk kerja ini.</p>';
+}
 export const hasNum = (v) => v !== null && v !== undefined && v !== '' && !Number.isNaN(Number(v));
 
 const NAV = [
