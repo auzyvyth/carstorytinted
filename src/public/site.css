@@ -452,8 +452,8 @@ main:has(> .page-head), main:has(> .wrap > .page-head), main.book { background: 
 @media (prefers-reduced-motion: reduce) { .reveal.pre { opacity: 1; transform: none; transition: none; } }
 
 /* ---- booking: one question per screen (src/public/booking.js) ---- */
-.wiz { max-width: 640px; margin: 0 auto; padding-bottom: 72px; overflow-x: clip; overflow-clip-margin: 12px; }  /* the slide-in starts 28px off to the side: never a sideways scroll */
-[data-booking] { scroll-margin-top: 80px; }  /* clears the site header, which slides back in on scroll-up */
+.wiz { max-width: 640px; margin: 0 auto; padding-bottom: 40px; overflow-x: clip; overflow-clip-margin: 12px; }  /* the slide-in starts 28px off to the side: never a sideways scroll */
+[data-booking] { scroll-margin-top: 72px; }  /* clears the site header, which slides back in on scroll-up */
 .wiz-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .wiz-back { flex: none; width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255,255,255,.8); font-size: 20px; color: var(--ink); cursor: pointer; }
 span.wiz-back { border: 0; background: none; }
@@ -488,11 +488,45 @@ span.wiz-back { border: 0; background: none; }
 .wiz-foot .btn { flex: 1; }
 .more { margin-top: 18px; }
 .more summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--accent); }
-/* running choices + price, pinned to the bottom of the screen */
-.wiz-sum { position: sticky; bottom: 12px; z-index: 5; display: flex; align-items: center; gap: 10px; margin-top: 16px; padding: 10px 12px; border-radius: 16px;
-  background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(255, 255, 255, 0.9); box-shadow: 0 10px 30px rgba(20, 35, 95, 0.14); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+/* running choices + price, under the progress bar (not pinned over the form) */
+.wiz-sum { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding: 8px 10px 8px 12px; border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72); border: 1px solid rgba(255, 255, 255, 0.9); box-shadow: var(--shadow); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
 .wiz-chips { flex: 1; min-width: 0; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
 .wiz-chip { flex: none; min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: #fff; font: 600 13px/1 var(--body); color: var(--text); cursor: pointer; }
 .wiz-chip:hover { border-color: var(--accent); color: var(--accent); }
 .wiz-total { flex: none; font-size: 20px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
 .wiz-total small { font-size: 12px; font-weight: 600; color: var(--muted); }
+
+/* past question 1: the page title steps aside so every screen fits without scrolling */
+main.book.wiz-on .page-head { display: none; }
+main.book.wiz-on > .wrap { padding-top: 20px; }
+.wiz .field-label { margin: 12px 0 6px; }
+.wiz .consent { margin-top: 14px; }
+.wiz .input { padding: 11px 14px; }
+.wiz-card[data-screen="butiran"] .wiz-hint { margin-bottom: 4px; }
+.wiz .wiz-foot { margin-top: 16px; }
+/* booking title: compact, so question 1 also fits a laptop screen */
+main.book .page-head { padding-top: 28px; padding-bottom: 16px !important; }
+main.book .page-head h1 { font-size: clamp(30px, 4vw, 40px); }
+main.book .page-head .lead { font-size: 15px; margin-top: 6px !important; }
+main.book .page-head .crumb { margin-bottom: 8px; }
+/* desktop: films side by side, days five to a row (two rows, not three) */
+@media (min-width: 720px) {
+  .tiles.one { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tiles.days { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+/* tint preview on desktop: pills across the top, then the glass + slider left of the
+   film's spec card, so the whole section fits one laptop screen (stacked it was ~830px
+   tall). Phones keep the stacked layout. */
+@media (min-width: 900px) {
+  #filem.studio { padding: 52px 0; }
+  #filem .sec-head { margin-bottom: 18px; }
+  .studio-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 380px); gap: 48px; align-items: center; margin-top: 18px; }
+  #filem .stage { max-width: 420px; margin: 0 auto; }
+  #filem .dial { max-width: 420px; margin: 6px auto 0; }
+  #filem .dial input { margin: 8px 0 6px; }
+  #filem .spec-bar { margin: 0; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #filem .spec-bar > * { padding: 12px 16px; border-left: 0; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+  #filem .spec-bar > :first-child { border-top: 0; }
+  #filem .spec-name, #filem .spec-buy { grid-column: 1 / -1; }
+}

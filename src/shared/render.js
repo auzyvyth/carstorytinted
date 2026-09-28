@@ -174,14 +174,17 @@ export function tintStudio(catalog) {
     <a class="btn btn-sun" href="/tempah/?film=${encodeURIComponent(f.id)}" aria-label="Tempah slot, filem ${esc(f.name)}">Tempah slot</a></div>
 </div>`;
   }).join('');
+  // .studio-grid: on desktop the glass + slider sit left of the spec card (site.css),
+  // so the whole section fits one screen; on phones it stacks as before.
   return `<div class="tabs" role="tablist" aria-label="Pilih filem">${tabs}</div>
+<div class="studio-grid"><div class="glass-col">
 <div class="stage">${carSvg(rear)}</div>
 <div class="dial">
   <label for="ts-rear">Kegelapan cermin belakang <b data-rear-out>${rear}%</b></label>
   <input id="ts-rear" type="range" data-rear min="${Array.isArray(first.vlt) ? first.vlt[0] : 5}" max="${Array.isArray(first.vlt) ? first.vlt[1] : 70}" step="5" value="${rear}">
   <p class="dial-note">Cermin depan ${JPJ.windscreen}% dan tingkap sisi depan ${JPJ.frontSide}% kekal ikut had JPJ. Lebih kecil peratus, lebih gelap.</p>
 </div>
-${panels}`;
+</div><div class="spec-col">${panels}</div></div>`;
 }
 
 // ---------------------------------------------------------------- owner-edited site
