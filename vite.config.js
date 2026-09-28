@@ -38,8 +38,11 @@ function shopPages(siteUrl, demo) {
   };
   const vars = {
     SITE_URL: siteUrl, ADDRESS: fullAddress(), TOWN: SHOP.town, STATE: SHOP.state,
-    AREAS: SHOP.areaServed.join(', '), JPJ_WS: JPJ.windscreen, JPJ_FS: JPJ.frontSide, JPJ_FINE: JPJ.fine,
-    PHONE1: displayPhone(SHOP.contacts[0].phone), POLICY_WALKIN: POLICY.walkIn, MAP_EMBED: R.mapEmbedUrl(), YEAR: new Date().getFullYear(),
+    // Nearby towns only: the copy reads "di <town>, dekat <AREAS>", so listing the
+    // shop's own town here printed "di Sungai Jawi, dekat Sungai Jawi, ...".
+    AREAS: SHOP.areaServed.filter((t) => t !== SHOP.town).join(', '), JPJ_WS: JPJ.windscreen, JPJ_FS: JPJ.frontSide, JPJ_FINE: JPJ.fine,
+    PHONE1: displayPhone(SHOP.contacts[0].phone), WA1: SHOP.contacts[0].phone,
+    WA_LOST: encodeURIComponent('Salam, saya hilang pautan tempahan / sijil tinted saya. Boleh hantar semula? Nama: , No. plat: '), POLICY_WALKIN: POLICY.walkIn, MAP_EMBED: R.mapEmbedUrl(), YEAR: new Date().getFullYear(),
   };
   return {
     name: 'shop-pages',

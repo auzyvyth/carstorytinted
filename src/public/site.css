@@ -266,7 +266,9 @@ section { padding: 80px 0; }
 
 /* shopfront photo in the location card */
 .shopfront { border-radius: 12px; overflow: hidden; }
-.shopfront img { width: 100%; aspect-ratio: 16/11; object-fit: cover; }
+/* height:auto: the img's height="790" attribute otherwise wins over aspect-ratio and
+   stretches the photo to 790px tall on a phone. 16/11 keeps both signboards in frame. */
+.shopfront img { width: 100%; height: auto; aspect-ratio: 16/11; object-fit: cover; }
 .shopfront figcaption { font-size: 13px; color: var(--muted); padding-top: 8px; }
 
 /* FAQ */

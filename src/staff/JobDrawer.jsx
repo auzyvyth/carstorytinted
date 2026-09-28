@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from './supabase.js';
-import { CAR_SIZES, JPJ, WAIT_MODES, HEARD_FROM, displayPhone } from '../shared/shop.js';
+import { SHOP, CAR_SIZES, JPJ, WAIT_MODES, HEARD_FROM, displayPhone } from '../shared/shop.js';
 import { quote, rm as rmExact } from '../shared/render.js';
 import { shopDate } from '../shared/api.js';
-import { NEXT, vltWarnings, certUrl, balance, num, firstName, waCustomer, slotUse, walkInSlot, isClosedDay, receiptText } from './logic.js';
+import { NEXT, vltWarnings, certUrl, manageUrl, balance, num, firstName, waCustomer, slotUse, walkInSlot, isClosedDay, receiptText } from './logic.js';
 import { METHODS } from './report.js';
 import { DEMO } from '../shared/api.js';
 import { Sheet, StageChip, Icon, rmFmt } from './ui.jsx';
@@ -18,14 +18,18 @@ const ERR = {
 };
 const errText = (e) => ERR[Object.keys(ERR).find((k) => String(e?.message).includes(k))] || 'Gagal simpan. Cuba lagi.';
 
-function toForm(job, settings, jobs = []) {
+function toForm(job, settings, jobs = [], preset = null) {
   const f = {};
   for (const k of FIELDS) f[k] = job?.[k] ?? '';
   // Add-ons as a sorted string, so "unchanged" compares equal (arrays never do).
   f.addons = [...(job?.addons || [])].sort().join(',');
   // A new job is usually a walk-in being done now: today, in the slot running now.
-  if (!job) Object.assign(f, { car_size: 'small', film_id: settings?.films?.[0]?.id || 'standard', scheduled_date: shopDate(0),
-    scheduled_slot: walkInSlot(settings, jobs), paid_amount: 0, no_followup: false });
+  // From the schedule: an empty bay brings its own day and block.
+  if (!job) {
+    const date = preset?.date || shopDate(0);
+    Object.assign(f, { car_size: 'small', film_id: settings?.films?.[0]?.id || 'standard', scheduled_date: date,
+      scheduled_slot: preset?.waitlist ? '' : preset?.slot || (date === shopDate(0) ? walkInSlot(settings, jobs) : ''), paid_amount: 0, no_followup: false });
+  }
   // Staff read and type Malaysian numbers the local way; the DB stores 60xxxxxxxxx.
   if (job?.phone) f.phone = displayPhone(job.phone);
   if (job && (job.price === null || job.price === undefined) && job.quoted_price !== null) f.price = job.quoted_price ?? '';
@@ -43,12 +47,12 @@ function toRow(f) {
   return r;
 }
 
-export default function JobDrawer({ job, jobs = [], settings, staff, me, api, onClose, toast }) {
+export default function JobDrawer({ job, jobs = [], settings, staff, me, api, onClose, toast, preset = null }) {
   const isNew = !job;
-  const [f, setF] = useState(() => toForm(job, settings, jobs));
+  const [f, setF] = useState(() => toForm(job, settings, jobs, preset));
   const [source, setSource] = useState('walk_in');
   // New walk-in with no free bay: put them on today's waitlist (no slot yet).
-  const [waitlist, setWaitlist] = useState(false);
+  const [waitlist, setWaitlist] = useState(Boolean(preset?.waitlist));
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [menu, setMenu] = useState(false);
@@ -57,7 +61,7 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
   const [clash, setClash] = useState(false);
   // What the form looked like when it last matched the database. A field that
   // differs from this is one YOU changed; only those are sent on Save.
-  const base = useRef(toForm(job, settings, jobs));
+  const base = useRef(toForm(job, settings, jobs, preset));
   const set = (k) => (e) => setF((p) => ({ ...p, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
 
   const loadEvents = useCallback(async () => {
@@ -206,6 +210,8 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
             <span className="row-actions">
               {!DEMO && <a className="btn btn-sm" href={`tel:+${job.phone}`}>Telefon</a>}
               <a className="btn btn-sm" href={waCustomer(job.phone)} target="_blank" rel="noopener">{Icon.wa}WhatsApp</a>
+              {/* The customer's one page (status, receipt, certificate). Lost it? Send it again. */}
+              {manageUrl(job) && <a className="btn btn-sm" href={waCustomer(job.phone, `Salam ${firstName(job)}, ini pautan tempahan anda di ${SHOP.name} (${job.ref}). Status, resit dan sijil anda ada di sini: ${manageUrl(job)}`)} target="_blank" rel="noopener">Hantar pautan</a>}
             </span>
           </div>
           {job.archived_at && <div className="warnline">Dipadam. Tidak dikira dalam senarai atau laporan.</div>}

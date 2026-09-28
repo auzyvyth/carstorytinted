@@ -10,7 +10,7 @@ const out = join(mkdtempSync(join(tmpdir(), 'logic-')), 'logic.mjs');
 await build({ entryPoints: ['src/staff/logic.js'], bundle: true, format: 'esm', outfile: out, logLevel: 'silent',
   define: { 'import.meta.env': '{}' } });
 globalThis.location = { origin: 'https://kedai.test' };
-const { walkInSlot, actionsFor, slotUse } = await import(pathToFileURL(out).href);
+const { walkInSlot, walkInNow, actionsFor, slotUse, receiptText } = await import(pathToFileURL(out).href);
 
 let failed = 0;
 const eq = (got, want, name) => {
@@ -55,6 +55,22 @@ eq(full.some((a) => a.kind === 'waitlist'), false, 'no free bay: the waitlist is
 
 const confirm = actionsFor([j({ stage: 'baru', scheduled_date: '2026-09-30', scheduled_slot: '11:00' })], DAY, { settings, now: at('10:20') })[0];
 eq(confirm.text.includes('/urus/?t=') && confirm.text.includes('15 minit'), true, 'confirmation carries the customer link and the late rule');
+
+// "Can we take the car that just drove in?"
+eq(walkInNow(settings, jobs, at('10:20')), { state: 'full', slot: '09:00', next: '13:00', wait: 160 }, 'walk-in now: running block full -> next free block + wait in minutes');
+eq(walkInNow(settings, [], at('12:50')).state, 'free', 'walk-in now: empty day, a bay is free');
+eq(walkInNow(settings, [j({ scheduled_slot: '11:00' })], at('12:50')), { state: 'free', slot: '11:00', free: 1, cap: 2, early: false }, 'walk-in now: counts bays left, 1 of 2');
+eq(walkInNow(settings, [], at('23:00')).state, 'over', 'walk-in now: after the last block');
+eq(walkInNow({ ...settings, closed_weekdays: [1], closed_dates: [] }, [], at('10:00')).state, 'closed', 'walk-in now: closed day (28 Sep 2026 is a Monday)');
+
+// A walk-in slotted into the block running now is at the shop, not late.
+const walk = j({ source: 'walk_in', customer_name: 'Baru Sampai', scheduled_slot: '09:00', plate: 'PKA 1' });
+const wRows = actionsFor([walk], DAY, { settings, now: at('10:20') });
+eq(wRows.some((a) => a.kind === 'late'), false, 'a walk-in in the running block is never flagged late');
+eq(wRows[0]?.kind, 'confirm_walkin', 'a walk-in gets a confirmation row (time + link)');
+eq(wRows[0]?.text.includes('/urus/?t=') && wRows[0]?.text.includes('PKA 1'), true, 'walk-in confirmation carries plate, time and the customer link');
+eq(actionsFor([{ ...walk, confirmed_msg_at: '2026-09-28T02:00:00Z' }], DAY, { settings, now: at('10:20') }).length, 0, 'sent once: the row goes away after the stamp');
+eq(receiptText({ ...walk, price: 300, paid_amount: 300 }).includes('/urus/?t='), true, 'the WhatsApp receipt points to the customer page');
 
 if (failed) { console.log(`${failed} FAILED`); process.exit(1); }
 console.log('ALL LOGIC TESTS PASSED');

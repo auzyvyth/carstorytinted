@@ -65,7 +65,9 @@ export function actionsFor(jobs, today = shopDate(0), { settings = null, now = n
           text: `Salam ${n}, ini ${SHOP.name}. Slot kosong sekarang (${slotLabel(free)}). Masih mahu datang? Balas "YA" dan kami simpan untuk anda.` };
       }
     } else if (['baru', 'disahkan'].includes(j.stage) && j.scheduled_date === today && j.scheduled_slot
-      && addMin(j.scheduled_slot, LATE_MINUTES) < hm) {
+      && j.source !== 'walk_in' && addMin(j.scheduled_slot, LATE_MINUTES) < hm) {
+      // (A walk-in is already at the shop: slotting one into the block running now
+      // must not flag them "late" the moment they are saved.)
       // Owner's rule: 15 minutes late with no word = the bay goes to walk-ins; the booked
       // customer moves to the next free block. Never bump someone who is on time.
       const use = slotUse(jobs, today, j.id);
@@ -83,6 +85,15 @@ export function actionsFor(jobs, today = shopDate(0), { settings = null, now = n
       a = { rank: 0, kind: 'confirm', why: j.source === 'web' ? 'Tempahan online baru' : 'Belum disahkan', stamp: 'confirmed_msg_at', advance: 'disahkan',
         cta: 'Sahkan & WhatsApp',
         text: `Salam ${n}, ini ${SHOP.name}. Tempahan tinted anda (${j.ref}) pada ${when} DISAHKAN. Alamat: ${SHOP.street}, ${SHOP.town}. ${POLICY.late}${link(j)}` };
+    } else if (j.source !== 'web' && ['disahkan', 'dalam_kerja'].includes(j.stage) && !j.confirmed_msg_at
+      && j.scheduled_slot && j.scheduled_date >= today) {
+      // Walk-ins and phone/WhatsApp bookings are saved straight as "disahkan", so the
+      // "baru" confirmation above never fired for them: they had no time in writing and
+      // never got their link (the one place their receipt and certificate live).
+      const leave = j.wait_mode === 'tinggal' ? ' Kami WhatsApp bila kereta siap.' : '';
+      a = { rank: 0, kind: 'confirm_walkin', why: j.source === 'walk_in' ? 'Walk-in: hantar masa + pautan' : 'Hantar pengesahan + pautan',
+        stamp: 'confirmed_msg_at', cta: 'Hantar pengesahan',
+        text: `Salam ${n}, terima kasih pilih ${SHOP.name}. ${j.scheduled_date === today ? `Kereta anda${j.plate ? ` (${j.plate})` : ''} dalam slot ${slotLabel(j.scheduled_slot)} hari ini.` : `Tempahan anda (${j.ref}) pada ${when} DISAHKAN. ${POLICY.late}`}${leave}${manageUrl(j) ? ` Status, resit dan sijil anda ada di sini: ${manageUrl(j)}` : ''}` };
     } else if (j.stage === 'disahkan' && j.scheduled_date === tomorrow && !j.reminded_at) {
       a = { rank: 1, kind: 'remind', why: 'Temujanji esok', stamp: 'reminded_at', cta: 'Hantar peringatan',
         text: `Salam ${n}, peringatan: temujanji tinted anda di ${SHOP.name} esok, ${when}.${link(j) || ' Balas mesej ini jika perlu tukar masa.'} ${POLICY.late}` };
@@ -153,23 +164,42 @@ export function slotUse(jobs, date, exceptId = null) {
 // A walk-in is being worked on now: the block running at this moment, or the first
 // free one after it. A block runs until the next one starts; the last block gets the
 // same length as the gap before it. '' when nothing is left today.
-export function walkInSlot(settings, jobs, now = new Date()) {
+const mins = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+
+// Today's blocks from the one running now onward, plus the bays each already holds.
+function blocksFromNow(settings, jobs, now) {
   const slots = settings?.slots || [];
-  const cap = settings?.cars_per_slot || 1;
   const hm = klNowHm(now);
-  const use = slotUse(jobs, klDate(now.toISOString()));
-  const mins = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
   const gap = slots.length > 1 ? mins(slots[slots.length - 1]) - mins(slots[slots.length - 2]) : 120;
   const endOf = (i) => (i + 1 < slots.length ? mins(slots[i + 1]) : mins(slots[i]) + gap);
   const from = slots.findIndex((t, i) => endOf(i) > mins(hm));
-  if (from < 0) return '';
-  return slots.slice(from).find((t) => (use[t] || 0) < cap) || '';
+  return { hm, cap: settings?.cars_per_slot || 1, use: slotUse(jobs, klDate(now.toISOString())), left: from < 0 ? [] : slots.slice(from) };
+}
+
+export function walkInSlot(settings, jobs, now = new Date()) {
+  const { cap, use, left } = blocksFromNow(settings, jobs, now);
+  return left.find((t) => (use[t] || 0) < cap) || '';
+}
+
+// "Someone just drove in. Can we take them?" Read off the block running now (a
+// booking at 13:00 already holds its bay in the 12:30 block), never a guess.
+//   closed | over (no blocks left today) | free (a bay now) | full (next free block + wait)
+export function walkInNow(settings, jobs, now = new Date()) {
+  if (!settings) return { state: 'over' };
+  if (isClosedDay(settings, klDate(now.toISOString()))) return { state: 'closed' };
+  const { hm, cap, use, left } = blocksFromNow(settings, jobs, now);
+  if (!left.length) return { state: 'over' };
+  const cur = left[0];
+  const free = cap - (use[cur] || 0);
+  if (free > 0) return { state: 'free', slot: cur, free, cap, early: cur > hm };
+  const next = left.slice(1).find((t) => (use[t] || 0) < cap);
+  return next ? { state: 'full', slot: cur, next, wait: mins(next) - mins(hm) } : { state: 'full', slot: cur, next: '' };
 }
 
 export function isClosedDay(settings, iso) {
   if (!settings || !iso) return false;
   const [y, m, d] = iso.split('-').map(Number);
-  return settings.closed_weekdays.includes(new Date(Date.UTC(y, m - 1, d)).getUTCDay()) || settings.closed_dates.includes(iso);
+  return (settings.closed_weekdays || []).includes(new Date(Date.UTC(y, m - 1, d)).getUTCDay()) || (settings.closed_dates || []).includes(iso);
 }
 
 // WhatsApp receipt, built from the SAVED job (never the unsaved form). A plain
@@ -189,6 +219,8 @@ export function receiptText(j, { filmName = '', method = '' } = {}) {
   ];
   if (price - paid > 0) lines.push(`Baki: ${rm(price - paid)}`);
   if (j.warranty_until) lines.push(`Waranti hingga: ${dayLabel(j.warranty_until)} ${j.warranty_until.slice(0, 4)}`);
+  // The receipt lives on the customer's own page too, next to the certificate.
+  if (manageUrl(j)) lines.push('', `Resit dan sijil anda (simpan pautan ini): ${manageUrl(j)}`);
   lines.push('', 'Terima kasih!');
   return lines.join('\n');
 }

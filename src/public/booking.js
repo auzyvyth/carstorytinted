@@ -140,7 +140,8 @@ function doneView() {
   <p class="lead" style="margin:20px auto 0">${dayLabel(d.date)}, ${slotLabel(d.slot)}<br>${esc(fullAddress())}</p>
   <p class="note">Kami akan WhatsApp untuk sahkan. Mahu cepat? Hantar mesej kepada kami sekarang.</p>
   <p class="note">${esc(POLICY.late)}</p>
-  ${d.manage_token ? `<p class="note">Perlu batal? <a href="/urus/?t=${esc(d.manage_token)}">Urus tempahan anda di sini</a>. Pautan yang sama ada dalam peringatan WhatsApp kami.</p>` : ''}
+  ${d.manage_token ? `<div class="note" style="margin-top:16px"><b>Halaman tempahan anda:</b> status, batal, dan selepas siap, resit dan sijil waranti. Simpan pautan ini (ia juga ada dalam WhatsApp kami).
+    <div class="row-btns" style="margin-top:10px;justify-content:center"><a class="btn btn-line" href="/urus/?t=${esc(d.manage_token)}">Buka tempahan saya</a></div></div>` : ''}
   ${DEMO ? '<p class="note"><b>Demo:</b> tempahan ini kini ada di <a href="/staff/">app staf</a> (log masuk sebagai pemilik).</p>' : ''}
   <div class="row-btns">
     <a class="btn btn-cta" href="${waLink(contact.phone, shopMsg)}" rel="noopener">WhatsApp ${esc(contact.name)}</a>

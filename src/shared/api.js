@@ -47,6 +47,8 @@ export function dayParts(iso) {
   return { dow: DAY[dt.getUTCDay()], short: DAY[dt.getUTCDay()].slice(0, 3), date: d, mon: MON[m - 1] };
 }
 export const dayLabel = (iso) => { const p = dayParts(iso); return `${p.dow}, ${p.date} ${p.mon}`; };
+// With the year: a certificate or warranty date is read years later ("22 Sep" of which year?).
+export const dateLabel = (iso) => `${dayParts(iso).date} ${dayParts(iso).mon} ${String(iso).slice(0, 4)}`;
 export function slotLabel(t) {
   const [h, m] = t.split(':').map(Number);
   const part = h < 12 ? 'pagi' : h < 14 ? 'tengah hari' : h < 19 ? 'petang' : 'malam';

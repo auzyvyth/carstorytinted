@@ -210,7 +210,7 @@ end $$;
 select pg_temp.expect_error($q$select book_slot('Wan','0144444444','Myvi','PKD 4','small','ceramic',(select e from t_e),'09:30',null,true)$q$, 'slot_full');
 do $$ declare b jsonb; begin
   b := get_booking((select tok from t_tok2));
-  if b is null or b ? 'phone' or b ? 'manage_token' or b->>'customer' <> 'Rina' then raise exception 'get_booking wrong: %', b; end if;
+  if b is null or b ? 'phone' or b ? 'manage_token' or b ? 'cert_token' or (b ? 'price_final') is not true or (b->>'done')::boolean or b->'vlt_front' <> 'null'::jsonb or b->>'customer' <> 'Rina' then raise exception 'get_booking wrong: %', b; end if;
   if get_booking(repeat('0', 36)) is not null then raise exception 'wrong token returned data'; end if;
   b := manage_booking((select tok from t_tok2), 'confirm');
   if (b->>'confirmed')::boolean is not true then raise exception 'confirm failed: %', b; end if;
