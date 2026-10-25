@@ -6,7 +6,7 @@ import { SHOP, JPJ, fullAddress } from '../shared/shop.js';
 
 const W = 1080, PAD = 72;
 const C = { ink: '#0a0a0a', text: '#1f2733', muted: '#6b7280', line: '#eceaea', accent: '#1d3fc4', ok: '#15803d', bad: '#b91c1c' };
-const FONT = "'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif";
+const FONT = "Archivo, system-ui, -apple-system, 'Segoe UI', sans-serif";
 
 // blocks: [{ heading?: 'Resit', rows: [[label, value, tone?]], note?: '...' }]
 // tone: 'ok' | 'bad' | undefined (colours the value, e.g. "Lulus JPJ" / "Bawah had")

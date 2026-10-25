@@ -89,10 +89,7 @@ Phones keep the BOTTOM BAR (owner: one-handed between cars). Owner settings is a
 split into category tabs: Harga | Filem | Slot & bay | Hari tutup | Staf (`src/staff/Settings.jsx`).
 One save bar for all tabs, a dot marks each tab with unsaved edits.
 
-## Public site materials (2026-10-25, Apple review)
-Glass (blur) only on layers that float over something: header pill, hero slot card, studio
-spec bar, video play button. Content cards are solid white. The gradient border marks only what
-sells: main CTA, price buttons/table, the certificate. Sections fade in over .3s.
+## Public site: content rules (2026-10-25)
 Gallery and team are NOT rendered until there is a real photo, demo included.
 
 ## Walk-ins + pricing (2026-09-27, migration `0003_walkins_addons.sql`)
@@ -142,15 +139,18 @@ Owner's rule: a booking holds its slot, walk-ins get whatever is left.
 - Never advertise darker than JPJ on the windscreen / front side windows (the
   owner's WhatsApp copy says "5% if the customer asks"): the site offers 5% on the
   REAR only. Verified 2026-09-27: 70% / 50% / rear no limit, Kaedah 1991 as amended 2019.
-- Public site design V2 (owner's rep, 2026-10-25; replaces the 2026-09-27 washes + sentence case):
-  references Copperlane (dark rounded hero panel, UPPERCASE display headings, stats with a
-  yellow rule, yellow-tick labels) + Prosperum (cards lifting off the hero, round icon
-  badges, steps joined by a line, dark contact panel). ONE typeface (Plus Jakarta Sans).
-  Colours: signboard navy `--navy` for dark panels + the sign's yellow `--y` as the ONE action
-  colour (buttons, ticks); cool grey `--ground` + white cards. Header = dark pill floating over
-  the page. V2 lives at the END of `src/public/site.css` ("V2 LOOK"). Hero figures (UV, longest
-  warranty) are build-time values from the catalogue (`UV_MIN`, `WARRANTY_MAX`), never typed.
-  Never a stock photo and never an invented stat ("15K cars", "20 years"): the refs had both.
+- Public site design (owner's rep approved the plan, 2026-10-25; replaces V2 the same day,
+  which read as a template): built with the frontend-design skill (`.claude/skills/frontend-design/`).
+  The hero IS the tint preview: two real glass panes over the shopfront photo, the rear one
+  darkens with the slider and a live sentence states the JPJ verdict (`rearVerdict`, render.js).
+  Daylight page, the only dark thing is the film. Archivo only: expanded bold headings (the
+  signboard's wide letters), normal body. Colours: Papan `#1d3fc4` (links, the one blue
+  button), Huruf `#ffc71a` (slider handle + "Lulus" only), Filem `#14161c` (the tint), Siang
+  `#f7f7f4` ground, Dakwat `#1b1e26` text, Saman `#c2361b` (a fail only). Sentence case, NO
+  labels above headings, no single accented word, no arrows on links, no entrance animations,
+  no middle-dot strings. Cards only for real objects (the certificate). JPJ limits are shown
+  as three real tinted panes (`.swatch`, opacity from `tintOpacity`). Current look = the
+  "Shop design" block at the end of `src/public/site.css`.
 - Staff app colours are still placeholders (`--brand-*` in `src/staff/staff.css`).
 - No auto-send to customers: WhatsApp buttons open a draft, a person presses send.
 

@@ -29,6 +29,7 @@ function shopPages(siteUrl, demo) {
     team: () => R.teamSection(catalog),
     videos: () => R.videosSection(catalog),
     prices: () => R.pricesHtml(catalog),
+    'price-table': () => R.priceTable(catalog),
     car: () => R.carDiagram(),
     faq: () => R.faqHtml(),
     footer: () => R.footer(),
@@ -45,10 +46,9 @@ function shopPages(siteUrl, demo) {
     // shop's own town here printed "di Sungai Jawi, dekat Sungai Jawi, ...".
     AREAS: SHOP.areaServed.filter((t) => t !== SHOP.town).join(', '), JPJ_WS: JPJ.windscreen, JPJ_FS: JPJ.frontSide, JPJ_FINE: JPJ.fine,
     PHONE1: displayPhone(SHOP.contacts[0].phone), WA1: SHOP.contacts[0].phone,
-    WA_LOST: encodeURIComponent('Salam, saya hilang pautan tempahan / sijil tinted saya. Boleh hantar semula? Nama: , No. plat: '), POLICY_WALKIN: POLICY.walkIn, MAP_EMBED: R.mapEmbedUrl(), YEAR: new Date().getFullYear(),
-    // Hero figures come from the catalogue, never typed: longest warranty, UV blocked by every film.
-    WARRANTY_MAX: Math.max(0, ...catalog.films.map((f) => Number(f.warranty_years) || 0)),
-    UV_MIN: Math.min(...catalog.films.map((f) => Number(f.uv) || 0)),
+    WA_ASK: encodeURIComponent('Salam, saya nak tanya pasal tinted.'), WA_LOST: encodeURIComponent('Salam, saya hilang pautan tempahan / sijil tinted saya. Boleh hantar semula? Nama: , No. plat: '), POLICY_WALKIN: POLICY.walkIn, MAP_EMBED: R.mapEmbedUrl(), YEAR: new Date().getFullYear(),
+    // How dark each JPJ limit looks: the same curve the tint preview draws with.
+    TINT_WS: R.tintOpacity(JPJ.windscreen), TINT_FS: R.tintOpacity(JPJ.frontSide), TINT_REAR: R.tintOpacity(5),
   };
   return {
     name: 'shop-pages',
