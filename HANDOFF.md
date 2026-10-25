@@ -53,7 +53,14 @@ history kept. It shares no code, database or deploy with ShiftOS.
   `heard_from`, unrecorded shown. This is the pitch hook: the report shows whether ads pay.
 
 ## Next steps
-1. Pitch the demo to the owner (Maliki). Pricing: RM800 upfront or RM200/month.
+1. Pitch the demo to the owner (Maliki). Pricing (owner's rep, 2026-10-25): **RM400/month** =
+   RM200 system + maintenance, RM200 hosting + domain. Setup fee proposed RM1,200-1,500 (not
+   confirmed). Optional growth add-on RM300-400/month (run his Google profile). Hosting is a real
+   cost (Vercel Pro ~US$20, Supabase Pro ~US$25 if the org is on free: free pauses an idle
+   project, Vercel Hobby is non-commercial; domain ~RM50-100/yr): check both billing pages.
+   Never call the RM200 "domain" alone on a quote: a domain is ~RM100 a YEAR.
+   Pitch line: he spends ~RM1,500/month on Facebook ads; the Laporan source section shows
+   after a month what they bring. Promise he will SEE the number, never a saving.
 2. Collect from owner: VLT meter yes/no (site promises every window is measured),
    real film names/specs/warranty/prices, opening hours, logo + exact blue/orange
    colours, 6-10 before/after photos, Google review link, confirm Sungai Jawi branch.
