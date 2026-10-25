@@ -141,8 +141,11 @@ Owner's rule: a booking holds its slot, walk-ins get whatever is left.
   REAR only. Verified 2026-09-27: 70% / 50% / rear no limit, Kaedah 1991 as amended 2019.
 - Public site design (owner's rep approved the plan, 2026-10-25; replaces V2 the same day,
   which read as a template): built with the frontend-design skill (`.claude/skills/frontend-design/`).
-  The hero IS the tint preview: two real glass panes over the shopfront photo, the rear one
-  darkens with the slider and a live sentence states the JPJ verdict (`rearVerdict`, render.js).
+  Hero (owner's rep, 2026-10-25, from a reference): dark rounded panel over the shopfront photo
+  (placeholder until the owner's photos), heat headline, "Servis apa yang anda perlukan?" with
+  three answers (Tinted books; Karpet / Polish open a prefilled WhatsApp), and a page-coloured
+  tab (`.bulge`) rising into the bottom-left corner with three trust points. The tint preview
+  is its own section below (`.glass-sec`): rear pane darkens with the slider, live JPJ verdict.
   Daylight page, the only dark thing is the film. Archivo only: expanded bold headings (the
   signboard's wide letters), normal body. Colours: Papan `#1d3fc4` (links, the one blue
   button), Huruf `#ffc71a` (slider handle + "Lulus" only), Filem `#14161c` (the tint), Siang

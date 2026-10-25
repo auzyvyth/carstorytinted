@@ -24,9 +24,9 @@
 
 <main id="main">
 <section class="hero">
-  <div class="wrap hero-grid">
+  <div class="hero-panel">
     <div class="hero-copy">
-      <h1>Malaysia panas. Kereta anda tak perlu ikut.</h1>
+      <h1>Malaysia panas. <span class="hl">Kereta anda tak perlu ikut.</span></h1>
       <p class="lead">Tinted yang tolak haba matahari, ikut had JPJ dan diukur selepas pasang. Kedai Bumiputera di %TOWN%.</p>
       <div class="pick" role="group" aria-labelledby="pick-q">
         <p class="pick-q" id="pick-q">Servis apa yang anda perlukan?</p>
@@ -37,7 +37,18 @@
         </div>
       </div>
     </div>
-    <div id="filem" class="hero-glass" data-films><!--@films--></div>
+    <ul class="bulge">
+      <li><span class="b-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16 16 4l4 4L8 20z"/><path d="M8 12l2 2M11 9l2 2M14 6l2 2"/></svg></span>Lulus had JPJ, diukur</li>
+      <li><span class="b-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg></span>Sijil &amp; waranti digital</li>
+      <li><span class="b-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/></svg></span>Tempah tanpa deposit</li>
+    </ul>
+  </div>
+</section>
+
+<section class="glass-sec">
+  <div class="wrap">
+    <div class="sec-head"><h2>Tengok hasilnya dulu</h2><p>Pilih filem dan gelapkan cermin belakang. Cermin depan sentiasa ikut had JPJ.</p></div>
+    <div id="filem" class="hero-glass wide" data-films><!--@films--></div>
   </div>
 </section>
 

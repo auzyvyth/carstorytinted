@@ -704,3 +704,50 @@ main:has(> .page-head), main:has(> .wrap > .page-head), main.book { background: 
   .pick-opt:hover .pick-arrow, .pick-opt:hover .pick-btn, .pick-opt:active .pick-btn { transform: none; }
 }
 @media (max-width: 400px) { .pick-btn { font-size: 15px; min-height: 50px; } .pick-row { gap: 8px; } }
+
+/* ===== Hero v3 (owner's rep, 2026-10-25, reference: dark photo hero with a white tab
+   "bulging" up into its bottom-left corner). The wallpaper is the real shopfront until
+   the owner's own photos arrive. */
+.hero { padding: 12px 0 0; }
+.hero-panel { position: relative; overflow: hidden; margin: 0 clamp(10px, 2vw, 20px); border-radius: 26px; color: #fff;
+  padding: clamp(48px, 7vw, 88px) max(var(--gutter), calc((100% - 1080px) / 2)) 150px;
+  background: linear-gradient(95deg, rgba(10, 17, 44, .94) 0%, rgba(10, 17, 44, .86) 45%, rgba(10, 17, 44, .45) 100%), url(/kedai.webp) 70% 40% / cover no-repeat, #0a112c; }
+.hero-copy { max-width: 600px; position: relative; z-index: 1; }
+.hero h1 { color: #fff; font-size: clamp(32px, 4.6vw, 56px); }
+.hero h1 .hl { color: var(--huruf); }
+.hero .lead { color: rgba(255, 255, 255, .8); max-width: 520px; }
+/* the service question, on the dark panel */
+.hero .pick-q { color: #fff; }
+.hero .pick-arrow { color: rgba(255, 255, 255, .35); }
+.hero .pick-btn { background: rgba(255, 255, 255, .06); border-color: rgba(255, 255, 255, .45); color: #fff; }
+.hero .pick-opt:first-child .pick-btn { background: var(--huruf); border-color: var(--huruf); color: var(--ink); }
+.hero .pick-opt small { color: rgba(255, 255, 255, .62); }
+@media (hover: hover) {
+  .hero .pick-opt:hover .pick-btn { border-color: #fff; box-shadow: 0 12px 28px rgba(0, 0, 0, .35); }
+  .hero .pick-opt:first-child:hover .pick-btn { border-color: var(--huruf); box-shadow: 0 12px 30px rgba(255, 199, 26, .35); }
+}
+/* the bulge: a page-coloured tab rising into the panel, with curved inner corners */
+.bulge { --r: 22px; position: absolute; left: 0; bottom: 0; z-index: 2; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 150px)); gap: 10px;
+  padding: 14px 16px 0 max(var(--gutter), calc((100vw - 1080px) / 2 - clamp(10px, 2vw, 20px))); background: var(--siang); border-top-right-radius: var(--r); }
+.bulge::before, .bulge::after { content: ''; position: absolute; width: var(--r); height: var(--r); background: radial-gradient(circle at 100% 0, transparent calc(var(--r) - .5px), var(--siang) var(--r)); }
+.bulge::before { left: 0; top: calc(-1 * var(--r)); }
+.bulge::after { right: calc(-1 * var(--r)); bottom: 0; }
+.bulge li { display: grid; justify-items: center; text-align: center; gap: 8px; padding: 14px 10px; border-radius: 14px; background: #fff; border: 1px solid var(--line);
+  font-size: 13px; font-weight: 700; line-height: 1.3; color: var(--ink); }
+.b-ic { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--accent-soft); color: var(--papan); }
+.b-ic svg { width: 20px; height: 20px; }
+@media (max-width: 720px) {
+  .hero-panel { padding-bottom: 140px; background: linear-gradient(180deg, rgba(10, 17, 44, .8), rgba(10, 17, 44, .93) 55%), url(/kedai.webp) 60% 0 / cover no-repeat, #0a112c; }
+  .bulge { --r: 18px; right: 48px; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding: 10px 8px 0 10px; }
+  .bulge li { font-size: 11.5px; padding: 10px 4px; gap: 6px; }
+  .b-ic { width: 30px; height: 30px; }
+  .hero .pick-row { max-width: none; }
+}
+
+/* the tint preview, now its own section under the hero: glass left, film card right */
+.glass-sec { padding-top: 56px; }
+@media (min-width: 900px) {
+  #filem.hero-glass.wide .studio-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr); gap: 48px; align-items: start; }
+  #filem.hero-glass.wide .spec-bar { margin-top: 0; border-top: 0; padding-top: 0; }
+}
+.hero-panel { border-bottom-left-radius: 0; }  /* the bulge sits in that corner; a radius there leaves a hairline */
