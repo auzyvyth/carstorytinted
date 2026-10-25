@@ -87,6 +87,10 @@ export default function Report({ jobs, settings, staff }) {
         <Bars rows={r.web.out.map((o) => ({ ...o, v: o.n }))} empty="Tiada tempahan online dalam tempoh ini." />
       </Section>
 
+      <Section title="Pelanggan tahu dari mana" note="isi 'Tahu dari' setiap kerja supaya angka ini tepat">
+        <Bars rows={r.bySource} money sub={(x) => `${x.n} kereta`} />
+      </Section>
+
       <Section title="Jualan ikut filem">
         <Bars rows={r.byFilm} money sub={(x) => `${x.n} kereta`} />
       </Section>

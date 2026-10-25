@@ -56,11 +56,11 @@ function seed() {
     job({ stage: 'dalam_kerja', installer_id: T, customer_name: 'Siti Aminah', phone: '60123348876', car_model: 'Axia', plate: 'PNA 8821', scheduled_slot: '09:00', price: 300 }),
     job({ source: 'whatsapp', stage: 'disahkan', customer_name: 'Rosli Hamid', phone: '60174412098', car_model: 'City', plate: 'PKR 551', car_size: 'sedan', scheduled_slot: '15:00', price: 360 }),
     job({ source: 'web', stage: 'disahkan', customer_name: 'Hafiz Zulkifli', phone: '60112093344', car_model: 'Hilux', car_size: 'large', film_id: 'black_smoke', scheduled_date: day(1), scheduled_slot: '09:00', quoted_price: 170, price: 170, consent_at: iso(-3), confirmed_msg_at: iso(-3) }),
-    job({ stage: 'siap', customer_name: 'Lim Wei Jie', phone: '60162217788', car_model: 'Vios', plate: 'PMB 3302', car_size: 'sedan', scheduled_date: day(-1), price: 360, paid_amount: 70, completed_at: iso(-1, 17), cert_token: token(), vlt_windscreen: 72, vlt_front: 52, vlt_rear: 15, warranty_until: day(-1 + 365 * 5) }),
-    done(5, { installer_id: T, payment_method: 'qr', customer_name: 'Aisyah Kamal', phone: '60137789012', car_model: 'Bezza', plate: 'PNC 772', car_size: 'sedan', price: 360, paid_amount: 360 }),
-    done(9, { installer_id: O, payment_method: 'tunai', customer_name: 'Kamarul Ariffin', phone: '60129981234', car_model: 'Ativa', car_size: 'suv', film_id: 'carbon_ceramic', price: 280, paid_amount: 280, thanked_at: iso(-4) }),
-    done(33, { installer_id: T, payment_method: 'tunai', customer_name: 'Mei Ling', phone: '60168830021', car_model: 'Saga', price: 100, paid_amount: 100, film_id: 'black_smoke', thanked_at: iso(-28) }),
-    done(38, { installer_id: O, payment_method: 'pindahan', customer_name: 'Azman Yusof', phone: '60193302211', car_model: 'Alza', car_size: 'suv', price: 420, paid_amount: 420, thanked_at: iso(-30) }),
+    job({ stage: 'siap', heard_from: 'tiktok', customer_name: 'Lim Wei Jie', phone: '60162217788', car_model: 'Vios', plate: 'PMB 3302', car_size: 'sedan', scheduled_date: day(-1), price: 360, paid_amount: 70, completed_at: iso(-1, 17), cert_token: token(), vlt_windscreen: 72, vlt_front: 52, vlt_rear: 15, warranty_until: day(-1 + 365 * 5) }),
+    done(5, { heard_from: 'facebook', installer_id: T, payment_method: 'qr', customer_name: 'Aisyah Kamal', phone: '60137789012', car_model: 'Bezza', plate: 'PNC 772', car_size: 'sedan', price: 360, paid_amount: 360 }),
+    done(9, { heard_from: 'kawan', installer_id: O, payment_method: 'tunai', customer_name: 'Kamarul Ariffin', phone: '60129981234', car_model: 'Ativa', car_size: 'suv', film_id: 'carbon_ceramic', price: 280, paid_amount: 280, thanked_at: iso(-4) }),
+    done(33, { heard_from: 'facebook', installer_id: T, payment_method: 'tunai', customer_name: 'Mei Ling', phone: '60168830021', car_model: 'Saga', price: 100, paid_amount: 100, film_id: 'black_smoke', thanked_at: iso(-28) }),
+    done(38, { heard_from: 'lalu', installer_id: O, payment_method: 'pindahan', customer_name: 'Azman Yusof', phone: '60193302211', car_model: 'Alza', car_size: 'suv', price: 420, paid_amount: 420, thanked_at: iso(-30) }),
     job({ stage: 'batal', customer_name: 'Zainal Abidin', phone: '60145523300', car_model: 'Persona', car_size: 'sedan', scheduled_date: day(-3), lost_reason: 'Harga lebih murah di tempat lain' }),
   ];
   return {
