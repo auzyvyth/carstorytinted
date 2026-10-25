@@ -38,6 +38,20 @@ history kept. It shares no code, database or deploy with ShiftOS.
   changed-fields-only saves, installer per job, payment method + WhatsApp receipt,
   owner report tab + CSV export, delta sync on foreground.
 
+## Session 2026-10-25 (pitch prep)
+- Owner (Maliki) asked for a one-tap Google review link. Already built: staff "Minta ulasan"
+  button (`src/staff/logic.js:108`) reads `SHOP.googleReviewUrl` (`src/shared/shop.js:24`, empty).
+  He sent `https://share.google/W5jrugzbdalrbugx4`: that is the PROFILE share link, not the
+  review link. Need the `g.page/r/.../review` link (Maps > Business Profile > "Ask for reviews").
+  Shop profile: `https://share.google/QUvgkihmd7L5UWzjE`, Google name "TINTED BUMIPUTERA
+  CARSTORY PRO AUTO", 5.0 stars, review count unknown.
+- Website reviews section: not built. Plan agreed in chat: badge + "Baca/Tulis ulasan" buttons
+  first (no hand-typed rating); live Google reviews via Places API only once there are 5+
+  reviews (needs a Google Cloud billing account; max 5 reviews; no caching per Google policy).
+- He spends ~RM1,500/month on Facebook ads and does not know what it brings. Added
+  Laporan "Pelanggan tahu dari mana" (`bySource`, src/staff/report.js) = cars + sales per
+  `heard_from`, unrecorded shown. This is the pitch hook: the report shows whether ads pay.
+
 ## Next steps
 1. Pitch the demo to the owner (Maliki). Pricing: RM800 upfront or RM200/month.
 2. Collect from owner: VLT meter yes/no (site promises every window is measured),
