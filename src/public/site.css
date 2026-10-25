@@ -535,3 +535,189 @@ main.book .page-head .crumb { margin-bottom: 8px; }
 /* Press feedback (Apple: respond on press, not release): instant in, eases back out. */
 .btn:active, .tab:active, .slot-day:active, .opt:active, .wiz-chip:active, .wiz-back:active { transform: scale(.97); transition-duration: 0s; }
 @media (prefers-reduced-motion: reduce) { .btn:active, .tab:active, .slot-day:active, .opt:active, .wiz-chip:active, .wiz-back:active { transform: none; filter: brightness(.95); } }
+
+/* =====================================================================
+   V2 LOOK (2026-10-25). References: Copperlane (dark rounded hero panel, uppercase
+   display type, stats with a yellow rule, small yellow-tick labels) + Prosperum
+   (cards lifting off the hero, round icon badges, a dark contact panel).
+   Colours stay the shop's: signboard navy + the yellow of its letters. Yellow is the
+   ONE action colour (buttons, ticks); navy carries the dark panels. No stock photos:
+   the only picture is the real shopfront. No invented numbers: hero figures are
+   build-time values from the film catalogue.
+   ===================================================================== */
+:root {
+  --navy: #0d1634; --navy-2: #16255e; --navy-3: #1d3fc4;
+  --y: #ffc71a; --y-ink: #1a1400; --y-hover: #ffd447;
+  --ground: #f3f4f7; --panel-r: 26px;
+  --shadow-lift: 0 1px 2px rgba(13, 22, 52, .05), 0 18px 44px rgba(13, 22, 52, .10);
+}
+body { background: var(--ground); }
+section { padding: 88px 0; }
+@media (max-width: 720px) { section { padding: 64px 0; } }
+.alt { background: #fff; }
+.warm, .plain { background: var(--ground); }
+.glow::after { content: none; }
+
+/* display type: uppercase, tight (Copperlane). Body copy stays sentence case. */
+.hero h1, .sec-head h2, .page-head h1 { text-transform: uppercase; letter-spacing: -0.025em; line-height: .98; }
+.sec-head h2 { font-size: clamp(30px, 4.6vw, 48px); }
+.page-head h1 { font-size: clamp(32px, 5.4vw, 54px); }
+/* label: small caps with a yellow tick in front */
+.eyebrow, .sec-head .eyebrow, .warm .eyebrow, .warm .sec-head .eyebrow { display: inline-flex; align-items: center; gap: 10px; color: var(--muted); letter-spacing: .14em; font-size: 12px; }
+.eyebrow::before { content: ''; width: 3px; height: 14px; border-radius: 2px; background: var(--y); flex: none; }
+
+/* buttons: yellow = do it; ghost = look first */
+.btn-cta, .btn-sun { border: 0; background: var(--y); color: var(--y-ink); box-shadow: 0 10px 24px rgba(255, 199, 26, .28); }
+.btn-cta:hover, .btn-sun:hover { background: var(--y-hover); }
+.btn-ghost { border: 1.5px solid rgba(255, 255, 255, .38); background: rgba(255, 255, 255, .06); color: #fff; }
+.btn-ghost:hover { background: rgba(255, 255, 255, .14); border-color: rgba(255, 255, 255, .6); }
+.btn-line { border-color: rgba(13, 22, 52, .16); color: var(--navy); }
+.btn-line:hover { background: #fff; border-color: var(--navy); }
+
+/* header: a dark pill floating over the page (glass: it floats over content) */
+.mast { position: sticky; top: 10px; margin: 10px clamp(10px, 2vw, 18px) 0; border-radius: 16px; background: rgba(13, 22, 52, .82); box-shadow: 0 10px 30px rgba(13, 22, 52, .22); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); }
+.mast::after { content: none; }
+.mast.tucked { transform: translateY(calc(-100% - 24px)); }
+.mast-in { height: 60px; max-width: 1180px; }
+.mast .wordmark { color: #fff; }
+.mast .wordmark span { color: var(--y); }
+.mast-nav a { color: rgba(255, 255, 255, .72); }
+.mast-nav a:hover, .mast-nav a[aria-current] { color: #fff; }
+@media (max-width: 860px) {
+  .mast { background: rgba(13, 22, 52, .94); backdrop-filter: none; }
+  .mast-menu:not([hidden]) { color: #fff; }
+  .mast-menu:hover, .mast.open .mast-menu { background: rgba(255, 255, 255, .1); color: #fff; }
+  .mast.js-nav .mast-nav { top: calc(100% + 8px); border-radius: 16px; background: var(--navy); clip-path: none; box-shadow: 0 20px 50px rgba(13, 22, 52, .35); }
+  .mast.js-nav .mast-nav a { color: #fff; }
+  .mast.js-nav .mast-nav a + a:not(.nav-cta) { border-top-color: rgba(255, 255, 255, .1); }
+  .mast.js-nav .mast-nav a[aria-current] { color: var(--y); }
+}
+@media (max-width: 350px) { .mast.js-nav .mast-nav a.nav-cta { color: var(--y-ink); } }
+
+/* hero: one rounded dark panel; the header floats over its top edge */
+.hero { padding: 0; background: none; position: relative; }
+.hero::before { content: none; }
+.mast + main > .hero:first-child, .demo-bar + .mast + main > .hero:first-child { margin-top: -70px; }
+.hero-panel { position: relative; overflow: hidden; isolation: isolate; margin: 0 clamp(10px, 2vw, 18px); border-radius: var(--panel-r); color: #fff; padding: 132px var(--gutter) 0;
+  background: linear-gradient(100deg, var(--navy) 0%, rgba(13, 22, 52, .94) 38%, rgba(13, 22, 52, .55) 70%, rgba(13, 22, 52, .35)), url(/kedai.webp) 75% 40% / cover no-repeat, var(--navy); }
+.hero-panel::after { content: ''; position: absolute; inset: auto 0 0 0; height: 45%; z-index: -1; background: linear-gradient(transparent, rgba(13, 22, 52, .85)); pointer-events: none; }
+.hero-panel > * { max-width: 1180px; margin-left: auto; margin-right: auto; }
+.hero-grid { grid-template-columns: minmax(0, 1fr) minmax(290px, 340px); gap: 48px; align-items: end; }
+.hero h1 { color: #fff; font-size: clamp(42px, 7vw, 84px); margin-bottom: 22px; }
+.hero h1 .hl { color: var(--y); }
+.hero .eyebrow { color: rgba(255, 255, 255, .7); }
+.hero .lead { color: rgba(255, 255, 255, .78); margin-bottom: 30px; }
+.hero .slot-card { background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .16); box-shadow: none; }
+.hero .slot-card .btn { background: #fff; color: var(--navy); }
+@media (max-width: 860px) {
+  .hero-panel { padding-top: 112px; background: linear-gradient(180deg, rgba(13, 22, 52, .55), rgba(13, 22, 52, .9) 45%, var(--navy) 75%), url(/kedai.webp) 60% 0 / 100% auto no-repeat, var(--navy); }
+  .hero-grid { gap: 32px; }
+}
+/* stats: big figure, yellow rule on the left, one line of proof (Copperlane) */
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-top: 64px; padding: 28px 0 120px; border-top: 1px solid rgba(255, 255, 255, .12); }
+.stat { border-left: 2px solid var(--y); padding-left: 16px; }
+.stat dt { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: rgba(255, 255, 255, .6); }
+.stat dd b { display: block; font-size: clamp(30px, 4vw, 44px); font-weight: 800; letter-spacing: -.03em; line-height: 1.1; margin: 6px 0 4px; font-variant-numeric: tabular-nums; }
+.stat dd span { font-size: 14px; color: rgba(255, 255, 255, .62); }
+@media (max-width: 720px) { .stats { grid-template-columns: minmax(0, 1fr); gap: 20px; margin-top: 40px; padding-bottom: 110px; } .stat dd b { font-size: 32px; } }
+
+/* cards that lift off the hero's bottom edge (Prosperum) */
+.lift { position: relative; z-index: 2; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: -84px; }
+@media (max-width: 860px) { .lift { grid-template-columns: minmax(0, 1fr); gap: 12px; } }
+.lift-card { display: grid; gap: 8px; align-content: start; padding: 22px; border-radius: 18px; background: #fff; box-shadow: var(--shadow-lift); text-decoration: none; color: var(--text); transition: transform .2s ease-out, box-shadow .2s; }
+.lift-card:hover { transform: translateY(-3px); box-shadow: 0 24px 54px rgba(13, 22, 52, .14); }
+.lift-card h3 { margin-top: 6px; }
+.lift-card p { font-size: 15px; color: var(--text-2); }
+.lift-card .more { font-size: 14px; font-weight: 700; color: var(--navy); margin-top: 4px; }
+.lift-card .more::after { content: ' \2192'; }
+.badge { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; background: var(--navy); color: var(--y); flex: none; }
+.badge svg { width: 22px; height: 22px; }
+.badge-sun { background: var(--y); color: var(--navy); }
+
+/* statement + values (Copperlane "built on skill" block) */
+.statement { font-size: clamp(26px, 3.8vw, 44px); font-weight: 800; line-height: 1.08; letter-spacing: -.025em; text-transform: uppercase; color: var(--ink); max-width: 920px; margin: 14px 0 36px; }
+.values { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 960px) { .values { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .values { grid-template-columns: minmax(0, 1fr); } }
+.value { padding: 22px 20px; border-radius: 18px; background: #fff; box-shadow: var(--shadow-lift); }
+.value h3 { display: flex; gap: 10px; align-items: center; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+.value h3::before { content: ''; width: 3px; height: 14px; border-radius: 2px; background: var(--y); flex: none; }
+.value p { font-size: 15px; color: var(--text-2); }
+
+/* how to book: icon circles joined by a line (Prosperum "How we work") */
+.flow { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; margin-bottom: 36px; }
+.flow li { position: relative; }
+.flow li:not(:last-child)::after { content: ''; position: absolute; top: 23px; left: 62px; right: -14px; height: 2px; background: repeating-linear-gradient(90deg, rgba(13, 22, 52, .18) 0 6px, transparent 6px 12px); }
+.flow h3 { margin: 16px 0 6px; }
+.flow p { font-size: 15px; color: var(--text-2); }
+@media (max-width: 760px) {
+  .flow { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+  .flow li { padding-left: 64px; }
+  .flow .badge { position: absolute; left: 0; top: 0; }
+  .flow h3 { margin-top: 10px; }
+  .flow li:not(:last-child)::after { top: 52px; bottom: -22px; left: 22px; right: auto; width: 2px; height: auto; background: repeating-linear-gradient(180deg, rgba(13, 22, 52, .18) 0 6px, transparent 6px 12px); }
+}
+
+/* film studio: the same rounded dark panel as the hero */
+.studio { margin: 0 clamp(10px, 2vw, 18px); border-radius: var(--panel-r); background: linear-gradient(170deg, var(--navy), var(--navy-2)); }
+.studio::before { background: rgba(255, 199, 26, .16); }
+.studio::after { background: rgba(29, 63, 196, .45); }
+.studio .eyebrow { color: rgba(255, 255, 255, .7); }
+.studio h2, .studio .sec-head h2 { color: #fff; }
+
+/* cards everywhere: white, rounded, soft lift */
+.svc, .faqs, .member, .shot, .table-scroll, .summary.panel { border: 0; box-shadow: var(--shadow-lift); }
+.cert { border: 0; background: #fff; box-shadow: var(--shadow-lift); }
+.cert-head { border-bottom-color: var(--line); }
+.limit .bar i { background: var(--y); }
+
+/* location: dark panel holds the way to reach us (Prosperum's contact box) */
+.dark-card { background: var(--navy) !important; color: #fff; border: 0 !important; box-shadow: var(--shadow-lift); }
+.dark-card h3 { color: rgba(255, 255, 255, .6); }
+.dark-card p, .dark-card b { color: #fff; }
+.dark-card .muted, .dark-card figcaption { color: rgba(255, 255, 255, .6); }
+.dark-card .contact { border-color: rgba(255, 255, 255, .1); }
+.dark-card .btn-line { background: rgba(255, 255, 255, .06); border-color: rgba(255, 255, 255, .3); color: #fff; }
+.dark-card .btn-line:hover { background: rgba(255, 255, 255, .14); }
+.map { border-radius: 18px; box-shadow: var(--shadow-lift); }
+
+/* footer: navy, matches the panels */
+.foot { background: var(--navy); color: rgba(255, 255, 255, .7); border-top: 0; }
+.foot .wordmark { color: #fff; }
+.foot .wordmark span { color: var(--y); }
+.foot a, .foot h4 { color: rgba(255, 255, 255, .8); }
+.foot .foot-sub, .foot small { color: rgba(255, 255, 255, .55); }
+.foot { background: var(--navy); margin-top: 0; }
+.foot::before { content: none; }
+.foot-cols h4 { color: rgba(255, 255, 255, .5); }
+.foot-cols a { color: rgba(255, 255, 255, .82); }
+.foot-cols a:hover { color: var(--y); }
+.foot-base { color: rgba(255, 255, 255, .45); }
+
+/* phones: one column hero; lift cards and values become compact rows so the page stays short */
+@media (max-width: 860px) { .hero-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 720px) {
+  .lift-card { grid-template-columns: 46px minmax(0, 1fr); column-gap: 14px; row-gap: 2px; padding: 16px; }
+  .lift-card .badge { grid-row: span 3; }
+  .lift-card h3 { margin-top: 0; }
+  .lift-card p { font-size: 14px; }
+  .value { padding: 16px 18px; }
+  .value p { font-size: 14px; }
+  .values { gap: 10px; }
+  .statement { margin-bottom: 24px; }
+}
+.proof h2 { text-transform: uppercase; letter-spacing: -0.025em; line-height: .98; font-size: clamp(30px, 4.6vw, 48px); margin-bottom: 14px; }
+@media (max-width: 860px) {
+  /* the signboard's own lettering must never compete with the headline */
+  .hero-panel { background: linear-gradient(180deg, rgba(13, 22, 52, .78), rgba(13, 22, 52, .92) 40%, var(--navy) 70%), url(/kedai.webp) 60% 0 / 100% auto no-repeat, var(--navy); }
+}
+@media (max-width: 720px) {
+  .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .stat { padding-left: 10px; }
+  .stat dt { font-size: 10.5px; letter-spacing: .1em; }
+  .stat dd b { font-size: 26px; }
+  .stat dd span { display: none; }
+}
+/* inner pages: plain cool ground like the homepage, no colour wash */
+main:has(> .page-head), main:has(> .wrap > .page-head), main.book { background: var(--ground); }
+.mast { background: rgba(13, 22, 52, .9); }

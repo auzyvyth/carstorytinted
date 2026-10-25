@@ -90,8 +90,8 @@ split into category tabs: Harga | Filem | Slot & bay | Hari tutup | Staf (`src/s
 One save bar for all tabs, a dot marks each tab with unsaved edits.
 
 ## Public site materials (2026-10-25, Apple review)
-Glass (blur) only on layers that float over something: header, hero slot card, studio spec
-bar, video play button. Content cards are solid white. The gradient border marks only what
+Glass (blur) only on layers that float over something: header pill, hero slot card, studio
+spec bar, video play button. Content cards are solid white. The gradient border marks only what
 sells: main CTA, price buttons/table, the certificate. Sections fade in over .3s.
 Gallery and team are NOT rendered until there is a real photo, demo included.
 
@@ -142,12 +142,15 @@ Owner's rule: a booking holds its slot, walk-ins get whatever is left.
 - Never advertise darker than JPJ on the windscreen / front side windows (the
   owner's WhatsApp copy says "5% if the customer asks"): the site offers 5% on the
   REAR only. Verified 2026-09-27: 70% / 50% / rear no limit, Kaedah 1991 as amended 2019.
-- Public site design (owner's call, 2026-09-27): layout from XDrive /for-salesmen
-  (`src/pages/SalesmanLiteLanding.jsx` in ShiftOS), ONE typeface (Plus Jakarta Sans),
-  sentence-case headings. Colours from the shopfront photo (`public/kedai.webp`):
-  blue sign, yellow letters, orange building. No flat grounds: every section has a wash, cards sit on a slight shadow, pricing cards + buttons carry the `--grad`
-  gradient border (blue to yellow/orange). Colours live in `:root` of
-  `src/public/site.css` (`--accent`, `--sun`, `--orange`, `--grad`), placeholders until the logo file.
+- Public site design V2 (owner's rep, 2026-10-25; replaces the 2026-09-27 washes + sentence case):
+  references Copperlane (dark rounded hero panel, UPPERCASE display headings, stats with a
+  yellow rule, yellow-tick labels) + Prosperum (cards lifting off the hero, round icon
+  badges, steps joined by a line, dark contact panel). ONE typeface (Plus Jakarta Sans).
+  Colours: signboard navy `--navy` for dark panels + the sign's yellow `--y` as the ONE action
+  colour (buttons, ticks); cool grey `--ground` + white cards. Header = dark pill floating over
+  the page. V2 lives at the END of `src/public/site.css` ("V2 LOOK"). Hero figures (UV, longest
+  warranty) are build-time values from the catalogue (`UV_MIN`, `WARRANTY_MAX`), never typed.
+  Never a stock photo and never an invented stat ("15K cars", "20 years"): the refs had both.
 - Staff app colours are still placeholders (`--brand-*` in `src/staff/staff.css`).
 - No auto-send to customers: WhatsApp buttons open a draft, a person presses send.
 

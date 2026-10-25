@@ -46,6 +46,9 @@ function shopPages(siteUrl, demo) {
     AREAS: SHOP.areaServed.filter((t) => t !== SHOP.town).join(', '), JPJ_WS: JPJ.windscreen, JPJ_FS: JPJ.frontSide, JPJ_FINE: JPJ.fine,
     PHONE1: displayPhone(SHOP.contacts[0].phone), WA1: SHOP.contacts[0].phone,
     WA_LOST: encodeURIComponent('Salam, saya hilang pautan tempahan / sijil tinted saya. Boleh hantar semula? Nama: , No. plat: '), POLICY_WALKIN: POLICY.walkIn, MAP_EMBED: R.mapEmbedUrl(), YEAR: new Date().getFullYear(),
+    // Hero figures come from the catalogue, never typed: longest warranty, UV blocked by every film.
+    WARRANTY_MAX: Math.max(0, ...catalog.films.map((f) => Number(f.warranty_years) || 0)),
+    UV_MIN: Math.min(...catalog.films.map((f) => Number(f.uv) || 0)),
   };
   return {
     name: 'shop-pages',

@@ -255,9 +255,9 @@ const sec = (id, cls, eyebrow, title, lead, body) => (body ? `<section id="${id}
     <div class="reveal">${body}</div>
   </div>
 </section>` : '');
-export const servicesSection = (c) => sec('servis', 'glow warm', 'Servis lain', 'Bukan tinted sahaja.', 'Harga ikut kereta anda. WhatsApp kami, kami sebut harga dulu sebelum mula.', servicesHtml(c));
-export const teamSection = (c) => sec('pasukan', 'glow', 'Pasukan kami', 'Kenali siapa yang pasang.', '', teamHtml(c));
-export const videosSection = (c) => sec('video', 'glow alt', 'Video', 'Tengok kami bekerja.', '', videosHtml(c));
+export const servicesSection = (c) => sec('servis', 'plain', 'Servis lain', 'Bukan tinted sahaja.', 'Harga ikut kereta anda. WhatsApp kami, kami sebut harga dulu sebelum mula.', servicesHtml(c));
+export const teamSection = (c) => sec('pasukan', 'alt', 'Pasukan kami', 'Kenali siapa yang pasang.', '', teamHtml(c));
+export const videosSection = (c) => sec('video', 'alt', 'Video', 'Tengok kami bekerja.', '', videosHtml(c));
 
 // What a booking costs: side-window film + chosen add-ons, per car size. Mirrors the
 // DB's quote_price(): the total is null when any part has no published price, so the

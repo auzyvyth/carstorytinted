@@ -11,7 +11,7 @@
 <meta property="og:description" content="Tinted kereta ikut had JPJ, sijil VLT digital, tempah slot online.">
 <meta property="og:url" content="%SITE_URL%/">
 <meta property="og:locale" content="ms_MY">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#f3f4f7">
 <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,31 +23,40 @@
 <!--@header-->
 
 <main id="main">
-<section class="hero glow">
-  <div class="wrap hero-grid">
-    <div class="reveal">
-      <p class="eyebrow">Tinted Bumiputera · %TOWN%</p>
-      <h1>Kereta sejuk.<br><span class="accent">Cermin lulus JPJ.</span></h1>
-      <p class="lead">Tinted ikut had JPJ, diukur selepas pasang, dengan sijil digital untuk setiap kereta.</p>
-      <div class="ctas">
-        <a class="btn btn-cta" href="/tempah/">Tempah slot</a>
-        <a class="btn btn-line" href="/harga/">Lihat harga</a>
+<section class="hero">
+  <div class="hero-panel">
+    <div class="hero-grid">
+      <div class="hero-copy reveal">
+        <p class="eyebrow">Tinted Bumiputera · %TOWN%</p>
+        <h1>Kereta sejuk.<br><span class="hl">Cermin lulus JPJ.</span></h1>
+        <p class="lead">Tinted ikut had JPJ, diukur selepas pasang, dengan sijil digital untuk setiap kereta.</p>
+        <div class="ctas">
+          <a class="btn btn-cta" href="/tempah/">Tempah slot</a>
+          <a class="btn btn-ghost" href="/harga/">Lihat harga</a>
+        </div>
       </div>
-      <ul class="trust">
-        <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M3 8.5l3 3L13 4.5"/></svg>Tiada deposit</li>
-        <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M3 8.5l3 3L13 4.5"/></svg>Sekat UV 99%</li>
-        <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M3 8.5l3 3L13 4.5"/></svg>Sijil VLT digital</li>
-      </ul>
+      <aside class="slot-card reveal" aria-labelledby="slot-h">
+        <p class="eyebrow">Slot kosong terdekat</p>
+        <h2 id="slot-h">Pilih hari</h2>
+        <p class="muted">Tekan hari untuk terus tempah.</p>
+        <div class="slot-days" data-next-slots>
+          <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+        </div>
+        <a class="btn" href="/tempah/">Lihat semua slot</a>
+      </aside>
     </div>
-    <aside class="slot-card glass-dark reveal" aria-labelledby="slot-h">
-      <p class="eyebrow">Slot kosong terdekat</p>
-      <h2 id="slot-h">Pilih hari</h2>
-      <p class="muted">Tekan hari untuk terus tempah.</p>
-      <div class="slot-days" data-next-slots>
-        <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
-      </div>
-      <a class="btn" href="/tempah/">Lihat semua slot</a>
-    </aside>
+    <dl class="stats">
+      <div class="stat"><dt>Sekat UV</dt><dd><b>%UV_MIN%%</b><span>Semua filem kami, dari yang paling asas.</span></dd></div>
+      <div class="stat"><dt>Waranti</dt><dd><b>%WARRANTY_MAX% thn</b><span>Paling lama, untuk Nano Ceramic HD.</span></dd></div>
+      <div class="stat"><dt>Deposit</dt><dd><b>RM0</b><span>Tempah slot online. Bayar selepas siap.</span></dd></div>
+    </dl>
+  </div>
+  <div class="wrap">
+    <div class="lift">
+      <a class="lift-card" href="/panduan-jpj/"><span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16 16 4l4 4L8 20z"/><path d="M8 12l2 2M11 9l2 2M14 6l2 2"/></svg></span><h3>Lulus JPJ</h3><p>Cermin depan min %JPJ_WS%%, tingkap sisi depan min %JPJ_FS%%. Kami ukur selepas pasang.</p><span class="more">Panduan had JPJ</span></a>
+      <a class="lift-card" href="#sijil"><span class="badge badge-sun"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg></span><h3>Sijil digital</h3><p>Bacaan VLT dan tarikh waranti kereta anda, dihantar ke WhatsApp.</p><span class="more">Lihat contoh sijil</span></a>
+      <a class="lift-card" href="/tempah/"><span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span><h3>Tempah 24 jam</h3><p>Pilih slot kosong sendiri. Slot anda dijaga, walk-in dapat yang tinggal.</p><span class="more">Tempah sekarang</span></a>
+    </div>
   </div>
 </section>
 
@@ -61,21 +70,34 @@
   </div>
 </section>
 
+<section class="plain">
+  <div class="wrap">
+    <p class="eyebrow">Cara kami bekerja</p>
+    <p class="statement reveal">Tinted yang diukur, bukan diagak. Setiap kereta keluar dengan bacaan VLT, waranti dan harga yang anda tahu dulu.</p>
+    <div class="values reveal">
+      <div class="value"><h3>Diukur, bukan diagak</h3><p>Bacaan cermin depan dan tingkap sisi direkod selepas pasang, terus masuk sijil anda.</p></div>
+      <div class="value"><h3>Harga dulu</h3><p>Harga kereta kompak terus nampak. Saiz lain kami sahkan sebelum mula, bukan selepas.</p></div>
+      <div class="value"><h3>Slot anda dijaga</h3><p>Yang tempah didahulukan. Lewat lebih 15 minit tanpa khabar, kami pindah ke slot kosong seterusnya.</p></div>
+      <div class="value"><h3>Ikut undang-undang</h3><p>Gelap 5% hanya untuk cermin belakang. Depan sentiasa ikut had JPJ.</p></div>
+    </div>
+  </div>
+</section>
+
 <div data-services><!--@services--></div>
 
-<section class="glow alt">
+<section class="alt">
   <div class="wrap">
     <div class="sec-head reveal"><div><p class="eyebrow">Cara tempah</p><h2>Siap dalam tiga langkah.</h2></div></div>
-    <div class="steps reveal">
-      <div class="step"><h3>Pilih filem dan saiz</h3><p>Harga kereta kompak terus nampak. Saiz lain kami sahkan dulu.</p></div>
-      <div class="step"><h3>Pilih slot kosong</h3><p>Tempah online 24 jam. Tiada deposit.</p></div>
-      <div class="step"><h3>Datang, siap, dapat sijil</h3><p>Bayar di kedai selepas siap. Sijil dihantar ke WhatsApp.</p></div>
-    </div>
+    <ol class="flow reveal">
+      <li><span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 15l1.5-5A2 2 0 0 1 8.4 8.5h7.2a2 2 0 0 1 1.9 1.5L19 15"/><rect x="3.5" y="14" width="17" height="4.5" rx="1.5"/><path d="M7 18.5v1.5M17 18.5v1.5"/></svg></span><h3>Pilih filem dan saiz</h3><p>Harga kereta kompak terus nampak. Saiz lain kami sahkan dulu.</p></li>
+      <li><span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span><h3>Pilih slot kosong</h3><p>Tempah online 24 jam. Tiada deposit.</p></li>
+      <li><span class="badge badge-sun"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><h3>Datang, siap, dapat sijil</h3><p>Bayar di kedai selepas siap. Sijil dihantar ke WhatsApp.</p></li>
+    </ol>
     <a class="btn btn-cta" href="/tempah/">Tempah slot</a>
   </div>
 </section>
 
-<section id="sijil" class="glow warm">
+<section id="sijil" class="plain">
   <div class="wrap proof">
     <div class="reveal">
       <p class="eyebrow">Had JPJ</p>
@@ -107,18 +129,18 @@
 
 <div data-team><!--@team--></div>
 
-<section id="soalan" class="glow alt">
+<section id="soalan" class="alt">
   <div class="wrap">
     <div class="sec-head reveal"><div><p class="eyebrow">Soalan lazim</p><h2>Sebelum anda datang.</h2></div></div>
     <div class="faqs reveal"><!--@faq--></div>
   </div>
 </section>
 
-<section id="lokasi" class="glow warm">
+<section id="lokasi" class="plain">
   <div class="wrap">
     <div class="sec-head"><div><p class="eyebrow">Lokasi</p><h2>Datang ke kedai.</h2></div><p>Kami di %TOWN%, dekat %AREAS%.</p></div>
     <div class="loc">
-      <div class="loc-card">
+      <div class="loc-card dark-card">
         <figure class="shopfront"><img src="/kedai.webp" alt="Kedai Tinted Carstory: bangunan oren dengan papan tanda biru" width="840" height="790" loading="lazy"><figcaption>Cari bangunan oren dengan papan biru Tinted Carstory.</figcaption></figure>
         <div><h3>Alamat</h3><p>%ADDRESS%</p></div>
         <!--@hours-->
