@@ -144,7 +144,9 @@ Owner's rule: a booking holds its slot, walk-ins get whatever is left.
   Hero (owner's rep, 2026-10-25, from a reference): dark rounded panel over the shopfront photo
   (placeholder until the owner's photos), heat headline, "Servis apa yang anda perlukan?" with
   three answers (Tinted books; Karpet / Polish open a prefilled WhatsApp), and a page-coloured
-  tab (`.bulge`) rising into the bottom-left corner with three trust points. The tint preview
+  tab (`.bulge`) rising into the bottom-left corner with three trust points, ending in a slanted
+  edge; a matching tab (`.notch`) hangs from the top-right holding "Tempah slot" (the header
+  hides its copy while the notch is on screen, `notch-on`, site.js). Phones: no tabs, centred. The tint preview
   is its own section below (`.glass-sec`): rear pane darkens with the slider, live JPJ verdict.
   Daylight page, the only dark thing is the film. Archivo only: expanded bold headings (the
   signboard's wide letters), normal body. Colours: Papan `#1d3fc4` (links, the one blue

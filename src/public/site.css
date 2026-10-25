@@ -751,3 +751,29 @@ main:has(> .page-head), main:has(> .wrap > .page-head), main.book { background: 
   #filem.hero-glass.wide .spec-bar { margin-top: 0; border-top: 0; padding-top: 0; }
 }
 .hero-panel { border-bottom-left-radius: 0; }  /* the bulge sits in that corner; a radius there leaves a hairline */
+
+/* Angled tabs (reference): the bottom-left bulge ends in a slanted edge with soft curves,
+   and a matching tab hangs from the top-right corner holding the booking button. Both are
+   the page colour, so they read as the page cutting into the photo panel. */
+.bulge { height: 132px; padding-top: 14px; border-top-right-radius: 0; align-content: start; }
+/* the slanted end: page colour, soft curve at the top, a straight slope, soft curve into the bottom */
+.bulge::after { content: ''; position: absolute; left: calc(100% - 1px); right: auto; bottom: 0; width: 70px; height: 132px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 70 132'%3E%3Cpath fill='%23f7f7f4' d='M0 0H6C16 0 20 6 23 14L47 118C50 128 56 132 66 132H70V132H0Z'/%3E%3C/svg%3E") no-repeat; }
+.bulge li { padding: 12px 10px; }
+.notch { position: absolute; top: 0; right: 0; z-index: 2; height: 76px; display: flex; align-items: center;
+  padding: 0 max(var(--gutter), calc((100vw - 1080px) / 2 - clamp(10px, 2vw, 20px))) 6px 8px; background: var(--siang); }
+.notch::before { content: ''; position: absolute; right: calc(100% - 1px); top: 0; width: 70px; height: 76px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 70 76'%3E%3Cpath fill='%23f7f7f4' d='M0 0H6C16 0 20 6 23 14L47 62C50 72 56 76 66 76H70V76H0Z'/%3E%3C/svg%3E") no-repeat; transform: rotate(180deg); }
+.notch::after { content: ''; position: absolute; right: 0; bottom: -22px; width: 22px; height: 22px; background: radial-gradient(circle at 0 100%, transparent 21.5px, var(--siang) 22px); }
+.hero-panel { border-top-right-radius: 0; }
+/* the header's own button steps aside while the notch shows it (site.js toggles .notch-on) */
+@media (min-width: 721px) { .mast.notch-on .mast-in > .btn-sm { visibility: hidden; } }
+
+/* phones: no tabs; the hero is centred and the trust points sit under the panel */
+@media (max-width: 720px) {
+  .notch { display: none; }
+  .hero-panel { border-radius: 22px; padding-bottom: 40px; text-align: center; }
+  .hero-copy { margin: 0 auto; }
+  .hero .lead { margin-left: auto; margin-right: auto; }
+  .hero .pick-row { margin: 0 auto; }
+  .bulge { position: static; height: auto; background: none; padding: 14px var(--gutter) 0; margin: 0 auto; justify-content: center; }
+  .bulge::before, .bulge::after { display: none; }
+}
