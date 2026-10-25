@@ -32,7 +32,7 @@ function Bars({ rows, money = false, empty = 'Tiada data dalam tempoh ini.', sub
 function Section({ title, note, children }) {
   return (
     <div className="section">
-      <div className="section-h"><span className="micro">{title}</span>{note && <span className="muted" style={{ fontSize: 12 }}>{note}</span>}</div>
+      <div className="section-h"><span className="micro">{title}</span>{note && <span className="muted" style={{ fontSize: 13 }}>{note}</span>}</div>
       <div className="card box">{children}</div>
     </div>
   );

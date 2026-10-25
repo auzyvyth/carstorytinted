@@ -86,14 +86,13 @@ export function hoursHtml() {
 }
 
 // Past customers. Real photos only (SHOP.gallery); with none the section is not
-// rendered, except in the sales demo, which shows labelled empty frames so the
-// owner sees where his photos will go.
-export function galleryHtml(demo = false) {
+// rendered at all, demo included (owner's rep, 2026-10-25: empty frames read as an
+// unfinished site in the pitch).
+export function galleryHtml() {
   const items = SHOP.gallery.length ? SHOP.gallery.map((g) => `<figure class="shot">
   <img src="${esc(g.src)}" alt="${esc(g.alt)}" loading="lazy" width="600" height="450">
   ${g.car || g.film ? `<figcaption><b>${esc(g.car || '')}</b>${g.film ? `<span>${esc(g.film)}</span>` : ''}</figcaption>` : ''}
-</figure>`).join('') : demo ? Array.from({ length: 6 }, (_, i) => `<figure class="shot shot-empty"><div>Gambar pelanggan ${i + 1}</div>
-  <figcaption><b>Model kereta</b><span>Jenis filem</span></figcaption></figure>`).join('') : '';
+</figure>`).join('') : '';
   if (!items) return '';
   return `<section id="galeri" class="warm"><div class="wrap"><div class="sec-head"><div><p class="eyebrow">Hasil kerja</p><h2>Kereta pelanggan kami.</h2></div>
 <p>Gambar sebenar dari kedai kami di ${esc(SHOP.town)}.${SHOP.facebook ? ` Lebih banyak di <a href="${SHOP.facebook}" rel="noopener">Facebook</a>.` : ''}</p></div>
@@ -210,7 +209,8 @@ export function servicesHtml(catalog) {
 const safeImg = (u) => (/^(https:\/\/|data:image\/(webp|jpeg|png);base64,)/.test(String(u || '')) ? String(u) : '');
 export function teamHtml(catalog) {
   const list = siteOf(catalog).team.filter((x) => x?.name);
-  if (!list.length) return '';
+  // Shown once someone has a real photo: a row of initials reads as unfinished.
+  if (!list.some((x) => safeImg(x.photo_url))) return '';
   return `<div class="team">${list.map((x) => {
     const img = safeImg(x.photo_url);
     return `<figure class="member">

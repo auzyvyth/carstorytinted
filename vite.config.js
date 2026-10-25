@@ -35,7 +35,7 @@ function shopPages(siteUrl, demo) {
     contacts: () => R.contactsHtml(),
     'map-links': () => R.mapLinksHtml(),
     hours: () => R.hoursHtml(),
-    gallery: () => R.galleryHtml(demo),
+    gallery: () => R.galleryHtml(),
     'ld-home': () => R.ldScript(R.localBusinessLd(siteUrl, catalog)) + R.ldScript(R.faqLd()),
     'ld-shop': () => R.ldScript(R.localBusinessLd(siteUrl, catalog)),
   };

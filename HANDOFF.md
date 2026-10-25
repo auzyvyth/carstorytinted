@@ -77,14 +77,23 @@ history kept. It shares no code, database or deploy with ShiftOS.
 4. Then a real-device test: book online -> push arrives on staff phone -> job flows
    to Selesai -> certificate link opens.
 
-## Staff app look (2026-09-28)
-Copied from ShiftOS Salesman Premium: dark navy surfaces, 200px sidebar on desktop, one
-blue accent (`src/staff/staff.css` tokens mirror ShiftOS `src/theme/tokens.js` `panel`).
-Owner's call: phones keep the BOTTOM BAR, not Premium's hamburger drawer (staff use it
-one-handed between cars). Owner settings is a nav tab, not a sheet, split into five
-category tabs: Harga | Filem | Slot & bay | Hari tutup | Staf (`src/staff/Settings.jsx`).
-One save bar for all tabs, a dot marks each tab with unsaved edits, and the page stays
-mounted while hidden so switching tabs never drops edits.
+## Staff app look (2026-10-25, replaces the dark 2026-09-28 look)
+WHITE, with Salesman Premium's design (UI-1): soft shop-colour light behind the page,
+white cards on a slight shadow, ONE accent = the signboard blue `#1d3fc4` (same as the
+public site `--accent`). The "Perlu tindakan" card glows red while it has items (`.attn`).
+Shop-floor sizes: 15px body, 12px+ labels, 16px inputs (iOS zooms under 16). Every tappable
+thing scales to .96 on press (`staff.css`, end of file; reduced motion = tint instead).
+Dashboard order (owner's rep, 2026-10-25): greeting, walk-in, **Perlu tindakan**, walk-in
+waitlist, schedule, then "Bulan ini" money tiles. The push warning is hidden in the demo.
+Phones keep the BOTTOM BAR (owner: one-handed between cars). Owner settings is a nav tab,
+split into category tabs: Harga | Filem | Slot & bay | Hari tutup | Staf (`src/staff/Settings.jsx`).
+One save bar for all tabs, a dot marks each tab with unsaved edits.
+
+## Public site materials (2026-10-25, Apple review)
+Glass (blur) only on layers that float over something: header, hero slot card, studio spec
+bar, video play button. Content cards are solid white. The gradient border marks only what
+sells: main CTA, price buttons/table, the certificate. Sections fade in over .3s.
+Gallery and team are NOT rendered until there is a real photo, demo included.
 
 ## Walk-ins + pricing (2026-09-27, migration `0003_walkins_addons.sql`)
 Owner's rule: a booking holds its slot, walk-ins get whatever is left.

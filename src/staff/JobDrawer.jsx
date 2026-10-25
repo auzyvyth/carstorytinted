@@ -295,8 +295,8 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
         )}
         {isClosedDay(settings, f.scheduled_date) && <div className="warnline">Tarikh ini ditanda tutup dalam tetapan kedai.</div>}
         {f.scheduled_date && (settings?.slots || []).length > 0 && settings.slots.every((t) => (use[t] || 0) >= cap && t !== job?.scheduled_slot) && <div className="warnline">Semua slot pada tarikh ini penuh.</div>}
-        {listed.lines.length > 0 && <div className="muted" style={{ fontSize: 12 }}>Harga senarai untuk pilihan ini: {listed.total !== null ? rmExact(listed.total) : `dari ${rmExact(listed.known)} (ada bahagian tanpa harga)`}</div>}
-        {job?.quoted_price !== null && job?.quoted_price !== undefined && <div className="muted" style={{ fontSize: 12 }}>Harga di laman web semasa tempah: {rmFmt(job.quoted_price)}</div>}
+        {listed.lines.length > 0 && <div className="muted" style={{ fontSize: 13 }}>Harga senarai untuk pilihan ini: {listed.total !== null ? rmExact(listed.total) : `dari ${rmExact(listed.known)} (ada bahagian tanpa harga)`}</div>}
+        {job?.quoted_price !== null && job?.quoted_price !== undefined && <div className="muted" style={{ fontSize: 13 }}>Harga di laman web semasa tempah: {rmFmt(job.quoted_price)}</div>}
       </div>
 
       <div className="card box">

@@ -5,7 +5,7 @@ built. Only the "Sell" section is being done now. Everything after it waits for
 the owner (Maliki) to agree and pay.
 
 ## 0. Next build (agreed 2026-09-28)
-- [ ] **UI-1: staff + owner dashboards back to a WHITE theme, with the Salesman Premium
+- [x] **UI-1 (done 2026-10-25): staff + owner dashboards back to a WHITE theme, with the Salesman Premium
       DESIGN (not its dark colours).** The 2026-09-28 restyle copied Premium's dark palette;
       the owner meant its look: soft blurred colour smudges behind cards
       (ShiftOS `src/pages/salesmanPremium/DashboardTab.jsx:290` corner blob,
