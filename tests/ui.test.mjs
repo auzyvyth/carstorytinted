@@ -122,12 +122,18 @@ async function page(width, session) {
 }
 const noSideScroll = (p) => p.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
 
-// 1. Home: live slots + live prices, no sideways scroll on a phone.
+// 1. Home: live prices in the film picker + table, the slider tints the glass, no sideways scroll on a phone.
 let p = await page(375);
 await p.goto(`${BASE}/`);
-await p.waitForSelector('.slot-day');
-check((await p.locator('.slot-day').count()) === 3, 'home shows 3 next free days');
-check((await p.locator('.film-price').first().innerText()).includes('RM250'), 'home film card shows live "dari RM250"');
+await p.waitForFunction(() => document.querySelector('.fact-price')?.textContent.includes('RM250'));
+check(true, 'home film picker shows live "dari RM250"');
+check((await p.locator('[data-film-prices] td').first().innerText()).includes('RM250'), 'home price table is live');
+const t0 = await p.locator('[data-tint]').evaluate((e) => e.style.getPropertyValue('--t'));
+await p.locator('[data-rear]').fill('5');
+const t1 = await p.locator('[data-tint]').evaluate((e) => e.style.getPropertyValue('--t'));
+check(Number(t1) > Number(t0), 'dragging the slider darkens the glass');
+await p.locator('.pick-film').nth(1).click();
+check(await p.locator('.film-fact:not([hidden])').count() === 1 && await p.locator('.pick-film[aria-pressed="true"]').innerText() === 'Nano Ceramic', 'picking a film shows its facts');
 check(await noSideScroll(p), 'home fits 375px');
 await p.screenshot({ path: `${SHOTS}/1-home-375.png`, fullPage: true });
 

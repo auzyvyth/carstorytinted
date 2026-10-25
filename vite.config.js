@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import { resolve } from 'node:path';
 import catalog from './src/shared/catalog.default.json' with { type: 'json' };
 import { SHOP, JPJ, POLICY, fullAddress, displayPhone } from './src/shared/shop.js';
+import * as H from './src/shared/homeRender.js';
 import * as R from './src/shared/render.js';
 
 // Public pages. Each is plain HTML with <!--@slot--> markers the plugin below
@@ -30,6 +31,10 @@ function shopPages(siteUrl, demo) {
     videos: () => R.videosSection(catalog),
     prices: () => R.pricesHtml(catalog),
     'price-table': () => R.priceTable(catalog),
+    showcase: () => H.filmShowcase(catalog),
+    menu: () => H.menuHtml(catalog),
+    'faq-cards': () => H.faqCards(),
+    'visit-links': () => H.visitLinks(),
     car: () => R.carDiagram(),
     faq: () => R.faqHtml(),
     footer: () => R.footer(),
@@ -50,7 +55,8 @@ function shopPages(siteUrl, demo) {
     WA_KARPET: encodeURIComponent('Salam, saya nak tanya harga karpet kereta. Kereta saya: '),
     WA_POLISH: encodeURIComponent('Salam, saya nak tanya harga polish kereta. Kereta saya: '), WA_LOST: encodeURIComponent('Salam, saya hilang pautan tempahan / sijil tinted saya. Boleh hantar semula? Nama: , No. plat: '), POLICY_WALKIN: POLICY.walkIn, MAP_EMBED: R.mapEmbedUrl(), YEAR: new Date().getFullYear(),
     // How dark each JPJ limit looks: the same curve the tint preview draws with.
-    TINT_WS: R.tintOpacity(JPJ.windscreen), TINT_FS: R.tintOpacity(JPJ.frontSide), TINT_REAR: R.tintOpacity(5),
+    WARRANTY_MAX: Math.max(0, ...catalog.films.map((f) => Number(f.warranty_years) || 0)),
+    JPJ_FINE_SHORT: (JPJ.fine.match(/RM[\d,]+/) || [JPJ.fine])[0], TINT_WS: R.tintOpacity(JPJ.windscreen), TINT_FS: R.tintOpacity(JPJ.frontSide), TINT_REAR: R.tintOpacity(5),
   };
   return {
     name: 'shop-pages',

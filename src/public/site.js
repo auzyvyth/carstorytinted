@@ -64,14 +64,6 @@ async function paintNextSlots() {
   }
 }
 
-// The hero's top-right tab carries the booking button; the header hides its own copy
-// while that tab is on screen, so there is never two of the same button side by side.
-const notch = document.querySelector('.notch');
-const mast = document.querySelector('.mast');
-if (notch && mast && 'IntersectionObserver' in window) {
-  new IntersectionObserver(([e]) => mast.classList.toggle('notch-on', e.isIntersecting), { rootMargin: '-80px 0px 0px 0px' }).observe(notch);
-}
-
 mountStudio();
 paintPrices();
 paintNextSlots();

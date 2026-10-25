@@ -20,12 +20,11 @@ export function vltRows(c) {
 }
 export const hasNum = (v) => v !== null && v !== undefined && v !== '' && !Number.isNaN(Number(v));
 
+// Wordmark, four plain links, one action (taste-skill house rule: three to five links).
 const NAV = [
   ['/#filem', 'Filem'],
   ['/harga/', 'Harga'],
-  ['/#servis', 'Servis'],
   ['/panduan-jpj/', 'Had JPJ'],
-  ['/#sijil', 'Sijil waranti'],
   ['/#lokasi', 'Lokasi'],
 ];
 
@@ -49,19 +48,24 @@ export function header(active = '') {
 export function footer() {
   const phones = SHOP.contacts.map((c) =>
     `<a href="${waLink(c.phone)}" rel="noopener">${esc(c.name)} ${displayPhone(c.phone)}</a>`).join('');
+  // The name closes the page, built from blocks (each letter knocked out of its own
+  // rectangle, heights varying like a row of car windows), then the plain links.
+  const H = [92, 78, 100, 70, 86, 64, 0, 96, 74, 88, 66, 100, 80, 72, 90];
+  const blocks = [...'TINTED CARSTORY'].map((ch, i) => (ch === ' '
+    ? '<span class="blk-gap"></span>'
+    : `<span class="blk b${i % 3}" style="--h:${H[i]}%">${ch}</span>`)).join('');
   return `<footer class="foot">
-  <div class="wrap foot-in">
-    <div>
-      <div class="wordmark"><span>Tinted</span> Carstory</div>
-      <p class="foot-sub">${esc(SHOP.legalName)}, ${esc(SHOP.tagline)}</p>
-      <p class="foot-sub">${esc(fullAddress())}</p>
+  <div class="wrap">
+    <a class="blocks" href="/" aria-label="${esc(SHOP.name)}">${blocks}</a>
+    <div class="foot-in">
+      <div class="foot-cols">
+        <div><h4>Hubungi</h4>${phones}<a href="${SHOP.facebook}" rel="noopener">Facebook</a></div>
+        <div><h4>Info</h4><a href="/harga/">Harga</a><a href="/panduan-jpj/">Panduan had JPJ</a><a href="/privasi/">Privasi</a><a href="/staff/" rel="nofollow">Staf</a></div>
+      </div>
+      <div class="foot-addr"><p>${esc(SHOP.legalName)}, ${esc(SHOP.tagline)}</p><p>${esc(fullAddress())}</p></div>
     </div>
-    <div class="foot-cols">
-      <div><h4>Hubungi</h4>${phones}<a href="${SHOP.facebook}" rel="noopener">Facebook</a></div>
-      <div><h4>Info</h4><a href="/harga/">Harga</a><a href="/panduan-jpj/">Panduan had JPJ</a><a href="/privasi/">Privasi</a><a href="/staff/" rel="nofollow">Staf</a></div>
-    </div>
+    <div class="foot-base"><span>&copy; ${new Date().getFullYear()} ${esc(SHOP.legalName)}</span><a class="btn-win btn-win-sm" href="/tempah/">Tempah slot</a></div>
   </div>
-  <div class="wrap foot-base">&copy; ${new Date().getFullYear()} ${esc(SHOP.legalName)}</div>
 </footer>`;
 }
 
@@ -284,7 +288,7 @@ export function addonTable(catalog) {
 export function priceTable(catalog) {
   const head = catalog.films.map((f) => `<th scope="col">${esc(f.name)}</th>`).join('');
   const rows = CAR_SIZES.map((s) => `<tr><th scope="row">${s.label}<small>${esc(s.eg)}</small></th>${
-    catalog.films.map((f) => { const p = f.prices?.[s.id]; return `<td>${hasNum(p) ? rm(p) : '<span class="ask">Tanya</span>'}</td>`; }).join('')
+    catalog.films.map((f) => { const p = f.prices?.[s.id]; return `<td data-film="${esc(f.name)}">${hasNum(p) ? rm(p) : '<span class="ask">Tanya</span>'}</td>`; }).join('')
   }</tr>`).join('');
   return `<div class="table-scroll"><table class="prices"><thead><tr><th scope="col">Saiz kereta</th>${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }

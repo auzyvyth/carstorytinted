@@ -139,23 +139,23 @@ Owner's rule: a booking holds its slot, walk-ins get whatever is left.
 - Never advertise darker than JPJ on the windscreen / front side windows (the
   owner's WhatsApp copy says "5% if the customer asks"): the site offers 5% on the
   REAR only. Verified 2026-09-27: 70% / 50% / rear no limit, Kaedah 1991 as amended 2019.
-- Public site design (owner's rep approved the plan, 2026-10-25; replaces V2 the same day,
-  which read as a template): built with the frontend-design skill (`.claude/skills/frontend-design/`).
-  Hero (owner's rep, 2026-10-25, from a reference): dark rounded panel over the shopfront photo
-  (placeholder until the owner's photos), heat headline, "Servis apa yang anda perlukan?" with
-  three answers (Tinted books; Karpet / Polish open a prefilled WhatsApp), and a page-coloured
-  tab (`.bulge`) rising into the bottom-left corner with three trust points, ending in a slanted
-  edge; a matching tab (`.notch`) hangs from the top-right holding "Tempah slot" (the header
-  hides its copy while the notch is on screen, `notch-on`, site.js). Phones: no tabs, centred. The tint preview
-  is its own section below (`.glass-sec`): rear pane darkens with the slider, live JPJ verdict.
-  Daylight page, the only dark thing is the film. Archivo only: expanded bold headings (the
-  signboard's wide letters), normal body. Colours: Papan `#1d3fc4` (links, the one blue
-  button), Huruf `#ffc71a` (slider handle + "Lulus" only), Filem `#14161c` (the tint), Siang
-  `#f7f7f4` ground, Dakwat `#1b1e26` text, Saman `#c2361b` (a fail only). Sentence case, NO
-  labels above headings, no single accented word, no arrows on links, no entrance animations,
-  no middle-dot strings. Cards only for real objects (the certificate). JPJ limits are shown
-  as three real tinted panes (`.swatch`, opacity from `tintOpacity`). Current look = the
-  "Shop design" block at the end of `src/public/site.css`.
+- Public site design (2026-10-25, owner's rep: "use taste skill, web design guidelines, awesome
+  design, image to code"). Skills live in `.claude/skills/` (design-taste-frontend, frontend-design,
+  web-design-guidelines, image-to-code) and car-brand DESIGN.md references in `.claude/design-refs/`.
+  Built with taste-skill: direction "One motif" (seed 1588499643). The motif is a CAR SIDE WINDOW,
+  a block with one slanted edge (`--win-l` / `--win-r`, home.css): the hero photo window, the
+  buttons, the bullets, the FAQ tabs, the proof heading tile. Type: Libre Franklin 700 headings,
+  Source Serif 4 body. Colour: white ground, near-black ink, signboard blue `--papan` as the large
+  motif field, sign yellow `--huruf` = the action. Square corners, no shadows at rest, no
+  gradients, no labels above headings. Homepage order (the argument): hero (heat headline, service
+  question, three facts) -> film picker (the one live thing: pick a film, drag the rear darkness,
+  see the shop through the glass) -> price table -> JPJ proof tiles + sample certificate -> add-ons
+  and other services -> question cards -> visit coupon -> block-letter footer. Files:
+  `index.html`, `src/public/home.css`, `src/public/home.js`, `src/shared/homeRender.js`; shared
+  type/header/footer at the end of `site.css`. Gate: `node .claude/skills/design-taste-frontend/
+  scripts/inspect.mjs <url>` (CHROME_PATH must point at a Chrome started with --no-sandbox when
+  running as root). Last run: 2 FAIL left, both waiting on the owner's photos (picture floor)
+  and one off-centre reading at 390px that a direct measurement does not reproduce (24px / 24px).
 - Staff app colours are still placeholders (`--brand-*` in `src/staff/staff.css`).
 - No auto-send to customers: WhatsApp buttons open a draft, a person presses send.
 
