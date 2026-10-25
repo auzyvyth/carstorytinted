@@ -675,3 +675,32 @@ main:has(> .page-head), main:has(> .wrap > .page-head), main.book { background: 
 #filem.hero-glass .spec-bar > .spec-buy { padding-top: 8px; }
 @media (min-width: 861px) { .hero-glass .tabs { flex-wrap: wrap; overflow: visible; } }
 @media (max-width: 520px) { .hero-glass .pnote { flex: 1 0 100%; order: 3; } }
+
+/* Hero question: "which service?" -> three answers, each with an arrow pointing at it.
+   Apple feedback rules: the arrow glows and the button grows on hover (pointer devices
+   only, so a phone never shows a stuck hover), and every option shrinks the instant it
+   is pressed. Springy curve with no overshoot on the way in; reduced motion = glow only. */
+.pick { margin-top: 30px; }
+.pick-q { font-stretch: 112%; font-weight: 700; font-size: 19px; color: var(--ink); margin-bottom: 4px; }
+.pick-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; max-width: 460px; }
+.pick-opt { display: grid; justify-items: center; gap: 6px; text-decoration: none; color: var(--ink); -webkit-tap-highlight-color: transparent; }
+.pick-arrow { width: 22px; height: 36px; color: var(--line-2); transition: color .2s, filter .2s, transform .35s cubic-bezier(.2, .9, .3, 1); }
+.pick-btn { display: grid; place-items: center; width: 100%; min-height: 54px; padding: 0 10px; border-radius: 12px; background: #fff; border: 1.5px solid var(--line-2);
+  font-stretch: 112%; font-weight: 800; font-size: 17px; transition: transform .35s cubic-bezier(.2, .9, .3, 1), border-color .2s, box-shadow .25s, background-color .2s; }
+.pick-opt small { font-size: 13px; color: var(--muted); }
+.pick-opt:first-child .pick-btn { background: var(--papan); border-color: var(--papan); color: #fff; }
+@media (hover: hover) {
+  .pick-opt:hover .pick-arrow { color: var(--huruf); filter: drop-shadow(0 0 6px rgba(255, 199, 26, .9)); transform: translateY(3px); }
+  .pick-opt:hover .pick-btn { transform: scale(1.06); border-color: var(--ink); box-shadow: 0 10px 24px rgba(27, 30, 38, .12); }
+  .pick-opt:first-child:hover .pick-btn { border-color: var(--papan); box-shadow: 0 10px 24px rgba(29, 63, 196, .28); }
+}
+.pick-opt:focus-visible { outline: none; }
+.pick-opt:focus-visible .pick-btn { outline: 3px solid var(--papan); outline-offset: 3px; }
+.pick-opt:focus-visible .pick-arrow { color: var(--huruf); filter: drop-shadow(0 0 6px rgba(255, 199, 26, .9)); }
+.pick-opt:active .pick-btn { transform: scale(.96); transition-duration: .08s; }
+.pick-opt:active .pick-arrow { color: var(--huruf); }
+@media (prefers-reduced-motion: reduce) {
+  .pick-arrow, .pick-btn { transition: color .2s, filter .2s, border-color .2s, box-shadow .2s; }
+  .pick-opt:hover .pick-arrow, .pick-opt:hover .pick-btn, .pick-opt:active .pick-btn { transform: none; }
+}
+@media (max-width: 400px) { .pick-btn { font-size: 15px; min-height: 50px; } .pick-row { gap: 8px; } }
