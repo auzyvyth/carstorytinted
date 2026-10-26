@@ -1,0 +1,35 @@
+/* The customer's own page (/urus/, manage.js). Built on booking.css (same blue page, same
+   summary panel and buttons) and cert.css (the design C certificate once the car is done). */
+.mg-sk { height: 320px; max-width: 640px; border-radius: 16px; background: rgba(255,255,255,.06); }
+.mg-side { position: sticky; top: 96px; }
+.mg-ref { float: right; font-size: 13px; font-weight: 500; color: var(--k-grey); }
+
+/* where the booking stands: five steps, done ones filled, the current one yellow */
+.mg-steps { list-style: none; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin: 22px 0 0; padding: 0; }
+.mg-steps li { display: grid; gap: 8px; font-size: 13px; color: var(--k-grey); }
+.mg-steps i { display: block; height: 4px; border-radius: 4px; background: rgba(255,255,255,.14); }
+.mg-steps .done i { background: rgba(255,255,255,.7); }
+.mg-steps .on i { background: var(--k-yellow); }
+.mg-steps .on { color: #fff; font-weight: 700; }
+
+.mg-when { display: grid; gap: 2px; margin-top: 22px; font-size: 20px; font-weight: 700; color: #fff; }
+.mg-when span { font-size: 14px; font-weight: 400; color: var(--k-grey); }
+.mg-msg { margin-top: 18px; padding: 12px 14px; border-radius: 10px; background: rgba(255, 198, 26, .12); color: #fff; font-weight: 600; font-size: 15px; }
+.mg-keep { margin-top: 22px; }
+
+/* the certificate, full width of the left column */
+.pp.mg-cert { max-width: none; margin: 28px 0 0; }
+.mg-cert .pp-lbl { cursor: default; }
+.mg-cert .pp-glass { cursor: default; }
+.mg-cert .pp-svg-wrap { max-width: 320px; margin: 0 auto; }
+.mg-shots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.mg-shot { display: grid; gap: 4px; color: var(--k-grey); font-size: 12.5px; text-decoration: none; }
+.mg-shot img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; background: #0b1020; display: block; }
+
+@media (max-width: 900px) {
+  .mg-side { position: static; display: block; margin-top: 8px; }
+}
+@media (max-width: 560px) {
+  .mg-steps span { font-size: 11px; }
+  .mg-when { font-size: 18px; }
+}
