@@ -50,8 +50,14 @@ export function vltRows(c) {
 }
 // Top-down car, front on the left. Glass shapes carry data-kind so a tap picks that window;
 // the labels above it (each over its own window) are the real buttons, the drawing is decoration.
-export function carPlanSvg(sel) {
-  const g = (kind, d) => `<path class="pp-glass${kind === sel ? ' on' : ''}" data-kind="${kind}" d="${d}"/>`;
+// look (optional, the booking page): { windscreen, front, rear } VLT %, colour: each pane is
+// shaded like the tint preview shades it (tintOpacity), in the film colour picked there.
+export function carPlanSvg(sel, look = null) {
+  const shade = (kind) => {
+    if (!look || look[kind] === null || look[kind] === undefined) return '';
+    return ` style="fill:${esc(look.colour || '#06080d')};fill-opacity:${Math.max(0.1, tintOpacity(look[kind]))}"`;
+  };
+  const g = (kind, d) => `<path class="pp-glass${kind === sel ? ' on' : ''}" data-kind="${kind}"${shade(kind)} d="${d}"/>`;
   return `<svg class="pp-svg" viewBox="0 14 360 142" aria-hidden="true">
   <ellipse cx="122" cy="26" rx="9" ry="5" class="pp-mirror"/><ellipse cx="122" cy="144" rx="9" ry="5" class="pp-mirror"/>
   <rect x="16" y="22" width="328" height="126" rx="58" class="pp-body"/>

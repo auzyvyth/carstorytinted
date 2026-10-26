@@ -69,7 +69,7 @@ async function mockSupabase(route) {
   if (p === '/rest/v1/rpc/available_slots') return json(slotsFrom(body.p_from, body.p_days));
   if (p === '/rest/v1/rpc/book_slot') {
     if (!/^0?1\d{8,9}$/.test(String(body.p_phone).replace(/\D/g, '').replace(/^6/, ''))) return json({ message: 'bad_phone' }, 400);
-    const j = job({ source: 'web', stage: 'baru', customer_name: body.p_name, phone: '60' + String(body.p_phone).replace(/\D/g, '').replace(/^0/, ''),
+    const j = job({ source: 'web', stage: 'baru', plate: body.p_plate, customer_name: body.p_name, phone: '60' + String(body.p_phone).replace(/\D/g, '').replace(/^0/, ''),
       car_model: body.p_car_model, car_size: body.p_car_size, film_id: body.p_film_id, scheduled_date: body.p_date, scheduled_slot: body.p_slot, notes: body.p_notes || null,
       quoted_price: films.find((f) => f.id === body.p_film_id).prices[body.p_car_size], consent_at: now });
     jobs.push(j);
@@ -159,7 +159,8 @@ check(true, 'home film card shows live "dari RM250"');
 check(await noSideScroll(p), 'home fits 375px');
 await p.screenshot({ path: `${SHOTS}/1-home-375.png`, fullPage: true });
 
-// 2. Booking wizard end to end: one question per screen, a tap slides to the next.
+// 2. Booking end to end (redesign 2026-10-26): at most two things asked per screen, a tap
+//    answers and moves on, typing only for name + WhatsApp and plate + model.
 await p.goto(`${BASE}/tempah/`);
 check(await p.locator('[data-screen="saiz"]').count() === 1, 'booking opens on the size question alone');
 check(await noSideScroll(p), 'booking size screen fits 375px');
@@ -168,39 +169,47 @@ await p.click('[data-size="suv"]');
 await p.waitForSelector('[data-screen="filem"]');
 check(true, 'tapping a size slides to the film question');
 await p.click('[data-film="ceramic"]');
-await p.waitForSelector('[data-screen="hari"] [data-date]');
-check((await p.locator('.wiz-total').innerText()).includes('850'), 'running total shows SUV ceramic RM850');
-check(await p.locator(`[data-date="${shop(0)}"] small:last-child`).innerText().then((t) => /slot|Penuh/.test(t)), 'booking lists days with free counts');
+await p.waitForSelector('[data-screen="bila"] [data-date]');
+check((await p.locator('.bk-strip .wiz-total').innerText()).includes('850'), 'running total shows SUV ceramic RM850');
+check(await p.locator('[data-screen="bila"] [data-date][aria-pressed="true"]').count() === 1, 'the earliest free day is already picked: time is one tap away');
+check(await p.locator('[data-screen="bila"] [data-slot]').count() >= 1, 'day and time are on one screen');
 await p.click(`[data-date="${shop(2)}"]`);
-await p.waitForSelector('[data-screen="masa"]');
 await p.click('[data-slot="09:30"]');
 check(await noSideScroll(p), 'booking time screen fits 375px');
 await p.screenshot({ path: `${SHOTS}/3-book-step2-375.png`, fullPage: true });
 await p.waitForSelector('[data-screen="tunggu"]');
+check(await p.locator('[data-screen="tunggu"] [data-wait]').count() === 2, 'wait-or-leave is two choices');
 await p.click('[data-wait="tunggu"]');
-await p.waitForSelector('[data-screen="butiran"]');
-await p.click('[data-goto="filem"]');
-await p.waitForSelector('[data-screen="filem"]');
-check(await p.locator('[data-film="ceramic"]').getAttribute('aria-pressed') === 'true', 'a summary chip jumps back to that question, answer kept');
-await p.goBack();
-await p.waitForSelector('[data-screen="butiran"]');
-check(true, 'phone back gesture returns to the previous question');
+await p.waitForSelector('[data-screen="anda"]');
+check(await p.locator('[data-screen="anda"] input:not([type=checkbox])').count() === 2, 'the name screen asks two things only');
+await p.click('[data-next]');
+check(await p.locator('.bk-err').innerText().then((t) => t.includes('nama')).catch(() => false), 'name is required');
 await p.fill('#f-name', 'Ahmad Faizal');
 await p.fill('#f-phone', '0171234567');
 check(await noSideScroll(p), 'booking details screen fits 375px');
-await p.click('button:has-text("Sahkan tempahan")');
-check(await p.locator('.err').innerText().then((t) => t.includes('plat')).catch(() => false), 'booking requires the plate');
+await p.click('[data-next]');
+await p.waitForSelector('[data-screen="kereta"]');
+await p.click('[data-next]');
+check(await p.locator('.bk-err').innerText().then((t) => t.includes('plat')).catch(() => false), 'booking requires the plate');
 await p.fill('#f-plate', 'PKA 1234');
+await p.click('[data-next]');
+await p.waitForSelector('[data-screen="sahkan"]');
+await p.click('.bk-only-phone [data-goto="filem"]');
+await p.waitForSelector('[data-screen="filem"]');
+check(await p.locator('[data-film="ceramic"]').getAttribute('aria-pressed') === 'true', 'a summary row jumps back to that question, answer kept');
+await p.goBack();
+await p.waitForSelector('[data-screen="sahkan"]');
+check(true, 'phone back gesture returns to the previous question');
 await p.click('button:has-text("Sahkan tempahan")');
-check(await p.locator('.err').innerText().then((t) => t.includes('privasi')).catch(() => false), 'booking blocks submit without consent');
+check(await p.locator('.bk-err').innerText().then((t) => t.includes('privasi')).catch(() => false), 'booking blocks submit without consent');
 await p.check('input[name=consent]');
 await p.click('button:has-text("Sahkan tempahan")');
-await p.waitForSelector('.done-box');
+await p.waitForSelector('.bk-done');
 check(await noSideScroll(p), 'booking confirmation fits 375px');
 await p.screenshot({ path: `${SHOTS}/4-book-done-375.png`, fullPage: true });
-check(jobs.some((j) => j.customer_name === 'Ahmad Faizal' && j.stage === 'baru' && j.source === 'web'), 'booking reached the database as a new web job');
+check(jobs.some((j) => j.customer_name === 'Ahmad Faizal' && j.stage === 'baru' && j.source === 'web' && j.plate === 'PKA 1234'), 'booking reached the database as a new web job');
 
-// 2b. The home tint preview's picks ride into the booking and land in its notes.
+// 2b. The home tint preview's picks ride into the booking: shown on the car drawing, saved in the notes.
 await p.goto(`${BASE}/`);
 await p.waitForFunction(() => document.querySelector('.film-price')?.textContent.includes('RM250'));
 await p.$eval('#ts-ws', (e) => { e.value = '80'; e.dispatchEvent(new Event('input')); });
@@ -208,25 +217,41 @@ await p.$eval('#ts-rear', (e) => { e.value = '15'; e.dispatchEvent(new Event('in
 await p.click('[data-tint-name="bronze"]');
 await p.click('#filem [data-panel]:not([hidden]) [data-book]');
 await p.waitForSelector('[data-screen="saiz"]');
-check((await p.locator('.wiz-look').innerText()).includes('Bronze'), 'booking shows the tint picked on the home preview');
+check((await p.locator('.bk-strip').innerText()).includes('Bronze') && (await p.locator('.bk-strip').innerText()).includes('80 · 50 · 15%'), 'booking shows the tint picked on the home preview');
 await p.click('[data-size="small"]');
-await p.waitForSelector('[data-screen="hari"] [data-date]');
+await p.waitForSelector('[data-screen="bila"] [data-date]');
 await p.click(`[data-date="${shop(3)}"]`);
 await p.click('[data-slot="09:30"]');
 await p.click('[data-wait="tunggu"]');
-await p.waitForSelector('[data-screen="butiran"]');
+await p.waitForSelector('[data-screen="anda"]');
 await p.fill('#f-name', 'Siti Pratonton');
 await p.fill('#f-phone', '0171234568');
+await p.click('[data-next]');
 await p.fill('#f-plate', 'PKB 55');
+await p.click('[data-next]');
+await p.waitForSelector('[data-screen="sahkan"]');
 await p.check('input[name=consent]');
 await p.click('button:has-text("Sahkan tempahan")');
-await p.waitForSelector('.done-box');
+await p.waitForSelector('.bk-done');
 const lookNote = jobs.find((j) => j.customer_name === 'Siti Pratonton')?.notes || '';
 check(lookNote.startsWith('Pilihan pratonton: cermin depan 80%, tingkap depan 50%, belakang 15%, warna Bronze.'), `the preview's picks are saved in the booking notes (${lookNote})`);
 await p.goto(`${BASE}/tempah/?film=standard&ws=20&front=10&warna=x`);
 await p.waitForSelector('[data-screen="saiz"]');
-check(await p.locator('.wiz-look').count() === 0, 'a link darker than the JPJ limits carries no tint');
+check(!(await p.locator('.bk-strip').innerText()).includes('%'), 'a link darker than the JPJ limits carries no tint');
 check(p.errors.length === 0, `public pages have no JS errors ${p.errors.join(' | ')}`);
+
+// 2c. Desktop: "Tempahan anda" shows the picked darkness on the car drawing, and every
+//     booking button on the home page goes to /tempah/.
+p = await page(1366);
+await p.setViewportSize({ width: 1366, height: 640 });
+await p.goto(`${BASE}/`);
+const bookLinks = await p.evaluate(() => [...document.querySelectorAll('a[href^="/tempah/"], form[action$="/tempah/"]')].length);
+check(bookLinks >= 8, `every booking button on the home page goes to /tempah/ (${bookLinks})`);
+await p.goto(`${BASE}/tempah/?film=ceramic&ws=70&front=50&rear=15&warna=bronze`);
+await p.waitForSelector('.bk-side .bk-look .pp-glass');
+check(await p.locator('.bk-side .pp-glass[data-kind="rear"]').first().evaluate((e) => e.style.fill.includes('122, 74, 30')), 'the car drawing is shaded in the colour picked on the home page');
+check(await p.locator('[data-screen="saiz"]').evaluate((e) => e.getBoundingClientRect().bottom <= 640), 'the size question fits a Chromebook screen');
+await p.screenshot({ path: `${SHOTS}/4b-book-desktop-1366.png` });
 
 // 3. Certificate page.
 await p.goto(`${BASE}/sijil/?t=${'a'.repeat(36)}`);

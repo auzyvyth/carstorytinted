@@ -379,3 +379,19 @@ The certificate design (A-D) is NOT picked yet: photos show on today's certifica
 - Homepage #sijil sample = design C (`certSample()` in render.js, baked via the `cert-sample` slot;
   `carPlanSvg` shared with /sijil/; cert.css loaded by hero.js). Static, no fake meter photo.
 - Tests: UI 69/69, logic + report pass. DB unchanged (12/12).
+
+### Same session, later: /tempah/ redesign (owner: "max 2 options per stage, never full form", taste skill)
+- `src/public/booking.js` rewritten, `src/public/booking.css` new, `tempah/index.html` on the blue v4 look
+  (same ground and option rows as the homepage hero form). Steps, at most TWO things asked each:
+  saiz -> filem -> (tambahan) -> bila (day row + time, earliest free day pre-picked) -> tunggu (2 choices)
+  -> anda (name + WhatsApp) -> kereta (plate + model) -> sahkan (review + consent). Answered-by-link steps
+  are skipped (?size=&film= hero form, ?film=&ws=&front=&rear=&warna= tint preview, ?date= slot card).
+- "Tempahan anda" (desktop right column, phones on the last screen): the certificate's car drawing shaded
+  with the darkness + colour from the tint preview (`carPlanSvg(sel, look)` in render.js), every answer
+  (tap = go back to it), the estimate. Stays beside the confirmation, read-only.
+- DROPPED from the online form: "Dari mana anda tahu" (heard_from, now null for web bookings; staff set it
+  in the job screen) and the free-text notes (the tint picks still go into notes). Owner can ask for either back.
+- All 9 booking buttons on the homepage already went to /tempah/ (header x2, hero button, hero form, 4 tint
+  "Tempah slot" with the look, steps section); UI test 2c counts them.
+- Tests: UI 76/76. Taste lint: 0 FAIL (warnings kept on purpose: option-row outlines match the hero form,
+  brand font, calendar date padding). Chromebook 1366x640: every step fits without scrolling.
