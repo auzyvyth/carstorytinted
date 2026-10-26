@@ -5,7 +5,8 @@ built. Only the "Sell" section is being done now. Everything after it waits for
 the owner (Maliki) to agree and pay.
 
 ## 0. Next build (agreed 2026-09-28)
-- [ ] **DASH-1 (owner, 2026-10-26): staff + owner dashboard redesign, after the public pages.**
+- [ ] **DASH-1 (owner, 2026-10-26): staff + owner dashboard redesign.** Phase 1 DONE (dark Premium look on
+      every staff screen + today card). Next: a "This week" follow-up list, delta + sparkline tiles, CRM-1 job screen.
       Model it on the ShiftOS Salesman Premium dashboard (owner: "like how we did ShiftOS salesman
       premium dashboard"): one setup list, a "this week" call list at the top, quiet stat tiles,
       one accent, depth by tone. Supersedes UI-1 below; read ShiftOS DASHBOARD_DESIGN.md and

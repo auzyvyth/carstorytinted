@@ -77,10 +77,12 @@ history kept. It shares no code, database or deploy with ShiftOS.
 4. Then a real-device test: book online -> push arrives on staff phone -> job flows
    to Selesai -> certificate link opens.
 
-## Staff app look (2026-10-25, replaces the dark 2026-09-28 look)
-WHITE, with Salesman Premium's design (UI-1): soft shop-colour light behind the page,
-white cards on a slight shadow, ONE accent = the signboard blue `#1d3fc4` (same as the
-public site `--accent`). The "Perlu tindakan" card glows red while it has items (`.attn`).
+## Staff app look (2026-10-26, DASH-1 phase 1: DARK, replaces the white 2026-10-25 look)
+Dark like ShiftOS Salesman Premium (`premiumDark`): page #08090c, cards #111318, rows #181b21, no borders or
+shadows on cards (depth by tone). ONE fill accent = signboard yellow #ffc71a (the token is still named `--blue`
+so components didn't change; text on it is `--on-accent` #111). Mint #6ee7b7 = up, red #f87171 = attention.
+Today card at the top (date, greeting, kereta hari ini / siap hari ini / perlu tindakan). Stage dots lightened in
+`shop.js STAGES`. "Perlu tindakan" is tinted red while it has items (`.attn`), no glow.
 Shop-floor sizes: 15px body, 12px+ labels, 16px inputs (iOS zooms under 16). Every tappable
 thing scales to .96 on press (`staff.css`, end of file; reduced motion = tint instead).
 Dashboard order (owner's rep, 2026-10-25): greeting, walk-in, **Perlu tindakan**, walk-in
