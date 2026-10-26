@@ -12,21 +12,41 @@ export const rm = (n) => `RM${Math.round(Number(n)).toLocaleString('en-MY')}`;
 // With photo proof (0006_job_photos.sql), each reading carries the meter photo taken on
 // that window; tapping it opens the full picture.
 const PHOTO_ALT = { windscreen: 'cermin depan', front: 'tingkap sisi depan', rear: 'tingkap belakang' };
+// The windows on a certificate, in order. min 0 = no JPJ limit.
+export const VLT_WINDOWS = [
+  { kind: 'windscreen', key: 'vlt_windscreen', label: 'Cermin depan', short: 'Depan', min: JPJ.windscreen },
+  { kind: 'front', key: 'vlt_front', label: 'Tingkap sisi depan', short: 'Sisi depan', min: JPJ.frontSide },
+  { kind: 'rear', key: 'vlt_rear', label: 'Belakang', short: 'Belakang', min: 0 },
+];
+// JPJ issues no certificate to tint shops: the certificate is the shop's own record of what
+// it measured, so it says "within the limit when measured", never "passed JPJ" (2026-10-26).
+export const verdictOf = (v, min) => (v === null || v === undefined || v === '' ? null : !min ? 'free' : Number(v) >= min ? 'ok' : 'bad');
+export const VERDICT_WORD = { ok: 'Dalam had', bad: 'Bawah had', free: 'Tiada had' };
+export const MEETS_JPJ = 'Memenuhi had JPJ semasa diukur';
+// 'ok' when every limited window was read and is within its limit, 'bad' when any is below,
+// null when a limited window has no reading (nothing to claim either way).
+export function jpjSummary(c) {
+  const v = VLT_WINDOWS.filter((w) => w.min).map((w) => verdictOf(c[w.key], w.min));
+  return v.includes('bad') ? 'bad' : v.every((x) => x === 'ok') ? 'ok' : null;
+}
 const photoOf = (c, kind) => (Array.isArray(c.photos) ? c.photos : []).find((p) => p.kind === kind && /^(https:|data:image\/|\/)/.test(String(p.url)));
 const thumb = (p, alt) => `<a class="cert-thumb" href="${esc(p.url)}" target="_blank" rel="noopener"><img src="${esc(p.url)}" alt="Foto meter VLT pada ${alt}" loading="lazy" width="64" height="48"></a>`;
 export function vltRows(c) {
   const row = (kind, label, v, min) => {
     if (v === null || v === undefined) return '';
-    const verdict = min ? (v >= min ? '<span class="pass"><i class="dot"></i>Lulus JPJ</span>' : '<span class="fail"><i class="dot"></i>Bawah had</span>') : '<span class="muted">Tiada had</span>';
+    const vd = verdictOf(v, min);
+    const verdict = vd === 'free' ? '<span class="muted">Tiada had</span>' : `<span class="${vd === 'ok' ? 'pass' : 'fail'}"><i class="dot"></i>${VERDICT_WORD[vd]}</span>`;
     const p = photoOf(c, kind);
     return `<div class="cert-row${p ? ' has-thumb' : ''}">${p ? thumb(p, PHOTO_ALT[kind]) : ''}<span>${label}${min ? ` <small class="muted">(min ${min}%)</small>` : ''}</span><b>${v}% ${verdict}</b></div>`;
   };
   const rows = row('windscreen', 'Cermin depan', c.vlt_windscreen, JPJ.windscreen) + row('front', 'Tingkap sisi depan', c.vlt_front, JPJ.frontSide) + row('rear', 'Belakang', c.vlt_rear, 0);
   if (!rows) return '<p class="note">Bacaan VLT tidak direkodkan untuk kerja ini.</p>';
+  const sum = jpjSummary(c);
+  const head = sum === 'ok' ? `<p class="note"><span class="pass">${MEETS_JPJ}.</span></p>` : sum === 'bad' ? '<p class="note"><span class="fail">Ada cermin di bawah had JPJ semasa diukur.</span></p>' : '';
   const shot = (Array.isArray(c.photos) ? c.photos : []).find((p) => p.kind !== 'car');
   // The time is the server's upload time (0006), so it is worth saying so.
   const stamp = shot?.at ? `<p class="cert-proof">Foto meter diambil di kedai, ${esc(timeLabel(shot.at))}. Masa dicatat oleh sistem semasa foto dimuat naik.</p>` : '';
-  return rows + stamp;
+  return rows + head + stamp;
 }
 // The finished car, above the certificate details. '' when there is no such photo.
 export function carPhoto(c) {

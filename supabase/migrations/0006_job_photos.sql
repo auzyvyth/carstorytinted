@@ -72,6 +72,8 @@ language sql stable security definer set search_path = public as $$
     'vlt_windscreen', j.vlt_windscreen, 'vlt_front', j.vlt_front, 'vlt_rear', j.vlt_rear,
     'completed_at', (j.completed_at at time zone 'Asia/Kuala_Lumpur')::date,
     'warranty_until', j.warranty_until,
+    -- "Diukur oleh Tam": the installer's FIRST name only (a shop worker, shown as on a receipt).
+    'installer', (select split_part(st.name, ' ', 1) from staff st where st.id = j.installer_id),
     'photos', cert_photos(j.id))
   from jobs j, shop_settings s
   where s.id = 1 and length(coalesce(p_token, '')) = 36 and j.cert_token = p_token

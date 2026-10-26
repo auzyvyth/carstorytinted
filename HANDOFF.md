@@ -355,3 +355,17 @@ The certificate design (A-D) is NOT picked yet: photos show on today's certifica
 - Demo backend + UI mock know `job_photos`. Tests: UI 66/66, DB 12/12, report + logic pass.
 - Open: PHOTO-PURGE (TODO), "Lulus JPJ" wording on the verdict vs "Memenuhi had JPJ semasa diukur"
   (owner call), the hero/tint-preview line, and everything from (4).
+
+### Same session, later: certificate = design C, safer wording (owner, 2026-10-26)
+- /sijil/ is now design C "Pasport kereta" (`src/public/cert.js` + `src/public/cert.css`): finished-car
+  photo on top (only a real `car` photo, never a stock one), site blue + the two soft lights, readings in a
+  row over a top-down car (windscreen | front sides | rear), tap one -> white card with that meter photo,
+  "Diukur oleh <installer first name>, HH:MM", warranty ring, fine print "Sijil ini rekod kedai, bukan
+  dokumen JPJ". `get_certificate` now returns `installer` (first name; 0006, still not run).
+- Wording: never "Lulus JPJ". Per window "Dalam had" / "Bawah had" / "Tiada had"; summary
+  "Memenuhi had JPJ semasa diukur" (`MEETS_JPJ`, `verdictOf`, `jpjSummary` in render.js, shared with /urus/
+  and the saved PNG). Homepage: hero chip "Ikut had JPJ", heading "Ikut had JPJ. Ada bukti.", sample rows
+  "Dalam had". Staff drawer: "Dalam had JPJ".
+- No warranty terms invented: the card says "Ada masalah filem? WhatsApp kami dengan nombor sijil", not the
+  mockup's "Gelembung, kopak, bertukar ungu: kami ganti" (owner hasn't given terms).
+- Tests: UI 68/68, DB 12/12, logic + report pass.

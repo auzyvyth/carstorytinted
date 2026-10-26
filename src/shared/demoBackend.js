@@ -239,7 +239,8 @@ export async function demoFetch(input, init = {}) {
     return reply({ ref: j.ref, customer: j.customer_name.split(' ')[0], car_model: j.car_model,
       plate: pl ? pl.slice(0, Math.max(pl.length - 3, 1)) + '*'.repeat(Math.min(3, pl.length - 1)) : null,
       film: db.settings.films.find((f) => f.id === j.film_id)?.name, vlt_windscreen: j.vlt_windscreen, vlt_front: j.vlt_front, vlt_rear: j.vlt_rear,
-      completed_at: j.completed_at?.slice(0, 10), warranty_until: j.warranty_until, photos: photosOf(j) });
+      completed_at: j.completed_at?.slice(0, 10), warranty_until: j.warranty_until, photos: photosOf(j),
+      installer: db.staff.find((s) => s.id === j.installer_id)?.name.split(' ')[0] || null });
   }
   // The customer's own link (get_booking / manage_booking in 0003).
   if (p === '/rest/v1/rpc/get_booking' || p === '/rest/v1/rpc/manage_booking') {

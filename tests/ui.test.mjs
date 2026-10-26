@@ -34,7 +34,8 @@ const jobs = [
 const calls = [];
 const patches = [];
 // Photo proof (0006_job_photos.sql). Lim's finished job already has a meter photo on the windscreen.
-const photos = [{ id: crypto.randomUUID(), job_id: jobs[2].id, kind: 'windscreen', url: '/kerja/01.webp', created_at: now }];
+const photos = [{ id: crypto.randomUUID(), job_id: jobs[2].id, kind: 'windscreen', url: '/kerja/01.webp', created_at: now },
+  { id: crypto.randomUUID(), job_id: jobs[2].id, kind: 'car', url: '/kerja/04.webp', created_at: now }];
 const uploads = [];
 
 function slotsFrom(from, days) {
@@ -78,7 +79,7 @@ async function mockSupabase(route) {
     const j = jobs.find((x) => x.cert_token === body.p_token);
     return json(j ? { ref: j.ref, customer: j.customer_name.split(' ')[0], car_model: j.car_model, plate: 'PNB 1***', film: 'Nano Ceramic',
       vlt_windscreen: j.vlt_windscreen, vlt_front: j.vlt_front, vlt_rear: j.vlt_rear, completed_at: shop(0), warranty_until: shop(365 * 5),
-      photos: photos.filter((x) => x.job_id === j.id).map((x) => ({ kind: x.kind, url: x.url, at: `${shop(0)}T12:14` })) } : null);
+      installer: 'Tam', photos: photos.filter((x) => x.job_id === j.id).map((x) => ({ kind: x.kind, url: x.url, at: `${shop(0)}T12:14` })) } : null);
   }
   if (p === '/rest/v1/rpc/push_device_count') return json(0);
   if (p.startsWith('/rest/v1/rpc/')) return route.fulfill({ status: 204, body: '' });
@@ -221,12 +222,17 @@ check(p.errors.length === 0, `public pages have no JS errors ${p.errors.join(' |
 
 // 3. Certificate page.
 await p.goto(`${BASE}/sijil/?t=${'a'.repeat(36)}`);
-await p.waitForSelector('.cert');
-check((await p.locator('.cert').innerText()).includes('Lulus JPJ'), 'certificate shows JPJ pass for 72/52');
-check(await p.locator('.cert .pass').first().evaluate((e) => getComputedStyle(e).color === 'rgb(21, 128, 61)'), 'certificate "Lulus" is green, not grey');
-check(await p.locator('.cert').evaluate((e) => !getComputedStyle(e).backgroundImage.includes('0.78')), 'certificate card is solid white, not frosted');
-check(await p.locator('.cert-thumb img[alt="Foto meter VLT pada cermin depan"]').count() === 1, 'certificate shows the windscreen meter photo');
-check((await p.locator('.cert-proof').innerText()).includes('12:14'), 'certificate says when the meter photo was taken');
+await p.waitForSelector('.pp');
+const certText = await p.locator('.pp').innerText();
+check(certText.includes('Memenuhi had JPJ semasa diukur') && !/lulus/i.test(certText), 'certificate says "Memenuhi had JPJ semasa diukur", never "Lulus"');
+check(certText.includes('bukan dokumen JPJ'), 'certificate says it is the shop record, not a JPJ document');
+check(await p.locator('.pp-lbl b.ok').first().evaluate((e) => getComputedStyle(e).color === 'rgb(74, 222, 128)'), 'readings within the limit are green');
+check(await p.locator('.pp-car[alt="Kereta selepas siap dipasang tinted"]').count() === 1, 'certificate shows the finished car on top');
+check(await p.locator('.pp-shot img[alt="Foto meter VLT pada cermin depan"]').count() === 1 && (await p.locator('[data-detail]').innerText()).includes('Diukur oleh Tam'), 'opens on the windscreen meter photo, with who measured it');
+await p.click('.pp-lbl[data-kind="front"]');
+check((await p.locator('[data-detail]').innerText()).includes('Tingkap sisi depan, min 50%') && await p.locator('.pp-lbl[data-kind="front"]').getAttribute('aria-pressed') === 'true', 'tapping a window shows that window');
+check(await noSideScroll(p), 'certificate fits 375px');
+await p.waitForTimeout(400); // let the selection fade finish before the screenshot
 await p.screenshot({ path: `${SHOTS}/5-cert-375.png`, fullPage: true });
 await p.goto(`${BASE}/sijil/?t=nope`);
 check((await p.locator('[data-cert]').innerText()).toLowerCase().includes('tidak dijumpai'), 'bad certificate token shows not found');

@@ -308,7 +308,7 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
       </div>
 
       <div className="card box">
-        <div className="box-h"><span className="micro">Bacaan VLT selepas pasang (%)</span>{!warns.length && f.vlt_windscreen !== '' && f.vlt_front !== '' && <span className="okline">Lulus had JPJ</span>}</div>
+        <div className="box-h"><span className="micro">Bacaan VLT selepas pasang (%)</span>{!warns.length && f.vlt_windscreen !== '' && f.vlt_front !== '' && <span className="okline">Dalam had JPJ</span>}</div>
         <div className="grid3">
           <label className="fld"><span>Cermin depan · min {JPJ.windscreen}</span><input className="in tab-num" type="number" inputMode="numeric" min="0" max="100" value={f.vlt_windscreen} onChange={set('vlt_windscreen')} /></label>
           <label className="fld"><span>Sisi depan · min {JPJ.frontSide}</span><input className="in tab-num" type="number" inputMode="numeric" min="0" max="100" value={f.vlt_front} onChange={set('vlt_front')} /></label>

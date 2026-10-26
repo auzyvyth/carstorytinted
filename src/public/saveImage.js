@@ -9,7 +9,7 @@ const C = { ink: '#0a0a0a', text: '#1f2733', muted: '#6b7280', line: '#eceaea', 
 const FONT = "'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif";
 
 // blocks: [{ heading?: 'Resit', rows: [[label, value, tone?]], note?: '...' }]
-// tone: 'ok' | 'bad' | undefined (colours the value, e.g. "Lulus JPJ" / "Bawah had")
+// tone: 'ok' | 'bad' | undefined (colours the value, e.g. "Dalam had" / "Bawah had")
 function draw(ctx, { title, ref, customer, blocks }, measureOnly = false) {
   let y = PAD;
   const put = (fn) => { if (!measureOnly) fn(); };
@@ -83,5 +83,5 @@ export async function saveImage(doc, fileName) {
 export function vltData(c) {
   return [['Cermin depan', c.vlt_windscreen, JPJ.windscreen], ['Tingkap sisi depan', c.vlt_front, JPJ.frontSide], ['Belakang', c.vlt_rear, 0]]
     .filter(([, v]) => v !== null && v !== undefined)
-    .map(([label, v, min]) => [label, `${v}%  ${min ? (v >= min ? 'Lulus JPJ' : 'Bawah had') : 'Tiada had'}`, min ? (v >= min ? 'ok' : 'bad') : undefined]);
+    .map(([label, v, min]) => [label, `${v}%  ${min ? (v >= min ? 'Dalam had' : 'Bawah had') : 'Tiada had'}`, min ? (v >= min ? 'ok' : 'bad') : undefined]);
 }
