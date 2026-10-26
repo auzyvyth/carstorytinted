@@ -192,10 +192,36 @@ The production hero's "Slot kosong terdekat" card is gone with the old hero; the
   #11 is a Proton Saga. Still to confirm: Harrier, S70, Axia.
 - Tint preview (`#filem`, `carSvg` in src/shared/render.js): AI photo of a green coupe
   (`public/tint/car-front.webp`) + 2x alpha masks `car-front-{ws,front,rear,glass}.png`, built from the
-  owner's magenta-glass copy (alpha = how much magenta each pixel took). Windscreen fixed 70%, front side
-  slider 50-100 (never below JPJ), rear slider per film range. Static sky reflection `.cp-glass`.
+  owner's magenta-glass copy (alpha = how much magenta each pixel took). Sliders: see 2026-10-26 (2)
+  below (windscreen now adjustable too). Static sky reflection `.cp-glass`.
   `tintOpacity` exponent 1.4 = darker than true VLT on purpose (owner). Labelled "Gambaran sahaja".
 - Back view not built: needs the same car rear 45deg + magenta copy (prompt in chat). Then add a
   front/back switch.
 - BMW badge/grille visible in the coupe photo: owner's call whether to regenerate without badges.
 - Tint-Simulator repo (Kevinlearynet) is PolyForm Commercial (paid licence): NOT used, do not copy.
+
+## Session end 2026-10-26 (2) (branch claude/tinted-carstory-handoff-wkkh3o, head after this commit; main = 772d224, not merged)
+Branch fast-forwarded from ccr-5ba14573-gb4lv2 (aac3276), then:
+- Tint preview, look (f5a22cf, d62c29f): `car-front.webp` is now a cut-out (rembg BiRefNet, transparent
+  round the car) cropped to 1128x570 (crop box x72-1200, y150-720 of the old 1264x848); the window masks
+  are cropped to match. `car-front-bg.webp` = the full photo, shown only from 42% down (`.cp-bg`
+  clip-path), so the roof and glass stand out above a half box.
+- Phones (<=860px): `tint.js` moves `.glass-col` (car + sliders) into `[data-hero-tint]` under the hero
+  trust row; the banner car hides (`.hero:has(...)` in hero.css). Desktop keeps it in `#filem`. The film
+  tabs and price card stay in `#filem` and still drive it.
+- Controls (da86840, 38e1692): three upright sliders (`writing-mode: vertical-lr`, up = darker):
+  windscreen 70-100, front side 50-100 (never below JPJ), rear per film range. Colour swatches
+  `TINT_COLOURS` in render.js: Hitam, Charcoal, Bronze, Biru, Hijau (Perak removed by owner); note says
+  colours depend on stock. Blue/green/bronze are a bit brighter than real film so the hue shows when dark.
+  Callouts: thin labels on circuit-style lines (`.cp-lines` SVG, % of the frame) for all three windows.
+- Preview -> booking (05ddaaa): "Tempah slot" on the price card links `/tempah/?film=&ws=&front=&rear=&warna=`.
+  booking.js shows a chip ("Tint 80 · 60 · 15% Bronze") and saves "Pilihan pratonton: ..." at the top of
+  `p_notes` (no DB change; 500-char limit kept by shrinking the notes box). Values darker than JPJ or an
+  unknown colour are dropped. UI test 2b covers it (57 checks pass).
+- Running the UI test locally: build with the mock env (see tests/ui.test.mjs header), `vite preview
+  --port 4174`, and link the global Playwright into node_modules (ESM import can't see it otherwise).
+Open:
+- Owner to confirm which colours the shop really stocks; remove the rest.
+- Picks live in notes only; separate columns needed if they should show on the certificate.
+- Older items above still open (back view, BMW badge, real hero photo, captions, free-days card,
+  Google review link, prices, hours, Vercel access, merge only on owner's go-ahead).
