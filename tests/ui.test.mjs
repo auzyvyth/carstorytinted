@@ -170,7 +170,7 @@ await p.waitForSelector('[data-screen="filem"]');
 check(true, 'tapping a size slides to the film question');
 await p.click('[data-film="ceramic"]');
 await p.waitForSelector('[data-screen="bila"] [data-date]');
-check((await p.locator('.bk-strip .wiz-total').innerText()).includes('850'), 'running total shows SUV ceramic RM850');
+check((await p.locator('.bk-strip .bk-total').innerText()).includes('850'), 'running total shows SUV ceramic RM850');
 check(await p.locator('[data-screen="bila"] [data-date][aria-pressed="true"]').count() === 1, 'the earliest free day is already picked: time is one tap away');
 check(await p.locator('[data-screen="bila"] [data-slot]').count() >= 1, 'day and time are on one screen');
 await p.click(`[data-date="${shop(2)}"]`);

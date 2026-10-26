@@ -403,3 +403,16 @@ The certificate design (A-D) is NOT picked yet: photos show on today's certifica
   Done: the design C certificate (readings over the car, meter photos, warranty) in the left column.
 - The certificate block is a <div>, not <section>: site.css gives every section 80px padding.
 - 0006_job_photos.sql applied on live Supabase (tinted-carstory) 2026-10-26 by the owner via SQL editor; verified: RLS + 3 policies, bukti bucket (2 MB, webp/jpeg) + 3 staff policies, no anon access to table/bucket/cert_photos.
+
+### Same session: old-code audit follow-up (branch claude/wizardly-fermi-4q1fbq, NOT released)
+- Staff job screen bug: after saving a VLT reading (or price) it always said "Kerja ini baru dikemaskini di
+  telefon lain... belum disimpan" because the form held "72" (text) and the saved job 72 (number). Form
+  values are now text (`toForm`, JobDrawer.jsx); closing with unsaved changes asks. Live logs showed no
+  PATCH from the owner's try, so the owner likely closed without saving or read the warning as a failure.
+- /harga/, /panduan-jpj/, /privasi/: blue band + white sheet (`src/public/doc.css`, `.dp*`); /harga/'s tint
+  preview is a full-width `#filem.studio` like the homepage. /sijil/ on the blue `bk-page`, own "not found"
+  with a WhatsApp button, og:title/description for the WhatsApp preview.
+- Privacy notice now lists the meter + finished-car photos and who can see them.
+- Removed dead code: old wizard/booking/customer-page CSS (~90 lines), next-free-slot loader (site.js),
+  carDiagram, vltRows/carPhoto, sizeForModel, unused colour vars. `wiz-*` hooks renamed `bk-total` / `bk-strip-t`.
+- FAQ "lulus JPJ" -> "ikut had JPJ". Tests: UI 78/78, logic + report pass, taste lint 0 FAIL.

@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#0b1231">
 <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Exo+2:wght@700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <title>Notis Privasi | Tinted Carstory</title>
 <meta name="description" content="Notis privasi Tinted Carstory: data apa yang dikumpul semasa tempahan, kenapa, siapa boleh lihat, dan hak anda.">
 <link rel="canonical" href="%SITE_URL%/privasi/">
@@ -16,16 +16,18 @@
 <meta property="og:url" content="%SITE_URL%/privasi/">
 
 </head>
-<body>
+<body class="v4 on-photo">
 <a class="skip" href="#main">Langkau ke kandungan</a>
 <!--@header:/privasi/-->
-<main id="main">
-<article class="wrap article page-head">
+<main id="main" class="dp">
+<div class="dp-head"><div class="wrap">
   <p class="crumb"><a href="/">Utama</a> / Privasi</p>
   <h1>Notis privasi</h1>
   <p class="lead" style="margin-top:16px">Notis ini dibuat di bawah Akta Perlindungan Data Peribadi 2010 (dipinda 2024).</p>
+</div></div>
+<div class="wrap dp-wrap"><article class="dp-body article">
   <h2>Data yang kami kumpul</h2>
-  <p>Semasa anda menempah: nama, nombor telefon, model kereta, nombor plat (jika diberi) dan catatan anda. Selepas kerja siap: bacaan VLT cermin, jenis filem, harga dan bayaran.</p>
+  <p>Semasa anda menempah: nama, nombor telefon, model kereta, nombor plat (jika diberi) dan catatan anda. Selepas kerja siap: bacaan VLT cermin, foto meter VLT pada cermin dan foto kereta selepas siap (yang mungkin menunjukkan nombor plat), jenis filem, harga dan bayaran.</p>
   <h2>Kenapa</h2>
   <ul>
     <li>Menguruskan tempahan anda dan menghubungi anda tentangnya.</li>
@@ -34,13 +36,13 @@
   </ul>
   <p>Kami tidak menjual data anda dan tidak menghantar iklan pukal.</p>
   <h2>Siapa boleh lihat</h2>
-  <p>Hanya pemilik dan pekerja kedai, melalui akaun log masuk masing-masing. Data disimpan pada pembekal pangkalan data kami (Supabase). Pautan sijil hanya menunjukkan nama pertama dan sebahagian nombor plat.</p>
+  <p>Hanya pemilik dan pekerja kedai, melalui akaun log masuk masing-masing. Data disimpan pada pembekal pangkalan data kami (Supabase). Pautan sijil hanya menunjukkan nama pertama dan sebahagian nombor plat. Foto meter dan foto kereta dalam sijil anda hanya dipaparkan melalui pautan sijil dan pautan tempahan anda sendiri.</p>
   <h2>Berapa lama</h2>
   <p>Selagi waranti anda masih berjalan, dan satu tahun selepas itu, kemudian dipadam.</p>
   <h2>Hak anda</h2>
   <p>Anda boleh meminta salinan, pembetulan atau pemadaman data anda, atau berhenti menerima mesej susulan, dengan WhatsApp kepada %PHONE1%.</p>
   <p class="note">Pengawal data: %ADDRESS%.</p>
-</article>
+</article></div>
 </main>
 <!--@footer-->
 <script type="module" src="/src/public/site.js"></script>

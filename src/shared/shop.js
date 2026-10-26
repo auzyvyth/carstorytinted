@@ -79,11 +79,3 @@ export const CAR_MODELS = [
   ...['Toyota Hilux', 'Toyota Fortuner', 'Toyota Alphard', 'Toyota Vellfire', 'Toyota Hiace', 'Mitsubishi Triton', 'Mitsubishi Pajero Sport',
     'Nissan Navara', 'Ford Ranger', 'Isuzu D-Max', 'Hyundai Starex', 'Nissan Urvan'].map((m) => [m, 'large']),
 ];
-// "myvi 2021" / "Myvi" / "perodua myvi" -> 'small'. Longest name wins ("Corolla Cross" before "Corolla").
-export function sizeForModel(text) {
-  const t = String(text || '').toLowerCase().replace(/\s+/g, ' ').trim();
-  if (t.length < 3) return null;
-  const hit = [...CAR_MODELS].sort((a, b) => b[0].length - a[0].length)
-    .find(([m]) => { const short = m.split(' ').slice(1).join(' ').toLowerCase(); return t.includes(m.toLowerCase()) || t.includes(short); });
-  return hit ? hit[1] : null;
-}

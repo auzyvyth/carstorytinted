@@ -7,11 +7,6 @@ import { SHOP, CAR_SIZES, JPJ, waLink, displayPhone, fullAddress } from './shop.
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export const rm = (n) => `RM${Math.round(Number(n)).toLocaleString('en-MY')}`;
-// VLT readings with the JPJ verdict. Shared by the certificate (/sijil/) and the
-// customer's own page (/urus/), so the two can never disagree about pass/fail.
-// With photo proof (0006_job_photos.sql), each reading carries the meter photo taken on
-// that window; tapping it opens the full picture.
-const PHOTO_ALT = { windscreen: 'cermin depan', front: 'tingkap sisi depan', rear: 'tingkap belakang' };
 // The windows on a certificate, in order. min 0 = no JPJ limit.
 export const VLT_WINDOWS = [
   { kind: 'windscreen', key: 'vlt_windscreen', label: 'Cermin depan', short: 'Depan', min: JPJ.windscreen },
@@ -28,25 +23,6 @@ export const MEETS_JPJ = 'Memenuhi had JPJ semasa diukur';
 export function jpjSummary(c) {
   const v = VLT_WINDOWS.filter((w) => w.min).map((w) => verdictOf(c[w.key], w.min));
   return v.includes('bad') ? 'bad' : v.every((x) => x === 'ok') ? 'ok' : null;
-}
-const photoOf = (c, kind) => (Array.isArray(c.photos) ? c.photos : []).find((p) => p.kind === kind && /^(https:|data:image\/|\/)/.test(String(p.url)));
-const thumb = (p, alt) => `<a class="cert-thumb" href="${esc(p.url)}" target="_blank" rel="noopener"><img src="${esc(p.url)}" alt="Foto meter VLT pada ${alt}" loading="lazy" width="64" height="48"></a>`;
-export function vltRows(c) {
-  const row = (kind, label, v, min) => {
-    if (v === null || v === undefined) return '';
-    const vd = verdictOf(v, min);
-    const verdict = vd === 'free' ? '<span class="muted">Tiada had</span>' : `<span class="${vd === 'ok' ? 'pass' : 'fail'}"><i class="dot"></i>${VERDICT_WORD[vd]}</span>`;
-    const p = photoOf(c, kind);
-    return `<div class="cert-row${p ? ' has-thumb' : ''}">${p ? thumb(p, PHOTO_ALT[kind]) : ''}<span>${label}${min ? ` <small class="muted">(min ${min}%)</small>` : ''}</span><b>${v}% ${verdict}</b></div>`;
-  };
-  const rows = row('windscreen', 'Cermin depan', c.vlt_windscreen, JPJ.windscreen) + row('front', 'Tingkap sisi depan', c.vlt_front, JPJ.frontSide) + row('rear', 'Belakang', c.vlt_rear, 0);
-  if (!rows) return '<p class="note">Bacaan VLT tidak direkodkan untuk kerja ini.</p>';
-  const sum = jpjSummary(c);
-  const head = sum === 'ok' ? `<p class="note"><span class="pass">${MEETS_JPJ}.</span></p>` : sum === 'bad' ? '<p class="note"><span class="fail">Ada cermin di bawah had JPJ semasa diukur.</span></p>' : '';
-  const shot = (Array.isArray(c.photos) ? c.photos : []).find((p) => p.kind !== 'car');
-  // The time is the server's upload time (0006), so it is worth saying so.
-  const stamp = shot?.at ? `<p class="cert-proof">Foto meter diambil di kedai, ${esc(timeLabel(shot.at))}. Masa dicatat oleh sistem semasa foto dimuat naik.</p>` : '';
-  return rows + head + stamp;
 }
 // Top-down car, front on the left. Glass shapes carry data-kind so a tap picks that window;
 // the labels above it (each over its own window) are the real buttons, the drawing is decoration.
@@ -82,17 +58,6 @@ export function certSample() {
     <div class="pp-car-plan">${lbl('front', 'Depan', '72%', 'ok')}${lbl('mid', 'Sisi depan', '52%', 'ok')}${lbl('back', 'Belakang', '18%', 'free')}<div class="pp-svg-wrap">${carPlanSvg('windscreen')}</div></div></div>
   <div class="pp-warranty"><div class="pp-ring" aria-hidden="true">5<small>thn</small></div><div><p class="pp-wh">Waranti 5 tahun</p><p>Foto meter VLT pada cermin, masa dicatat oleh sistem. Pautan sijil dihantar melalui WhatsApp.</p></div></div>
 </div>`;
-}
-// The finished car, above the certificate details. '' when there is no such photo.
-export function carPhoto(c) {
-  const p = photoOf(c, 'car');
-  return p ? `<a class="cert-car" href="${esc(p.url)}" target="_blank" rel="noopener"><img src="${esc(p.url)}" alt="Kereta selepas siap dipasang tinted" loading="lazy"></a>` : '';
-}
-const MON = ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun', 'Jul', 'Ogo', 'Sep', 'Okt', 'Nov', 'Dis'];
-// "2026-10-26T12:14" (shop time, from the server) -> "26 Okt 2026, 12:14".
-function timeLabel(at) {
-  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2})/.exec(String(at));
-  return m ? `${Number(m[3])} ${MON[Number(m[2]) - 1]} ${m[1]}, ${m[4]}` : '';
 }
 export const hasNum = (v) => v !== null && v !== undefined && v !== '' && !Number.isNaN(Number(v));
 
@@ -406,27 +371,6 @@ export function priceTable(catalog) {
   return `<div class="table-scroll"><table class="prices"><thead><tr><th scope="col">Saiz kereta</th>${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
-// Top-down car with each glass zone coloured by how dark JPJ allows it to go.
-export function carDiagram() {
-  return `<svg class="car" viewBox="0 0 220 340" role="img" aria-label="Rajah had tinted JPJ: cermin depan ${JPJ.windscreen}%, tingkap depan ${JPJ.frontSide}%, belakang tiada had">
-  <rect x="34" y="12" width="152" height="316" rx="54" fill="var(--car-body)"/>
-  <rect x="42" y="20" width="136" height="300" rx="48" fill="none" stroke="var(--car-edge)"/>
-  <path d="M56 84 Q110 58 164 84 L154 124 Q110 112 66 124 Z" fill="var(--glass-70)"/>
-  <rect x="40" y="134" width="12" height="62" rx="5" fill="var(--glass-50)"/>
-  <rect x="168" y="134" width="12" height="62" rx="5" fill="var(--glass-50)"/>
-  <rect x="40" y="204" width="12" height="56" rx="5" fill="var(--glass-0)"/>
-  <rect x="168" y="204" width="12" height="56" rx="5" fill="var(--glass-0)"/>
-  <path d="M66 272 Q110 282 154 272 L162 300 Q110 314 58 300 Z" fill="var(--glass-0)"/>
-  <rect x="66" y="132" width="88" height="130" rx="14" fill="var(--car-roof)"/>
-  <g font-family="Plus Jakarta Sans, system-ui, sans-serif" font-weight="700" text-anchor="middle">
-    <text x="110" y="104" font-size="15" fill="var(--glass-70-ink)">${JPJ.windscreen}%</text>
-    <text x="110" y="172" font-size="13" fill="var(--car-label)">${JPJ.frontSide}%</text>
-    <text x="110" y="189" font-size="10" fill="var(--car-label-2)" font-weight="500">tingkap depan</text>
-    <text x="110" y="236" font-size="13" fill="var(--car-label)">Bebas</text>
-    <text x="110" y="252" font-size="10" fill="var(--car-label-2)" font-weight="500">belakang</text>
-  </g>
-</svg>`;
-}
 
 export const FAQ = [
   ['Adakah tinted di sini ikut had JPJ?',

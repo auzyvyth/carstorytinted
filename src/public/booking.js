@@ -105,7 +105,7 @@ function summary() {
   <p class="bk-sum-h">Tempahan anda</p>
   ${lookPlan()}
   ${rows ? `<div class="bk-rows">${rows}</div>` : '<p class="bk-empty">Jawapan anda muncul di sini.</p>'}
-  ${price ? `<div class="bk-price"><span>Anggaran</span><b class="wiz-total">${price}</b></div><p class="bk-pay">Bayar di kedai selepas siap. Tiada deposit.</p>` : ''}
+  ${price ? `<div class="bk-price"><span>Anggaran</span><b class="bk-total">${price}</b></div><p class="bk-pay">Bayar di kedai selepas siap. Tiada deposit.</p>` : ''}
 </aside>`;
 }
 // Phones: one line instead of the panel, so the question stays on the first screen.
@@ -113,7 +113,7 @@ function strip() {
   const size = sizeOf(), f = film(), price = priceHtml();
   const bits = [size?.label, f?.name, HAS_LOOK && [LOOKV.windscreen, LOOKV.front, LOOKV.rear].filter((v) => v !== null).join(' · ') + '%'].filter(Boolean);
   if (!bits.length && !price) return '';
-  return `<div class="bk-strip">${COLOUR ? `<i style="background:${COLOUR[2]}" aria-hidden="true"></i>` : ''}<span class="wiz-look">${esc(bits.join(' · '))}${COLOUR ? ` ${esc(COLOUR[1])}` : ''}</span>${price ? `<b class="wiz-total">${price}</b>` : ''}</div>`;
+  return `<div class="bk-strip">${COLOUR ? `<i style="background:${COLOUR[2]}" aria-hidden="true"></i>` : ''}<span class="bk-strip-t">${esc(bits.join(' · '))}${COLOUR ? ` ${esc(COLOUR[1])}` : ''}</span>${price ? `<b class="bk-total">${price}</b>` : ''}</div>`;
 }
 
 // ---------------------------------------------------------------- the questions
