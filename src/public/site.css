@@ -741,3 +741,6 @@ a { color: var(--papan); }
 .wordmark { font-size: var(--step-lead); }
 .mast-nav a, .btn-cta, .btn-sun, .btn-win, .foot-cols a, .foot-cols h4, .foot-addr p, .foot-base { font-size: var(--step-small); }
 @media (max-width: 720px) { .blk { flex: 1 0 calc(12.5% - 4px); font-size: 26px; min-height: 56px; } }
+
+/* desktop: the links sit on the right, beside the one action */
+@media (min-width: 861px) { .mast-nav { justify-content: flex-end; gap: 32px; } }
