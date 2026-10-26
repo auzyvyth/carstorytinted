@@ -226,38 +226,50 @@ Open:
 - Older items above still open (back view, BMW badge, real hero photo, captions, free-days card,
   Google review link, prices, hours, Vercel access, merge only on owner's go-ahead).
 
-## Session 2026-10-26 (3) (branch ccr-d7d3bf16-v6jrgq, from a969112; main = 772d224, not merged)
-Polish on the sections under the tint preview (Servis lain, Cara tempah, Had JPJ, Soalan lazim):
-- Certificate sample + footer: the header's dark-banner logo (`.v4 .wordmark`: white/yellow text, T mark,
-  "PREMIUM AUTO CARE") leaked onto these light cards, so the name was unreadable and the tagline invisible.
-  Scoped to `.v4 .mast .wordmark` in hero.css; the cert and footer show the plain blue/ink wordmark again.
-- "Had JPJ" eyebrow was 12px while every other section's was 15px (they inherited `.sec-head p`'s size).
-  `.sec-head .eyebrow, .proof .eyebrow` now set 15px on purpose.
-- Servis lain: `.svc-grid` uses auto-fit, so two services fill the row instead of leaving an empty third column.
-- Tests: UI 57/57, report + logic pass.
-- Colour tokens (user, 2026-10-26: "use tokens from now on for these sections"): brand colours carry
-  `--accent-rgb` / `--orange-rgb` / `--sun-rgb` next to their hex; `--grad`, `--glow` (the `.glow` blobs)
-  and `--glass*` (frosted cards) are built from them. Servis lain reads only `--svc-*` tokens set on
-  `#servis`. Do the same for each section as it gets reworked (Cara tempah, Had JPJ, Soalan lazim next).
-- Servis lain: third card "Polish lampu depan" (headlamp polish) in catalog.default.json. NAME/WORDING TO
-  CONFIRM with the owner. The live site reads services from the DB (`shop_settings.site`), so the owner
-  must add it in Tetapan > Laman web for it to show in production.
-- Servis lain, owner's direction (2026-10-26, replaces the dark/photo version, which the owner rejected):
-  layout copied from his reference shot: big heading top-left, white cards stepping up to the right
-  (`--svc-step`) with the `--grad` edge (`--svc-border`), an icon per service id (`SVC_ICONS` in render.js; unknown ids get a spanner), on the tint
-  preview's blue (`--blue-ground-up`, the same blue flipped so it joins #filem with no edge). Cards fade in
-  one after another on scroll (`.reveal` + `--i` delay). Theme for the remaining sections: WAIT for the
-  owner's direction, do not convert them. `theme-dark` / `theme-light` token sets stay in site.css, unused.
-- Cara tempah = owner's pick F of 7 mockups (2026-10-26): `#cara` in index.html. The shop's hex ceiling as a
-  background pattern (inline SVG, faded in from the right and from the top), a hexagon marker per step that
-  "switches on" like the bay lights as the steps fade in one by one. On `--blue-ground` (dark top, joins the
-  bottom of Servis lain). Colours only via `--stp-*`. Old `.steps/.step` CSS (01/02/03 numbers) removed.
-  Next up: Had JPJ, Soalan lazim, Lokasi, footer (still pastel). Wait for the owner's direction on each.
-- Phone order = desktop order (owner, 2026-10-26): the tint preview car + sliders NO LONGER move into the
-  hero on phones; they stay in `#filem` after Hasil kerja kami, as on desktop. Removed the `[data-hero-tint]`
-  slot (index.html), the move in tint.js and the `.hero-tint` rules (hero.css). The phone hero shows the
-  banner car again. (The hero booking card is still desktop-only; owner left that as is.)
-- Section order (owner, 2026-10-26), same on desktop and phones: hero -> Lihat hasilnya dulu (#filem) ->
-  Hasil kerja kami (#kerja) -> Servis lain -> Cara tempah -> ... The hero booking card (#borang) now shows on
-  phones too, under the hero buttons/badges (its styles moved out of the desktop-only media query in hero.css);
-  the hero's "Tempah Slot, Bayar di Kedai" button scrolls to it on phones as well.
+## Session end 2026-10-26 (3) (branch ccr-d7d3bf16-v6jrgq, head after this commit; main = 772d224, not merged)
+Branch starts from claude/tinted-carstory-handoff-wkkh3o (a969112), so it carries session (2) too.
+Nothing deployed, no PR. Tests: UI 57/57, report + logic pass.
+
+Page order now (desktop AND phones, owner): hero (with the booking card) -> Lihat hasilnya dulu (#filem)
+-> Hasil kerja kami (#kerja) -> Servis lain -> Cara tempah -> Had JPJ -> Soalan lazim -> Lokasi -> footer.
+
+Shipped:
+- Hero booking card (#borang) shows on phones too, under the buttons/badges; its styles left the desktop-only
+  media query (hero.css). "Tempah Slot, Bayar di Kedai" scrolls to it on every screen.
+- Tint preview no longer moves into the phone hero ([data-hero-tint] slot, tint.js move, .hero-tint CSS removed).
+- Servis lain (render.js `servicesSection`/`servicesHtml`): owner's reference layout. Heading top-left, white
+  cards stepping up to the right (`--svc-step`), `--grad` border (`--svc-border`), an icon per service id
+  (`SVC_ICONS`; unknown ids get a spanner), whole card = WhatsApp link, staggered fade-in (`.reveal` + `--i`).
+  Ground `--blue-ground-up` (the tint preview blue flipped so the join has no edge). 582px tall on desktop.
+  Third card "Polish lampu depan" added to catalog.default.json.
+- Cara tempah (#cara, index.html): owner's pick F of 7 mockups. The shop's hex ceiling as a background pattern
+  (inline SVG, faded from the right and top), a hexagon per step that switches on like the bay lights as the
+  steps fade in. Ground `--blue-ground`. 01/02/03 strip CSS removed.
+- Fixes: header logo styles (`.v4 .wordmark`) leaked onto the certificate sample + footer (unreadable) ->
+  scoped to `.v4 .mast .wordmark`. "Had JPJ" eyebrow size now matches the others.
+
+Colour tokens (owner: "tokens from now on, change colour in a split second"):
+- Brand colours in `:root` of site.css carry hex + `-rgb` channels (`--accent`, `--orange`, `--sun`); change
+  both forms together. `--grad`, `--glow`, `--glass*`, `--blue-ground(-up)` are built from tokens.
+- Each reworked section reads only its own tokens, set on the section: `--svc-*` (#servis), `--stp-*` (#cara).
+  Do the same for every section reworked next.
+- `.theme-dark` / `.theme-light` token sets exist in site.css but are UNUSED: the owner rejected the all-dark
+  restyle. Do not restyle a section on your own; owner gives direction per section (mockups worked well:
+  build 5-7 options as screenshots, let him pick).
+
+Open:
+- Next sections, wait for the owner's direction: Had JPJ, Soalan lazim, Lokasi, footer (still pastel,
+  eyebrows, Plus Jakarta Sans).
+- "Polish lampu depan" name/wording to confirm; production reads services from the DB, so it shows live only
+  after the owner adds it in Tetapan > Laman web.
+- Make it work for real (README Setup 2-4): push keys, `notify-staff` deploy + secrets, staff users. Until
+  then bookings save but no one is alerted.
+- Hosting/cost (answered for the owner pitch): Supabase Free is enough for one shop (add a weekly backup
+  job; keep the project in the shop owner's own org to avoid the 2-free-projects limit). Vercel Hobby is
+  non-commercial only: move to Cloudflare Pages (free, commercial OK, same build + 2 env vars) or pay Vercel Pro.
+- Ideas raised, not built: live "next free slot" line near the booking button, Google reviews, team/videos
+  content, real before/after photos.
+- Older items still open (see (2) above): colours stocked, picks on the certificate, back view, BMW badge,
+  real hero photo, captions, prices, hours, Vercel access, merge only on owner's go-ahead.
+- Mockup + inspector tooling: `.taste-skill/` is gitignored; the design-taste inspector needs
+  CHROME_PATH pointing at a wrapper that adds `--no-sandbox` (running as root).
