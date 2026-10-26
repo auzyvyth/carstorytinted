@@ -16,6 +16,32 @@
 .hero-services { font-family: var(--display); font-weight: 700; font-size: clamp(19px, 1.8vw, 28px); line-height: 1.25; letter-spacing: -0.02em; color: #fff; margin-top: 24px; }
 .hero-lead { font-family: var(--display); font-weight: 500; font-size: clamp(16px, 1.3vw, 20px); line-height: 1.4; color: rgba(255, 255, 255, .78); margin-top: 10px; max-width: none; }
 .hero-trust { list-style: none; display: flex; flex-wrap: wrap; margin-top: 28px; font-family: var(--display); font-weight: 500; font-size: var(--step-small); color: rgba(255, 255, 255, .8); }
+/* the slice: a 30-degree cut through the middle (top leans left), the right side one tone darker.
+   The three service links hang off the cut; each is skewed about its bottom-left corner so its
+   sides run parallel to the cut. tan(30deg) = .57735. */
+.slice-link { display: flex; align-items: center; justify-content: space-between; gap: 24px; text-decoration: none; color: #fff;
+  font-family: var(--display); font-weight: 700; font-size: 20px; letter-spacing: -0.02em; -webkit-tap-highlight-color: transparent; }
+.slice-link svg { width: 22px; height: 22px; flex: none; transition: transform .2s cubic-bezier(.2, .9, .3, 1); }
+@media (min-width: 861px) {
+  .hero { --h: max(560px, min(100svh, 980px)); --mid: 56%; height: var(--h); }
+  .hero::after { content: ''; position: absolute; inset: 0; z-index: -1; background: rgba(6, 8, 12, .5);
+    clip-path: polygon(calc(var(--mid) - var(--h) * .288675) 0, 100% 0, 100% 100%, calc(var(--mid) + var(--h) * .288675) 100%); }
+  .slice { position: absolute; inset: 0; pointer-events: none; }
+  .slice-link { --lh: 72px; position: absolute; width: min(320px, 26vw); height: var(--lh); padding: 0 22px 0 26px; pointer-events: auto;
+    top: calc(var(--h) * var(--y));
+    left: calc(var(--mid) + (var(--h) * var(--y) + var(--lh) - var(--h) / 2) * .57735);
+    font-size: clamp(24px, 2.2vw, 34px); transform: skewX(30deg); transform-origin: 0 100%;
+    box-shadow: inset 0 -1px rgba(255, 255, 255, .5); transition: background-color .18s, color .18s, box-shadow .18s, transform .1s ease-out; }
+  .slice-link > * { transform: skewX(-30deg); }
+  .slice-link:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+  .slice-link:active { transform: skewX(30deg) scale(.97); }
+}
+@media (min-width: 861px) and (hover: hover) {
+  .slice-link:hover { background: var(--huruf); color: var(--ink); box-shadow: inset 0 -1px var(--huruf); }
+  .slice-link:hover svg { transform: skewX(-30deg) translateX(4px); }
+}
+@media (min-width: 861px) and (prefers-reduced-motion: reduce) { .slice-link:active { transform: skewX(30deg); } }
+
 /* a run of short items, split by small sign-yellow dots */
 .hero-services, .hero-lead, .hero-trust { display: flex; flex-wrap: wrap; align-items: center; }
 .hero-services span, .hero-lead span, .hero-trust li { display: flex; align-items: center; }
@@ -46,6 +72,12 @@
   .hero-lead span + span::before, .hero-trust li + li::before { content: none; }
   .hero-btns { flex-direction: column; align-items: stretch; max-width: 360px; margin: 28px auto 0; }
   .hero-go, .hero-ghost { justify-content: center; }
+  .hero-go, .hero-services { display: none; }
+  .slice { display: grid; max-width: 360px; margin: 24px auto 0; }
+  .slice-link { min-height: 56px; padding: 0 4px; box-shadow: inset 0 -1px rgba(255, 255, 255, .45); transition: transform .1s ease-out, color .15s; }
+  .slice-link:active { transform: scale(.98); color: var(--huruf); }
+  .slice-link svg { color: var(--huruf); }
+  .hero-btns { margin-top: 20px; }
 }
 
 .win-dot { content: ''; flex: none; width: 22px; height: 12px; background: var(--papan); clip-path: polygon(0 0, 70% 0, 100% 100%, 0 100%); display: inline-block; }
