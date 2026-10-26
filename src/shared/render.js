@@ -124,11 +124,12 @@ const clampVlt = (f, v) => (Array.isArray(f.vlt) ? Math.min(f.vlt[1], Math.max(f
 // (public/tint/*: windscreen, front side, rear), each darkened by a film layer.
 // Front glass is drawn at the JPJ limits; tint.js moves only .tint-rear.
 // The photo is AI-generated (owner, 2026-10-26), so it is labelled as an illustration.
+// Masks: public/tint/car-front-*.png at 2x, alpha measured from the owner's magenta-glass copy.
 const TINT = '#06080d';
 function carSvg(rearVlt) {
-  const layer = (zone, cls, vlt) => `<i class="cp-tint ${cls}" style="--m:url(/tint/saga-front-${zone}.png);opacity:${tintOpacity(vlt)}"></i>`;
+  const layer = (zone, cls, vlt) => `<i class="cp-tint ${cls}" style="--m:url(/tint/car-front-${zone}.png);opacity:${tintOpacity(vlt)}"></i>`;
   return `<div class="car-view car-photo" role="img" aria-label="Pratonton tinted: cermin belakang ${rearVlt}%, cermin depan ${JPJ.windscreen}%, tingkap sisi depan ${JPJ.frontSide}%">
-  <img class="cp-base" src="/tint/saga-front.webp" alt="" width="1264" height="848" loading="lazy" decoding="async">
+  <img class="cp-base" src="/tint/car-front.webp" alt="" width="1264" height="848" loading="lazy" decoding="async">
   ${layer('ws', 'tint-ws', JPJ.windscreen)}${layer('front', 'tint-front', JPJ.frontSide)}${layer('rear', 'tint-rear', rearVlt)}
   <i class="cp-sheen" aria-hidden="true"></i>
   <span class="cp-tag cp-tag-rear">Belakang <b data-rear-tag>${rearVlt}%</b></span>

@@ -537,15 +537,15 @@ main.book .page-head .crumb { margin-bottom: 8px; }
 .cp-tint, .cp-sheen { position: absolute; inset: 0; pointer-events: none;
   -webkit-mask: var(--m) center / 100% 100% no-repeat; mask: var(--m) center / 100% 100% no-repeat; }
 .cp-tint { background: #06080d; transition: opacity .3s ease; }
-.cp-sheen { --m: url(/tint/saga-front-glass.png); opacity: var(--glare, .7);
+.cp-sheen { --m: url(/tint/car-front-glass.png); opacity: var(--glare, .7);
   background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, .22) 45%, transparent 60%) 0 0 / 300% 100% no-repeat;
   animation: cp-sheen 6s ease-in-out infinite; }
 @keyframes cp-sheen { 0% { background-position: 100% 0; } 60%, 100% { background-position: 0 0; } }
 .cp-tag { position: absolute; padding: 6px 10px; border-radius: 8px; background: rgba(6, 8, 13, .72); color: #fff; font-size: 13px; font-weight: 700; line-height: 1.2; white-space: nowrap; }
 .cp-tag b { color: #ffc71a; }
 .cp-tag small { display: block; font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, .7); }
-.cp-tag-rear { right: 6%; top: 14%; }
-.cp-tag-front { left: 30%; top: 12%; }
+.cp-tag-rear { right: 3%; top: 17%; }
+.cp-tag-front { left: 52%; top: 12%; }
 .cp-note { margin-top: 8px; font-size: 12px; text-align: center; opacity: .6; }
 @media (max-width: 860px) { .cp-tag { font-size: 11px; padding: 4px 8px; } .cp-tag small { font-size: 10px; } }
 @media (prefers-reduced-motion: reduce) { .cp-sheen { animation: none; } }
