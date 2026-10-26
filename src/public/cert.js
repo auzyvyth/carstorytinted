@@ -5,10 +5,13 @@
 // Wording: the certificate is the SHOP's record. JPJ certifies no tint shop, so it says
 // "Memenuhi had JPJ semasa diukur", never "Lulus JPJ" / "Diluluskan JPJ".
 import './site.css';
+import './hero.css';
 import './cert.css';
+import './booking.css';
+import './manage.css';
 import './nav.js';
 import { rpc, apiReady, dateLabel } from '../shared/api.js';
-import { SHOP, fullAddress } from '../shared/shop.js';
+import { SHOP, fullAddress, waLink } from '../shared/shop.js';
 import { esc, VLT_WINDOWS, verdictOf, VERDICT_WORD, MEETS_JPJ, jpjSummary, carPlanSvg as plan } from '../shared/render.js';
 import { saveImage, vltData } from './saveImage.js';
 
@@ -97,7 +100,9 @@ function pick(kind) {
 }
 
 function missing(msg) {
-  box.innerHTML = `<div class="panel" style="max-width:520px;margin:0 auto;text-align:center"><h2>Sijil tidak dijumpai</h2><p class="muted" style="margin-top:8px">${msg}</p></div>`;
+  const c = SHOP.contacts[0];
+  box.innerHTML = `<div class="bk-done" style="margin:0 auto;max-width:520px"><h1 class="bk-q">Sijil tidak dijumpai</h1><p class="bk-hint">${msg}</p>
+  <div class="bk-done-btns"><a class="form-go" href="${waLink(c.phone, 'Salam, saya perlukan pautan sijil tinted saya. Nama: , No. plat: ')}" rel="noopener">WhatsApp untuk pautan baru</a></div></div>`;
 }
 
 if (!apiReady) missing('Sistem sijil belum aktif.');

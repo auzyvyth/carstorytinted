@@ -133,7 +133,7 @@ div.bk-row { cursor: default; }
   .bk-only-phone { display: block; margin-top: 18px; }
   .bk-strip { display: flex; align-items: center; gap: 10px; margin: -6px 0 16px; padding: 10px 14px; border-radius: 10px; background: rgba(255,255,255,.06); font-size: 14px; }
   .bk-strip i { flex: none; width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(255,255,255,.4); }
-  .bk-strip .wiz-look { flex: 1; min-width: 0; color: var(--k-grey); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bk-strip .bk-strip-t { flex: 1; min-width: 0; color: var(--k-grey); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .bk-strip b { flex: none; font-weight: 700; color: var(--k-yellow); font-variant-numeric: tabular-nums; }
   .bk-strip b small { font-size: 12px; color: var(--k-grey); }
 }

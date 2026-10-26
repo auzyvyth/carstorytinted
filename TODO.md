@@ -5,6 +5,11 @@ built. Only the "Sell" section is being done now. Everything after it waits for
 the owner (Maliki) to agree and pay.
 
 ## 0. Next build (agreed 2026-09-28)
+- [ ] **DASH-1 (owner, 2026-10-26): staff + owner dashboard redesign, after the public pages.**
+      Model it on the ShiftOS Salesman Premium dashboard (owner: "like how we did ShiftOS salesman
+      premium dashboard"): one setup list, a "this week" call list at the top, quiet stat tiles,
+      one accent, depth by tone. Supersedes UI-1 below; read ShiftOS DASHBOARD_DESIGN.md and
+      src/pages/salesmanPremium/DashboardTab.jsx first. Fold CRM-1 (fewer typed fields) into it.
 - [x] **UI-1 (done 2026-10-25): staff + owner dashboards back to a WHITE theme, with the Salesman Premium
       DESIGN (not its dark colours).** The 2026-09-28 restyle copied Premium's dark palette;
       the owner meant its look: soft blurred colour smudges behind cards
@@ -58,9 +63,6 @@ the owner (Maliki) to agree and pay.
       setup, what is monthly, what is a paid add-on.
 
 ## 2. On signing: setup (included in the setup fee)
-- [ ] **Run `0006_job_photos.sql`** in the Supabase SQL editor (photo proof: `job_photos` table,
-      `bukti` bucket, photos on the certificate). Until it runs, the photo slots in the job
-      screen fail to save and the certificate shows no photos.
 - [ ] **PHOTO-PURGE: delete meter photos when the warranty ends** (PDPA: car + plate linked to a
       customer is personal data). Not automated yet: needs an edge function on a daily cron that
       removes the `bukti` files and `job_photos` rows where `jobs.warranty_until < today`

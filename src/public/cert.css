@@ -82,3 +82,6 @@
   .pp-sample .pp-svg-wrap { max-width: 260px; margin: 0 auto; }
   .pp-sample .pp-warranty { padding: 10px 14px; }
 }
+/* On the blue certificate page (/sijil/) the card sits a tone lighter than the page. */
+.bk-page .pp:not(.mg-cert) { background: linear-gradient(rgba(255,255,255,.05), rgba(255,255,255,.05)), var(--blue-ground); }
+.bk-page .pp-actions .btn { color: #0b1231; }

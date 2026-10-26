@@ -32,7 +32,6 @@ function shopPages(siteUrl, demo) {
     team: () => R.teamSection(catalog),
     videos: () => R.videosSection(catalog),
     prices: () => R.pricesHtml(catalog),
-    car: () => R.carDiagram(),
     faq: () => R.faqHtml(),
     footer: () => R.footer(),
     contacts: () => R.contactsHtml(),

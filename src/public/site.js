@@ -1,8 +1,10 @@
-// Shared by every public page: live prices + the hero's next-free-slot card.
+// Shared by every public page: live prices and the tint preview.
 // The HTML already holds the build-time copy, so a failed call changes nothing.
 import './site.css';
+import './hero.css';  // the blue header every public page now shares
+import './doc.css';
 import './nav.js';
-import { rpc, apiReady, shopDate, dayParts } from '../shared/api.js';
+import { rpc, apiReady } from '../shared/api.js';
 import { tintStudio, pricesHtml, servicesSection, teamSection, videosSection } from '../shared/render.js';
 import { mountStudio } from './tint.js';
 
@@ -50,29 +52,6 @@ function reveal(root = document) {
 }
 reveal();
 
-// Three soonest days that still have a free slot, each linking straight into
-// the booking page with that day chosen.
-async function paintNextSlots() {
-  const box = document.querySelector('[data-next-slots]');
-  if (!box) return;
-  // No live data: keep the card (the hero is built around it) and just point to booking.
-  const fallback = () => { box.innerHTML = '<p class="muted" style="grid-column:1/-1">Lihat semua slot kosong dan tempah dalam 1 minit.</p>'; };
-  if (!apiReady) { fallback(); return; }
-  try {
-    const rows = await rpc('available_slots', { p_from: shopDate(0), p_days: 14 });
-    const byDay = new Map();
-    for (const r of rows) if (r.remaining > 0) byDay.set(r.day, (byDay.get(r.day) || 0) + 1);
-    const days = [...byDay.entries()].slice(0, 3);
-    if (!days.length) { box.innerHTML = '<p class="muted">Slot 2 minggu ini penuh. WhatsApp kami untuk tarikh lain.</p>'; return; }
-    box.innerHTML = days.map(([iso, n]) => {
-      const p = dayParts(iso);
-      return `<a class="slot-day" href="/tempah/?date=${iso}"><small>${p.short}</small><b>${p.date} ${p.mon}</b><small class="left">${n} slot</small></a>`;
-    }).join('');
-  } catch {
-    fallback();
-  }
-}
 
 mountStudio();
 paintPrices();
-paintNextSlots();

@@ -79,7 +79,7 @@ export async function saveImage(doc, fileName) {
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
-// VLT readings as image rows, same verdicts as vltRows() on the page.
+// VLT readings as image rows, same verdicts as the certificate (verdictOf in render.js).
 export function vltData(c) {
   return [['Cermin depan', c.vlt_windscreen, JPJ.windscreen], ['Tingkap sisi depan', c.vlt_front, JPJ.frontSide], ['Belakang', c.vlt_rear, 0]]
     .filter(([, v]) => v !== null && v !== undefined)
