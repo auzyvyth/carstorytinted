@@ -15,14 +15,14 @@
 <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Exo+2:wght@700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Exo+2:wght@700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <!--@ld-home-->
 </head>
 <body class="v4 on-photo">
 <a class="skip" href="#main">Langkau ke kandungan</a>
 <!--@header-->
 
-<main id="main" class="home">
+<main id="main">
 <section class="hero">
   <img class="hero-car" src="/hero-car.webp" alt="" width="524" height="722" fetchpriority="high">
   <div class="wrap hero-in">
@@ -44,68 +44,87 @@
   </div>
 </section>
 
-<section id="filem" class="show" data-rise>
-  <div class="wrap" data-show><!--@showcase--></div>
-</section>
-
-<section id="harga" class="prices-sec" data-rise>
+<section id="filem" class="studio">
   <div class="wrap">
-    <div class="sec-top"><h2>Harga</h2><p>Filem untuk 4 cermin sisi, ikut saiz kereta. Cermin depan, belakang dan sunroof ialah tambahan, di bawah.</p></div>
-    <div data-film-prices><!--@price-table--></div>
+    <div class="sec-head reveal">
+      <div><p class="eyebrow">Pilihan filem</p><h2>Lihat hasilnya <span class="accent">dulu</span>.</h2></div>
+      <p>Pilih filem, gelapkan cermin belakang, tengok rupa kereta anda. Semua filem sekat UV 99%. Harga penuh di <a href="/harga/">halaman harga</a>.</p>
+    </div>
+    <div data-films class="reveal"><!--@films--></div>
   </div>
 </section>
 
-<section id="sijil" class="proof-sec" data-rise>
-  <div class="wrap marks">
-    <div class="mark mark-head"><h2>Lulus JPJ, ada bukti</h2><p>JPJ ukur cermin kilang dan filem bersama. Kami ukur selepas pasang dan tulis bacaannya dalam sijil anda.</p></div>
-    <div class="mark"><b>%JPJ_WS%%</b><span>Cermin depan, paling gelap yang dibenarkan</span></div>
-    <div class="mark"><b>%JPJ_FS%%</b><span>Tingkap sisi depan, paling gelap yang dibenarkan</span></div>
-    <div class="mark mark-tiada"><b>Tiada had</b><span>Tingkap dan cermin belakang, sampai 5%</span></div>
-    <div class="mark"><b>%JPJ_FINE_SHORT%</b><span>Denda kesalahan pertama kalau terlalu gelap. <a href="/panduan-jpj/">Panduan had JPJ</a></span></div>
-    <div class="mark"><b>%WARRANTY_MAX% tahun</b><span>Waranti paling lama, untuk Nano Ceramic HD. Tarikhnya dalam sijil.</span></div>
-    <div class="mark mark-lost"><b>Hilang sijil?</b><span>Ia ada dalam pautan tempahan yang kami WhatsApp. <a href="https://wa.me/%WA1%?text=%WA_LOST%" rel="noopener">Minta semula</a></span></div>
-    <div class="mark mark-cert" aria-label="Contoh sijil">
-      <p class="cert-title">Sijil tinted, contoh</p>
-      <dl>
-        <div><dt>Kereta</dt><dd>Perodua Myvi, PKA 1***</dd></div>
-        <div><dt>Filem</dt><dd>Nano Ceramic HD</dd></div>
-        <div><dt>Cermin depan</dt><dd>72%, lulus</dd></div>
-        <div><dt>Tingkap depan</dt><dd>52%, lulus</dd></div>
-        <div><dt>Belakang</dt><dd>15%</dd></div>
-        <div><dt>Waranti hingga</dt><dd>12 Okt 2031</dd></div>
-      </dl>
+<div data-services><!--@services--></div>
+
+<section class="glow alt">
+  <div class="wrap">
+    <div class="sec-head reveal"><div><p class="eyebrow">Cara tempah</p><h2>Siap dalam tiga langkah.</h2></div></div>
+    <div class="steps reveal">
+      <div class="step"><h3>Pilih filem dan saiz</h3><p>Harga kereta kompak terus nampak. Saiz lain kami sahkan dulu.</p></div>
+      <div class="step"><h3>Pilih slot kosong</h3><p>Tempah online 24 jam. Tiada deposit.</p></div>
+      <div class="step"><h3>Datang, siap, dapat sijil</h3><p>Bayar di kedai selepas siap. Sijil dihantar ke WhatsApp.</p></div>
+    </div>
+    <a class="btn btn-cta" href="/tempah/">Tempah slot</a>
+  </div>
+</section>
+
+<section id="sijil" class="glow warm">
+  <div class="wrap proof">
+    <div class="reveal">
+      <p class="eyebrow">Had JPJ</p>
+      <h2>Lulus JPJ. Ada bukti.</h2>
+      <p class="lead">JPJ ukur cermin kilang dan filem bersama. Kami ukur selepas pasang dan rekod bacaannya dalam sijil anda.</p>
+      <div class="limits">
+        <div class="limit"><div class="limit-top"><span>Cermin depan</span><b>min %JPJ_WS%%</b></div><div class="bar"><i style="width:%JPJ_WS%%"></i></div></div>
+        <div class="limit"><div class="limit-top"><span>Tingkap sisi depan</span><b>min %JPJ_FS%%</b></div><div class="bar"><i style="width:%JPJ_FS%%"></i></div></div>
+        <div class="limit"><div class="limit-top"><span>Belakang</span><b>Tiada had</b></div></div>
+      </div>
+      <p class="note">Denda kesalahan pertama sehingga %JPJ_FINE%. <a href="/panduan-jpj/">Panduan penuh</a></p>
+      <p class="note"><b>Cari sijil dan resit anda:</b> buka pautan tempahan yang kami WhatsApp kepada anda. Semuanya di satu halaman. Hilang pautan? <a href="https://wa.me/%WA1%?text=%WA_LOST%" rel="noopener">WhatsApp kami</a>, kami hantar semula.</p>
+    </div>
+    <div class="cert reveal" aria-label="Contoh sijil">
+      <div class="cert-head"><span class="wordmark"><span>Tinted</span> Carstory</span><span class="muted" style="font-size:13px">Contoh sijil</span></div>
+      <div class="cert-row"><span>Kereta</span><b>Perodua Myvi · PKA 1***</b></div>
+      <div class="cert-row"><span>Filem</span><b>Nano Ceramic</b></div>
+      <div class="cert-row"><span>Cermin depan</span><b>72% <span class="pass"><i class="dot"></i>Lulus</span></b></div>
+      <div class="cert-row"><span>Tingkap depan</span><b>52% <span class="pass"><i class="dot"></i>Lulus</span></b></div>
+      <div class="cert-row"><span>Belakang</span><b>15%</b></div>
+      <div class="cert-row"><span>Waranti hingga</span><b>12 Okt 2031</b></div>
     </div>
   </div>
 </section>
 
-<section id="servis" class="menu-sec" data-rise>
-  <div class="wrap" data-menu><!--@menu--></div>
-</section>
+<div data-videos><!--@videos--></div>
 
-<section id="soalan" class="faq-sec" data-rise>
-  <div class="wrap faq-wrap">
-    <h2>Soalan sebelum datang</h2>
-    <!--@faq-cards-->
+<!--@gallery-->
+
+<div data-team><!--@team--></div>
+
+<section id="soalan" class="glow alt">
+  <div class="wrap">
+    <div class="sec-head reveal"><div><p class="eyebrow">Soalan lazim</p><h2>Sebelum anda datang.</h2></div></div>
+    <div class="faqs reveal"><!--@faq--></div>
   </div>
 </section>
 
-<section id="lokasi" class="visit-sec" data-rise>
+<section id="lokasi" class="glow warm">
   <div class="wrap">
-    <div class="coupon">
-      <div class="coupon-l">
-        <h2>Datang ke kedai</h2>
-        <p>%ADDRESS%. Cari bangunan oren dengan papan biru Tinted Carstory, dekat %AREAS%.</p>
+    <div class="sec-head"><div><p class="eyebrow">Lokasi</p><h2>Datang ke kedai.</h2></div><p>Kami di %TOWN%, dekat %AREAS%.</p></div>
+    <div class="loc">
+      <div class="loc-card">
+        <figure class="shopfront"><img src="/kedai.webp" alt="Kedai Tinted Carstory: bangunan oren dengan papan tanda biru" width="840" height="790" loading="lazy"><figcaption>Cari bangunan oren dengan papan biru Tinted Carstory.</figcaption></figure>
+        <div><h3>Alamat</h3><p>%ADDRESS%</p></div>
+        <!--@hours-->
+        <div class="row-btns"><!--@map-links--></div>
+        <div><h3>WhatsApp</h3><div><!--@contacts--></div></div>
       </div>
-      <div class="coupon-r">
-        <!--@visit-links-->
-        <a class="coupon-go" href="/tempah/">Tempah slot online</a>
-      </div>
+      <iframe class="map" src="%MAP_EMBED%" title="Peta lokasi kedai" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
     </div>
   </div>
 </section>
 </main>
 
 <!--@footer-->
-<script type="module" src="/src/public/home.js"></script>
+<script type="module" src="/src/public/hero.js"></script>
 </body>
 </html>

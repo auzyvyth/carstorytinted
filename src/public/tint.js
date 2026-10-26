@@ -2,7 +2,7 @@
 // A tab shows that film's spec bar and fits the rear-darkness slider to the
 // film's range; the slider tints the rear windows. Front glass never changes:
 // it is drawn at the JPJ limits.
-import { tintOpacity, rearVerdict } from '../shared/render.js';
+import { tintOpacity } from '../shared/render.js';
 
 export function mountStudio() {
   const root = document.querySelector('[data-films]');
@@ -12,15 +12,15 @@ export function mountStudio() {
   const rear = root.querySelector('.tint-rear');
   const svg = root.querySelector('.car-view');
   const tag = root.querySelector('[data-rear-tag]');
-  const verdict = root.querySelector('[data-verdict]');
   const tabs = [...root.querySelectorAll('[role="tab"]')];
 
   const paint = () => {
     const v = Number(range.value);
+    // Darker film = less glare: the light sweeping across the glass fades with it.
+    root.style.setProperty('--glare', (0.25 + (v / 100) * 0.75).toFixed(2));
     out.textContent = `${v}%`;
     rear.style.opacity = tintOpacity(v);
     if (tag) tag.textContent = `${v}%`;
-    if (verdict) verdict.textContent = rearVerdict(v);
     svg.setAttribute('aria-label', svg.getAttribute('aria-label').replace(/belakang \d+%/, `belakang ${v}%`));
   };
   const pick = (tab) => {

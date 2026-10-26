@@ -122,18 +122,19 @@ async function page(width, session) {
 }
 const noSideScroll = (p) => p.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
 
-// 1. Home: live prices in the film picker + table, the slider tints the glass, no sideways scroll on a phone.
-let p = await page(375);
+// 1. Home: the hero form's prices follow the car size (desktop), live film prices, no sideways scroll on a phone.
+let p = await page(1280);
 await p.goto(`${BASE}/`);
-await p.waitForFunction(() => document.querySelector('.fact-price')?.textContent.includes('RM250'));
-check(true, 'home film picker shows live "dari RM250"');
-check((await p.locator('[data-film-prices] td').first().innerText()).includes('RM250'), 'home price table is live');
-const t0 = await p.locator('[data-tint]').evaluate((e) => e.style.getPropertyValue('--t'));
-await p.locator('[data-rear]').fill('5');
-const t1 = await p.locator('[data-tint]').evaluate((e) => e.style.getPropertyValue('--t'));
-check(Number(t1) > Number(t0), 'dragging the slider darkens the glass');
-await p.locator('.pick-film').nth(1).click();
-check(await p.locator('.film-fact:not([hidden])').count() === 1 && await p.locator('.pick-film[aria-pressed="true"]').innerText() === 'Nano Ceramic', 'picking a film shows its facts');
+await p.waitForSelector('.hero-form [data-film-rm]');
+const rm0 = await p.locator('.hero-form [data-film-rm]').first().innerText();
+await p.click('.hero-form .seg >> nth=2');
+await p.waitForFunction((t) => document.querySelector('.hero-form [data-film-rm]').textContent !== t, rm0);
+check(true, 'hero form price changes with the car size');
+check(await p.locator('.hero-form').evaluate((f) => f.action.endsWith('/tempah/')), 'hero form goes to the booking page');
+p = await page(375);
+await p.goto(`${BASE}/`);
+await p.waitForFunction(() => document.querySelector('.film-price')?.textContent.includes('RM250'));
+check(true, 'home film card shows live "dari RM250"');
 check(await noSideScroll(p), 'home fits 375px');
 await p.screenshot({ path: `${SHOTS}/1-home-375.png`, fullPage: true });
 

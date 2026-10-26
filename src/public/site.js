@@ -3,7 +3,7 @@
 import './site.css';
 import './nav.js';
 import { rpc, apiReady, shopDate, dayParts } from '../shared/api.js';
-import { tintStudio, pricesHtml, priceTable, servicesSection, teamSection, videosSection } from '../shared/render.js';
+import { tintStudio, pricesHtml, servicesSection, teamSection, videosSection } from '../shared/render.js';
 import { mountStudio } from './tint.js';
 
 export async function loadCatalog() {
@@ -14,18 +14,16 @@ export async function loadCatalog() {
 async function paintPrices() {
   const films = document.querySelector('[data-films]');
   const prices = document.querySelector('[data-prices]');
-  const filmPrices = document.querySelector('[data-film-prices]');
   const owned = [['[data-services]', servicesSection], ['[data-team]', teamSection], ['[data-videos]', videosSection]]
     .map(([sel, fn]) => [document.querySelector(sel), fn]).filter(([el]) => el);
-  if (!films && !prices && !filmPrices && !owned.length) return;
+  if (!films && !prices && !owned.length) return;
   const cat = await loadCatalog();
   if (!cat?.films) return;
   if (films) { films.innerHTML = tintStudio(cat); mountStudio(); }
   if (prices) prices.innerHTML = pricesHtml(cat);
-  if (filmPrices) filmPrices.innerHTML = priceTable(cat);
   // The owner's own content (Tetapan > Laman web). An older catalog with no "site"
   // keeps whatever the build baked in.
-  if (cat.site) for (const [el, fn] of owned) el.innerHTML = fn(cat);
+  if (cat.site) for (const [el, fn] of owned) { el.innerHTML = fn(cat); reveal(el); }
 }
 
 // Videos: nothing from YouTube/TikTok loads until the visitor taps play.
@@ -40,6 +38,17 @@ document.addEventListener('click', (e) => {
   f.referrerPolicy = 'strict-origin-when-cross-origin';
   b.replaceWith(f);
 });
+
+// Sections ease in as they scroll into view. Content is visible without JS (the
+// hiding class is only added here) and for anyone who asked for less motion.
+const io = 'IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches
+  ? new IntersectionObserver((es) => es.forEach((x) => { if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target); } }), { rootMargin: '0px 0px -8% 0px' })
+  : null;
+function reveal(root = document) {
+  if (!io) return;
+  root.querySelectorAll('.reveal:not(.in)').forEach((el) => { el.classList.add('pre'); io.observe(el); });
+}
+reveal();
 
 // Three soonest days that still have a free slot, each linking straight into
 // the booking page with that day chosen.

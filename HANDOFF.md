@@ -178,3 +178,10 @@ Owner's rule: a booking holds its slot, walk-ins get whatever is left.
 ## Stand-ins to replace before launch (2026-10-26)
 - Hero car (`public/hero-car.webp`): cut from the owner's AI mockup screenshot. Replace with a real photo of a car tinted at the shop.
 - The trust row, drawn-car gallery, film comparison and reviews section (commit e2f31d8) were rolled back with the CarWash-style sections on 2026-10-26; they are in git history if wanted again.
+
+## Homepage = production page + new hero (2026-10-26)
+The owner rolled the homepage back to production (`main`) and kept only the dark banner hero with the
+booking form. The hero is self-contained: `src/public/hero.css`, `src/public/hero.js` (loads `site.js`),
+`src/shared/heroForm.js` (slot `hero-form` in vite.config.js), `public/hero-car.webp`, body class
+`v4 on-photo` (header sits on the banner; `nav.js` makes it solid on scroll). `/tempah/` accepts `?size=`.
+The production hero's "Slot kosong terdekat" card is gone with the old hero; the UI test checks the form instead.

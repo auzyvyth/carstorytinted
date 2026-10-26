@@ -3,8 +3,8 @@ import react from '@vitejs/plugin-react';
 import { resolve } from 'node:path';
 import catalog from './src/shared/catalog.default.json' with { type: 'json' };
 import { SHOP, JPJ, POLICY, fullAddress, displayPhone } from './src/shared/shop.js';
-import * as H from './src/shared/homeRender.js';
 import * as R from './src/shared/render.js';
+import { heroForm } from './src/shared/heroForm.js';
 
 // Public pages. Each is plain HTML with <!--@slot--> markers the plugin below
 // fills at build time, so crawlers get full text without running JavaScript.
@@ -25,39 +25,29 @@ const DEMO_BANNER = `<div class="demo-bar" role="note"><b>Versi demo</b> Data da
 
 function shopPages(siteUrl, demo) {
   const slots = {
+    'hero-form': () => heroForm(catalog),
     films: () => R.tintStudio(catalog),
     services: () => R.servicesSection(catalog),
     team: () => R.teamSection(catalog),
     videos: () => R.videosSection(catalog),
     prices: () => R.pricesHtml(catalog),
-    'price-table': () => R.priceTable(catalog),
-    showcase: () => H.filmShowcase(catalog),
-    'hero-form': () => H.heroForm(catalog),
-    menu: () => H.menuHtml(catalog),
-    'faq-cards': () => H.faqCards(),
-    'visit-links': () => H.visitLinks(),
     car: () => R.carDiagram(),
     faq: () => R.faqHtml(),
     footer: () => R.footer(),
     contacts: () => R.contactsHtml(),
     'map-links': () => R.mapLinksHtml(),
     hours: () => R.hoursHtml(),
-    gallery: () => R.galleryHtml(),
+    gallery: () => R.galleryHtml(demo),
     'ld-home': () => R.ldScript(R.localBusinessLd(siteUrl, catalog)) + R.ldScript(R.faqLd()),
     'ld-shop': () => R.ldScript(R.localBusinessLd(siteUrl, catalog)),
   };
   const vars = {
-    SITE_URL: siteUrl, FACEBOOK: SHOP.facebook, ADDRESS: fullAddress(), TOWN: SHOP.town, STATE: SHOP.state,
+    SITE_URL: siteUrl, ADDRESS: fullAddress(), TOWN: SHOP.town, STATE: SHOP.state,
     // Nearby towns only: the copy reads "di <town>, dekat <AREAS>", so listing the
     // shop's own town here printed "di Sungai Jawi, dekat Sungai Jawi, ...".
     AREAS: SHOP.areaServed.filter((t) => t !== SHOP.town).join(', '), JPJ_WS: JPJ.windscreen, JPJ_FS: JPJ.frontSide, JPJ_FINE: JPJ.fine,
     PHONE1: displayPhone(SHOP.contacts[0].phone), WA1: SHOP.contacts[0].phone,
-    WA_ASK: encodeURIComponent('Salam, saya nak tanya pasal tinted.'),
-    WA_KARPET: encodeURIComponent('Salam, saya nak tanya harga karpet kereta. Kereta saya: '),
-    WA_POLISH: encodeURIComponent('Salam, saya nak tanya harga polish kereta. Kereta saya: '), WA_LOST: encodeURIComponent('Salam, saya hilang pautan tempahan / sijil tinted saya. Boleh hantar semula? Nama: , No. plat: '), POLICY_WALKIN: POLICY.walkIn, MAP_EMBED: R.mapEmbedUrl(), YEAR: new Date().getFullYear(),
-    // How dark each JPJ limit looks: the same curve the tint preview draws with.
-    WARRANTY_MAX: Math.max(0, ...catalog.films.map((f) => Number(f.warranty_years) || 0)),
-    JPJ_FINE_SHORT: (JPJ.fine.match(/RM[\d,]+/) || [JPJ.fine])[0], TINT_WS: R.tintOpacity(JPJ.windscreen), TINT_FS: R.tintOpacity(JPJ.frontSide), TINT_REAR: R.tintOpacity(5),
+    WA_LOST: encodeURIComponent('Salam, saya hilang pautan tempahan / sijil tinted saya. Boleh hantar semula? Nama: , No. plat: '), POLICY_WALKIN: POLICY.walkIn, MAP_EMBED: R.mapEmbedUrl(), YEAR: new Date().getFullYear(),
   };
   return {
     name: 'shop-pages',

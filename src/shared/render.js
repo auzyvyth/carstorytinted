@@ -20,11 +20,12 @@ export function vltRows(c) {
 }
 export const hasNum = (v) => v !== null && v !== undefined && v !== '' && !Number.isNaN(Number(v));
 
-// Wordmark, four plain links, one action (taste-skill house rule: three to five links).
 const NAV = [
   ['/#filem', 'Filem'],
   ['/harga/', 'Harga'],
+  ['/#servis', 'Servis'],
   ['/panduan-jpj/', 'Had JPJ'],
+  ['/#sijil', 'Sijil waranti'],
   ['/#lokasi', 'Lokasi'],
 ];
 
@@ -48,24 +49,19 @@ export function header(active = '') {
 export function footer() {
   const phones = SHOP.contacts.map((c) =>
     `<a href="${waLink(c.phone)}" rel="noopener">${esc(c.name)} ${displayPhone(c.phone)}</a>`).join('');
-  // The name closes the page, built from blocks (each letter knocked out of its own
-  // rectangle, heights varying like a row of car windows), then the plain links.
-  const H = [92, 78, 100, 70, 86, 64, 0, 96, 74, 88, 66, 100, 80, 72, 90];
-  const blocks = [...'TINTED CARSTORY'].map((ch, i) => (ch === ' '
-    ? '<span class="blk-gap"></span>'
-    : `<span class="blk b${i % 3}" style="--h:${H[i]}%">${ch}</span>`)).join('');
   return `<footer class="foot">
-  <div class="wrap">
-    <a class="blocks" href="/" aria-label="${esc(SHOP.name)}">${blocks}</a>
-    <div class="foot-in">
-      <div class="foot-cols">
-        <div><h4>Hubungi</h4>${phones}<a href="${SHOP.facebook}" rel="noopener">Facebook</a></div>
-        <div><h4>Info</h4><a href="/harga/">Harga</a><a href="/panduan-jpj/">Panduan had JPJ</a><a href="/privasi/">Privasi</a><a href="/staff/" rel="nofollow">Staf</a></div>
-      </div>
-      <div class="foot-addr"><p>${esc(SHOP.legalName)}, ${esc(SHOP.tagline)}</p><p>${esc(fullAddress())}</p></div>
+  <div class="wrap foot-in">
+    <div>
+      <div class="wordmark"><span>Tinted</span> Carstory</div>
+      <p class="foot-sub">${esc(SHOP.legalName)} · ${esc(SHOP.tagline)}</p>
+      <p class="foot-sub">${esc(fullAddress())}</p>
     </div>
-    <div class="foot-base"><span>&copy; ${new Date().getFullYear()} ${esc(SHOP.legalName)}</span><a class="btn-win btn-win-sm" href="/tempah/">Tempah slot</a></div>
+    <div class="foot-cols">
+      <div><h4>Hubungi</h4>${phones}<a href="${SHOP.facebook}" rel="noopener">Facebook</a></div>
+      <div><h4>Info</h4><a href="/harga/">Harga</a><a href="/panduan-jpj/">Panduan had JPJ</a><a href="/privasi/">Privasi</a><a href="/staff/" rel="nofollow">Staf</a></div>
+    </div>
   </div>
+  <div class="wrap foot-base">&copy; ${new Date().getFullYear()} ${esc(SHOP.legalName)}</div>
 </footer>`;
 }
 
@@ -90,13 +86,14 @@ export function hoursHtml() {
 }
 
 // Past customers. Real photos only (SHOP.gallery); with none the section is not
-// rendered at all, demo included (owner's rep, 2026-10-25: empty frames read as an
-// unfinished site in the pitch).
-export function galleryHtml() {
+// rendered, except in the sales demo, which shows labelled empty frames so the
+// owner sees where his photos will go.
+export function galleryHtml(demo = false) {
   const items = SHOP.gallery.length ? SHOP.gallery.map((g) => `<figure class="shot">
   <img src="${esc(g.src)}" alt="${esc(g.alt)}" loading="lazy" width="600" height="450">
   ${g.car || g.film ? `<figcaption><b>${esc(g.car || '')}</b>${g.film ? `<span>${esc(g.film)}</span>` : ''}</figcaption>` : ''}
-</figure>`).join('') : '';
+</figure>`).join('') : demo ? Array.from({ length: 6 }, (_, i) => `<figure class="shot shot-empty"><div>Gambar pelanggan ${i + 1}</div>
+  <figcaption><b>Model kereta</b><span>Jenis filem</span></figcaption></figure>`).join('') : '';
   if (!items) return '';
   return `<section id="galeri" class="warm"><div class="wrap"><div class="sec-head"><div><p class="eyebrow">Hasil kerja</p><h2>Kereta pelanggan kami.</h2></div>
 <p>Gambar sebenar dari kedai kami di ${esc(SHOP.town)}.${SHOP.facebook ? ` Lebih banyak di <a href="${SHOP.facebook}" rel="noopener">Facebook</a>.` : ''}</p></div>
@@ -116,33 +113,39 @@ export const PRICE_BASIS = 'Kereta kompak, 4 cermin sisi';
 // cabin clearly and 5% nearly hides it.
 export const tintOpacity = (vlt) => +(1 - (vlt / 100) ** 0.6).toFixed(3);
 // Rear darkness the preview opens on, clamped into each film's range.
-const PREVIEW_REAR = 15;  // same rear reading as the sample certificate; dark enough to see at a glance
+const PREVIEW_REAR = 30;
 const clampVlt = (f, v) => (Array.isArray(f.vlt) ? Math.min(f.vlt[1], Math.max(f.vlt[0], v)) : v);
 
-// Two panes of glass, rear (left) and front (right), with the real shopfront behind
-// them. Each pane has a tint layer whose opacity is its VLT, so the visitor SEES how
-// much the film hides. The front pane is drawn at the JPJ limit and never follows the
-// slider (owner's rule: the site never offers darker than JPJ on the front).
+// Two panes of glass, rear (left) and front (right), with "Need a tint?" behind
+// them. Each pane has a tint layer whose opacity is its VLT, so the visitor SEES
+// how much the film hides. A labelled pointer names each pane. The front pane
+// is drawn at the JPJ limit and never follows the slider.
 function carSvg(rearVlt) {
-  const T = '#14161c';
-  const pane = (x) => `x="${x}" y="44" width="230" height="230" rx="16"`;
-  const tag = (x, title, value) => `<text x="${x}" y="26" font-size="19" font-weight="700" fill="#1b1e26">${title} <tspan font-weight="500" fill="#5b6070">${value}</tspan></text>`;
-  return `<svg class="car-view" viewBox="0 0 520 278" role="img" aria-label="Pratonton tinted: cermin belakang ${rearVlt}%, cermin depan ${JPJ.frontSide}%">
-  <defs><clipPath id="ts-l"><rect ${pane(20)}/></clipPath><clipPath id="ts-r"><rect ${pane(270)}/></clipPath></defs>
-  <g font-family="Archivo, system-ui, sans-serif">
-    ${tag(20, 'Belakang', `<tspan data-rear-tag>${rearVlt}%</tspan>`)}
-    ${tag(270, 'Depan', `${JPJ.frontSide}%, had JPJ`)}
-    <image href="/kedai.webp" x="20" y="44" width="230" height="230" preserveAspectRatio="xMidYMid slice" clip-path="url(#ts-l)"/>
-    <image href="/kedai.webp" x="270" y="44" width="230" height="230" preserveAspectRatio="xMidYMid slice" clip-path="url(#ts-r)"/>
+  const T = '#05070d';
+  const pane = (x) => `x="${x}" y="84" width="230" height="230" rx="18"`;
+  const tag = (cx, title, value) => `<g text-anchor="middle">
+    <text x="${cx}" y="24" font-size="23" font-weight="800" fill="#fff" letter-spacing=".06em">${title}</text>
+    <text x="${cx}" y="50" font-size="19" font-weight="600" fill="rgba(255,255,255,.7)">${value}</text>
+    <path d="M${cx} 60 L${cx} 74 M${cx - 8} 67 L${cx} 76 L${cx + 8} 67" stroke="#ffc71a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>`;
+  return `<svg class="car-view" viewBox="0 0 520 318" role="img" aria-label="Pratonton tinted: cermin belakang ${rearVlt}%, cermin depan ${JPJ.frontSide}%">
+  <defs><linearGradient id="ts-glass-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22325f"/><stop offset="1" stop-color="#101a3a"/></linearGradient>
+    <linearGradient id="ts-glare" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
+  <g font-family="Plus Jakarta Sans, system-ui, sans-serif">
+    ${tag(135, 'BELAKANG', `<tspan data-rear-tag>${rearVlt}%</tspan>`)}
+    ${tag(385, 'DEPAN', `${JPJ.frontSide}% (had JPJ)`)}
+    <rect ${pane(20)} fill="url(#ts-glass-bg)"/><rect ${pane(270)} fill="url(#ts-glass-bg)"/>
+    <g font-size="46" font-weight="800" fill="#ffd21f" text-anchor="middle">
+      <text x="135" y="214">Need a</text><text x="385" y="214">tint?</text>
+    </g>
     <rect class="tint-rear" ${pane(20)} fill="${T}" style="opacity:${tintOpacity(rearVlt)}"/>
     <rect class="tint-front" ${pane(270)} fill="${T}" style="opacity:${tintOpacity(JPJ.frontSide)}"/>
-    <rect ${pane(20)} fill="none" stroke="#1b1e26" stroke-width="5"/><rect ${pane(270)} fill="none" stroke="#1b1e26" stroke-width="5"/>
+    <rect ${pane(20)} fill="none" stroke="#2a3140" stroke-width="6"/><rect ${pane(270)} fill="none" stroke="#2a3140" stroke-width="6"/>
+    <clipPath id="ts-panes"><rect ${pane(20)}/><rect ${pane(270)}/></clipPath>
+    <g clip-path="url(#ts-panes)" aria-hidden="true"><rect class="glare" x="-140" y="60" width="90" height="300" fill="url(#ts-glare)" transform="skewX(-18)"/></g>
   </g>
 </svg>`;
 }
-
-// What a rear reading means, in one plain sentence (the hero states it live).
-export const rearVerdict = (v) => `Belakang ${v}%. Dibenarkan: JPJ tiada had untuk cermin belakang.`;
 
 // The film picker: pick a film, see the car's windows tint, read the specs in
 // the bar under it. Static HTML carries every film's specs (crawlers read them);
@@ -177,10 +180,9 @@ export function tintStudio(catalog) {
 <div class="studio-grid"><div class="glass-col">
 <div class="stage">${carSvg(rear)}</div>
 <div class="dial">
-  <label for="ts-rear">Gelapkan cermin belakang <b data-rear-out>${rear}%</b></label>
+  <label for="ts-rear">Kegelapan cermin belakang <b data-rear-out>${rear}%</b></label>
   <input id="ts-rear" type="range" data-rear min="${Array.isArray(first.vlt) ? first.vlt[0] : 5}" max="${Array.isArray(first.vlt) ? first.vlt[1] : 70}" step="5" value="${rear}">
-  <p class="verdict" data-verdict aria-live="polite">${rearVerdict(rear)}</p>
-  <p class="dial-note">Cermin depan kekal ${JPJ.windscreen}% dan tingkap sisi depan ${JPJ.frontSide}%, ikut had JPJ. Lebih kecil peratus, lebih gelap.</p>
+  <p class="dial-note">Cermin depan ${JPJ.windscreen}% dan tingkap sisi depan ${JPJ.frontSide}% kekal ikut had JPJ. Lebih kecil peratus, lebih gelap.</p>
 </div>
 </div><div class="spec-col">${panels}</div></div>`;
 }
@@ -208,8 +210,7 @@ export function servicesHtml(catalog) {
 const safeImg = (u) => (/^(https:\/\/|data:image\/(webp|jpeg|png);base64,)/.test(String(u || '')) ? String(u) : '');
 export function teamHtml(catalog) {
   const list = siteOf(catalog).team.filter((x) => x?.name);
-  // Shown once someone has a real photo: a row of initials reads as unfinished.
-  if (!list.some((x) => safeImg(x.photo_url))) return '';
+  if (!list.length) return '';
   return `<div class="team">${list.map((x) => {
     const img = safeImg(x.photo_url);
     return `<figure class="member">
@@ -250,13 +251,13 @@ export function videosHtml(catalog) {
 // Whole sections, or '' when the owner has not filled that part yet (no empty frames).
 const sec = (id, cls, eyebrow, title, lead, body) => (body ? `<section id="${id}" class="${cls}">
   <div class="wrap">
-    <div class="sec-head"><h2>${title}</h2>${lead ? `<p>${lead}</p>` : ''}</div>
-    <div>${body}</div>
+    <div class="sec-head reveal"><div><p class="eyebrow">${eyebrow}</p><h2>${title}</h2></div>${lead ? `<p>${lead}</p>` : ''}</div>
+    <div class="reveal">${body}</div>
   </div>
 </section>` : '');
-export const servicesSection = (c) => sec('servis', 'plain', 'Servis lain', 'Bukan tinted sahaja.', 'Harga ikut kereta anda. WhatsApp kami, kami sebut harga dulu sebelum mula.', servicesHtml(c));
-export const teamSection = (c) => sec('pasukan', 'alt', 'Pasukan kami', 'Kenali siapa yang pasang.', '', teamHtml(c));
-export const videosSection = (c) => sec('video', 'alt', 'Video', 'Tengok kami bekerja.', '', videosHtml(c));
+export const servicesSection = (c) => sec('servis', 'glow warm', 'Servis lain', 'Bukan tinted sahaja.', 'Harga ikut kereta anda. WhatsApp kami, kami sebut harga dulu sebelum mula.', servicesHtml(c));
+export const teamSection = (c) => sec('pasukan', 'glow', 'Pasukan kami', 'Kenali siapa yang pasang.', '', teamHtml(c));
+export const videosSection = (c) => sec('video', 'glow alt', 'Video', 'Tengok kami bekerja.', '', videosHtml(c));
 
 // What a booking costs: side-window film + chosen add-ons, per car size. Mirrors the
 // DB's quote_price(): the total is null when any part has no published price, so the
@@ -288,7 +289,7 @@ export function addonTable(catalog) {
 export function priceTable(catalog) {
   const head = catalog.films.map((f) => `<th scope="col">${esc(f.name)}</th>`).join('');
   const rows = CAR_SIZES.map((s) => `<tr><th scope="row">${s.label}<small>${esc(s.eg)}</small></th>${
-    catalog.films.map((f) => { const p = f.prices?.[s.id]; return `<td data-film="${esc(f.name)}">${hasNum(p) ? rm(p) : '<span class="ask">Tanya</span>'}</td>`; }).join('')
+    catalog.films.map((f) => { const p = f.prices?.[s.id]; return `<td>${hasNum(p) ? rm(p) : '<span class="ask">Tanya</span>'}</td>`; }).join('')
   }</tr>`).join('');
   return `<div class="table-scroll"><table class="prices"><thead><tr><th scope="col">Saiz kereta</th>${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
@@ -305,7 +306,7 @@ export function carDiagram() {
   <rect x="168" y="204" width="12" height="56" rx="5" fill="var(--glass-0)"/>
   <path d="M66 272 Q110 282 154 272 L162 300 Q110 314 58 300 Z" fill="var(--glass-0)"/>
   <rect x="66" y="132" width="88" height="130" rx="14" fill="var(--car-roof)"/>
-  <g font-family="Archivo, system-ui, sans-serif" font-weight="700" text-anchor="middle">
+  <g font-family="Plus Jakarta Sans, system-ui, sans-serif" font-weight="700" text-anchor="middle">
     <text x="110" y="104" font-size="15" fill="var(--glass-70-ink)">${JPJ.windscreen}%</text>
     <text x="110" y="172" font-size="13" fill="var(--car-label)">${JPJ.frontSide}%</text>
     <text x="110" y="189" font-size="10" fill="var(--car-label-2)" font-weight="500">tingkap depan</text>
