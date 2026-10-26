@@ -111,7 +111,10 @@ export const PRICE_BASIS = 'Kereta kompak, 4 cermin sisi';
 // How dark a window looks for a given VLT (share of light let through). The eye
 // reads light on a curve, not a straight line, so 50% film still shows the
 // cabin clearly and 5% nearly hides it.
-export const tintOpacity = (vlt) => +(1 - (vlt / 100) ** 0.6).toFixed(3);
+// How much a film layer darkens the photo. Steeper than the true light figure on purpose
+// (owner, 2026-10-26): on a photo the interior is already dark, so a true 50% read as almost
+// clear. Matched by eye to a shop shade chart: 50% looks mid-grey, 15% nearly black.
+export const tintOpacity = (vlt) => +(1 - (vlt / 100) ** 1.4).toFixed(3);
 // Rear darkness the preview opens on, clamped into each film's range.
 const PREVIEW_REAR = 30;
 const clampVlt = (f, v) => (Array.isArray(f.vlt) ? Math.min(f.vlt[1], Math.max(f.vlt[0], v)) : v);
