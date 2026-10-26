@@ -185,3 +185,17 @@ booking form. The hero is self-contained: `src/public/hero.css`, `src/public/her
 `src/shared/heroForm.js` (slot `hero-form` in vite.config.js), `public/hero-car.webp`, body class
 `v4 on-photo` (header sits on the banner; `nav.js` makes it solid on scroll). `/tempah/` accepts `?size=`.
 The production hero's "Slot kosong terdekat" card is gone with the old hero; the UI test checks the form instead.
+
+## Session end 2026-10-26 (branch ccr-5ba14573-gb4lv2, head 41a0bb5, not merged; main = 772d224)
+- Our work strip (`#kerja`, under the hero): 15 owner photos in `public/kerja/01..15.webp` (600x800),
+  5 across on desktop with arrows, 3 on phones with swipe. Captions are model guesses; owner confirmed
+  #11 is a Proton Saga. Still to confirm: Harrier, S70, Axia.
+- Tint preview (`#filem`, `carSvg` in src/shared/render.js): AI photo of a green coupe
+  (`public/tint/car-front.webp`) + 2x alpha masks `car-front-{ws,front,rear,glass}.png`, built from the
+  owner's magenta-glass copy (alpha = how much magenta each pixel took). Windscreen fixed 70%, front side
+  slider 50-100 (never below JPJ), rear slider per film range. Static sky reflection `.cp-glass`.
+  `tintOpacity` exponent 1.4 = darker than true VLT on purpose (owner). Labelled "Gambaran sahaja".
+- Back view not built: needs the same car rear 45deg + magenta copy (prompt in chat). Then add a
+  front/back switch.
+- BMW badge/grille visible in the coupe photo: owner's call whether to regenerate without badges.
+- Tint-Simulator repo (Kevinlearynet) is PolyForm Commercial (paid licence): NOT used, do not copy.
