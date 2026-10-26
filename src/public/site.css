@@ -539,7 +539,11 @@ main.book .page-head .crumb { margin-bottom: 8px; }
 .car-photo .cp-bg { clip-path: inset(42% 0 0 0 round 14px); }
 .cp-tint, .cp-sheen { position: absolute; inset: 0; pointer-events: none;
   -webkit-mask: var(--m) center / 100% 100% no-repeat; mask: var(--m) center / 100% 100% no-repeat; }
-.cp-tint { background: #06080d; transition: opacity .3s ease; }
+.cp-tint { background: var(--tint-c, #06080d); transition: opacity .3s ease, background-color .3s ease; }
+.tint-colours { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 6px 0 10px; }
+.tint-colours button { display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 0 12px 0 8px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .18); background: rgba(255, 255, 255, .05); color: rgba(255, 255, 255, .8); font: 600 13px/1 var(--body); cursor: pointer; }
+.tint-colours button i { width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .35); }
+.tint-colours button[aria-checked="true"] { border-color: var(--sun); color: #fff; background: rgba(255, 199, 26, .12); }
 .cp-sheen { --m: url(/tint/car-front-glass.png); opacity: var(--glare, .7);
   background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, .22) 45%, transparent 60%) 0 0 / 300% 100% no-repeat;
   animation: cp-sheen 6s ease-in-out infinite; }

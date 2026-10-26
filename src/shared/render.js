@@ -117,6 +117,16 @@ export const PRICE_BASIS = 'Kereta kompak, 4 cermin sisi';
 export const tintOpacity = (vlt) => +(1 - (vlt / 100) ** 1.4).toFixed(3);
 // Rear darkness the preview opens on, clamped into each film's range.
 const PREVIEW_REAR = 30;
+// Film colours the preview can show: the usual shades sold for cars. Preview only;
+// which colours a film comes in depends on the shop's stock (said under the swatches).
+export const TINT_COLOURS = [
+  ['hitam', 'Hitam', '#06080d'],
+  ['charcoal', 'Charcoal', '#2b2f35'],
+  ['bronze', 'Bronze', '#7a4a1e'],
+  ['biru', 'Biru', '#14428c'],
+  ['hijau', 'Hijau', '#155a3c'],
+  ['perak', 'Perak', '#7d8793'],
+];
 const clampVlt = (f, v) => (Array.isArray(f.vlt) ? Math.min(f.vlt[1], Math.max(f.vlt[0], v)) : v);
 
 // Two panes of glass, rear (left) and front (right), with "Need a tint?" behind
@@ -131,7 +141,7 @@ const clampVlt = (f, v) => (Array.isArray(f.vlt) ? Math.min(f.vlt[1], Math.max(f
 const TINT = '#06080d';
 function carSvg(rearVlt) {
   const layer = (zone, cls, vlt) => `<i class="cp-tint ${cls}" style="--m:url(/tint/car-front-${zone}.png);opacity:${tintOpacity(vlt)}"></i>`;
-  return `<div class="car-view car-photo" role="img" aria-label="Pratonton tinted: cermin belakang ${rearVlt}%, cermin depan ${JPJ.windscreen}%, tingkap sisi depan ${JPJ.frontSide}%">
+  return `<div class="car-view car-photo" style="--tint-c:${TINT_COLOURS[0][2]}" role="img" aria-label="Pratonton tinted: cermin belakang ${rearVlt}%, cermin depan ${JPJ.windscreen}%, tingkap sisi depan ${JPJ.frontSide}%">
   <img class="cp-bg" src="/tint/car-front-bg.webp" alt="" width="1128" height="570" loading="lazy" decoding="async">
   <img class="cp-base" src="/tint/car-front.webp" alt="" width="1128" height="570" loading="lazy" decoding="async">
   ${layer('ws', 'tint-ws', JPJ.windscreen)}${layer('front', 'tint-front', JPJ.frontSide)}${layer('rear', 'tint-rear', rearVlt)}
@@ -178,9 +188,12 @@ export function tintStudio(catalog) {
 <div class="dial">
   <label for="ts-rear">Kegelapan cermin belakang <b data-rear-out>${rear}%</b></label>
   <input id="ts-rear" type="range" data-rear min="${Array.isArray(first.vlt) ? first.vlt[0] : 5}" max="${Array.isArray(first.vlt) ? first.vlt[1] : 70}" step="5" value="${rear}">
+  <label for="ts-ws">Kegelapan cermin depan <b data-ws-out>${JPJ.windscreen}%</b></label>
+  <input id="ts-ws" type="range" data-ws min="${JPJ.windscreen}" max="100" step="5" value="${JPJ.windscreen}">
   <label for="ts-front">Kegelapan tingkap depan <b data-front-out>${JPJ.frontSide}%</b></label>
   <input id="ts-front" type="range" data-front min="${JPJ.frontSide}" max="100" step="5" value="${JPJ.frontSide}">
-  <p class="dial-note">Had JPJ: tingkap depan ${JPJ.frontSide}%, cermin depan ${JPJ.windscreen}%. Lebih kecil, lebih gelap.</p>
+  <div class="tint-colours" role="radiogroup" aria-label="Warna filem">${TINT_COLOURS.map(([id, name, c], i) => `<button type="button" role="radio" aria-checked="${!i}" data-tint-c="${c}" data-tint-name="${id}"><i style="background:${c}"></i>${name}</button>`).join('')}</div>
+  <p class="dial-note">Warna ikut stok filem, tanya kami dulu. Had JPJ: tingkap depan ${JPJ.frontSide}%, cermin depan ${JPJ.windscreen}%. Lebih kecil, lebih gelap.</p>
 </div>
 </div><div class="spec-col">${panels}</div></div>`;
 }

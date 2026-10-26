@@ -39,18 +39,28 @@ export function mountStudio() {
   };
   tabs.forEach((t) => t.addEventListener('click', () => { pick(t); t.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }));
   range.addEventListener('input', paint);
-  // Front side window: its own slider, never darker than the JPJ limit (min in the markup).
-  const fr = root.querySelector('[data-front]');
-  if (fr) {
-    const fOut = root.querySelector('[data-front-out]'), fTag = root.querySelector('[data-front-tag]'), fLayer = root.querySelector('.tint-front');
-    fr.addEventListener('input', () => {
-      const v = Number(fr.value);
-      fLayer.style.opacity = tintOpacity(v);
-      fOut.textContent = v === 100 ? 'Tiada filem' : `${v}%`;
-      fTag.textContent = v === 100 ? 'jernih' : `${v}%`;
-      svg.setAttribute('aria-label', svg.getAttribute('aria-label').replace(/sisi depan (\d+%|tiada filem)/, `sisi depan ${v === 100 ? 'tiada filem' : `${v}%`}`));
+  // Front side window and windscreen: their own sliders, never darker than the JPJ
+  // limit (min in the markup); 100 = no film.
+  const front = (key, cls, said) => {
+    const r = root.querySelector(`[data-${key}]`);
+    if (!r) return;
+    const o = root.querySelector(`[data-${key}-out]`), tg = root.querySelector(`[data-${key}-tag]`), layer = root.querySelector(cls);
+    r.addEventListener('input', () => {
+      const v = Number(r.value);
+      layer.style.opacity = tintOpacity(v);
+      o.textContent = v === 100 ? 'Tiada filem' : `${v}%`;
+      if (tg) tg.textContent = v === 100 ? 'jernih' : `${v}%`;
+      svg.setAttribute('aria-label', svg.getAttribute('aria-label').replace(new RegExp(`${said} (\\d+%|tiada filem)`), `${said} ${v === 100 ? 'tiada filem' : `${v}%`}`));
     });
-  }
+  };
+  front('front', '.tint-front', 'sisi depan');
+  front('ws', '.tint-ws', 'cermin depan');
+  // Film colour: one swatch row recolours every tinted pane.
+  const sw = [...root.querySelectorAll('[data-tint-c]')];
+  sw.forEach((b) => b.addEventListener('click', () => {
+    sw.forEach((x) => x.setAttribute('aria-checked', String(x === b)));
+    svg.style.setProperty('--tint-c', b.dataset.tintC);
+  }));
   // Phones: the car and sliders sit in the hero, under the trust row; the film tabs and
   // spec card stay in #filem and still drive them. Desktop keeps them beside the spec card.
   if (slot) {
