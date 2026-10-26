@@ -248,3 +248,8 @@ Polish on the sections under the tint preview (Servis lain, Cara tempah, Had JPJ
   preview's blue (`--blue-ground-up`, the same blue flipped so it joins #filem with no edge). Cards fade in
   one after another on scroll (`.reveal` + `--i` delay). Theme for the remaining sections: WAIT for the
   owner's direction, do not convert them. `theme-dark` / `theme-light` token sets stay in site.css, unused.
+- Cara tempah = owner's pick F of 7 mockups (2026-10-26): `#cara` in index.html. The shop's hex ceiling as a
+  background pattern (inline SVG, faded in from the right and from the top), a hexagon marker per step that
+  "switches on" like the bay lights as the steps fade in one by one. On `--blue-ground` (dark top, joins the
+  bottom of Servis lain). Colours only via `--stp-*`. Old `.steps/.step` CSS (01/02/03 numbers) removed.
+  Next up: Had JPJ, Soalan lazim, Lokasi, footer (still pastel). Wait for the owner's direction on each.
