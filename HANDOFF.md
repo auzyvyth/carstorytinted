@@ -273,3 +273,65 @@ Open:
   real hero photo, captions, prices, hours, Vercel access, merge only on owner's go-ahead.
 - Mockup + inspector tooling: `.taste-skill/` is gitignored; the design-taste inspector needs
   CHROME_PATH pointing at a wrapper that adds `--no-sandbox` (running as root).
+
+## Session end 2026-10-26 (4) (branch ccr-adac2795-ujjh34, head after this commit; main = 772d224, not merged)
+Branch starts from ccr-d7d3bf16-v6jrgq (6180149), so it carries sessions (2) and (3) too.
+Nothing deployed, no PR. Tests: UI 57/57, report + logic pass.
+
+Shipped:
+- Hero: car photo (`.hero-car`) removed from index.html. Ground = the tint preview's own background, copied
+  exactly (owner: "just copy the background from the tint slider"): `--blue-ground` + the two blurred lights of
+  `.studio` (orange low centre, blue top right), as `--hero-ground`, `--hero-light-low`, `--hero-light-high`
+  on `.v4 .hero` (hero.css). The ::before/::after reset the old photo panel's site.css rules (position, mask).
+  A first "deep ocean" gradient was rejected; don't bring it back.
+- Header blur is off while it sits on the hero (`.v4.on-photo .mast:not(.solid)`): it drew a band on the blue.
+- Phone hero no longer reserves 300px at the bottom for the car.
+- `public/hero-car.webp` is unused now but kept, in case the owner wants it back.
+
+Known: the hero ends on the LIGHT end of --blue-ground and the tint preview starts on its DARK end, so there is
+a visible line between them. One-line fix offered (hero on `--blue-ground-up`, as Servis lain does); owner
+hasn't answered.
+
+Sijil (homepage #sijil = "Had JPJ / Lulus JPJ. Ada bukti.") audit, NOT fixed yet:
+1. "Lulus" shows grey: `.cert-row span` (muted) beats `.pass`/`.fail`. Same bug on the real /sijil/ page
+   (vltRows in render.js), so "Bawah had" isn't red either. Customer-facing; fix first.
+2. Sample cert card is tinted: site.css ~483 gives `.cert` a 78% white padding-box over the --grad border-box.
+3. `aria-label` on a plain div (`.cert`) is ignored by screen readers.
+4. Menu says "Sijil waranti", section says "Had JPJ".
+5. Sample is thinner than the real cert (no cert no., customer, install date, min per window, shop address).
+6. Sample says "Nano Ceramic"; the hero/booking say "Nano Ceramic HD".
+7. The VLT bars can read as "how dark"; nothing explains it.
+8. "Cari sijil dan resit anda" is small grey text at the bottom.
+9. Still pastel, after two blue sections (waits for the owner's direction, like the other old sections).
+
+Research (for the sijil and the copy):
+- JPJ limits (Motor Vehicles (Prohibition of Certain Types of Glass) Rules 1991, amended 2019): windscreen
+  min 70%, front side min 50%, rear free (guides add: only with both side mirrors working; not confirmed in
+  an official source). Measured on factory glass + film together. Reflective films banned whatever the
+  reading. Fine up to RM2,000 / 6 months (first), RM4,000 / 12 months (repeat).
+- JPJ issues NO installer certificate. The sijil is the shop's own record: say "Memenuhi had JPJ semasa
+  diukur", never "Diluluskan JPJ". The hero's "Lulus JPJ" chip needs the same care.
+- Brand e-warranties (3M, SunTek, G3) = code/serial + check by code or plate + end date.
+- PDPA: photos, and plates linked to an owner, are personal data: privacy page line, visible only via the
+  customer's cert link, delete when the warranty ends.
+
+"Bukti hasil tint" (owner's idea: installer photographs the VLT meter on each window, photos go on the sijil):
+- Mockups, private artifact (user must share it with the owner):
+  https://claude.ai/artifact/LmQCrgqFgtNQ2aqhFxd1HQ
+  Customer cert: A Sijil kertas (document, QR, signature), B Bukti dulu (big meter photo first),
+  C Pasport kereta (site blue, car photo, top-down plan with readings), D Garis masa (job timeline).
+  Installer dashboard: E Petak foto (4 slots in JobDrawer, Siap greyed until required photos are in),
+  F Kamera berpandu (full-screen camera, one window per step).
+  Meter photos in the mockups are drawn stand-ins; car photo is public/kerja/04.webp.
+- Waiting on the owner: which design (A-D) and which capture flow (E/F); which VLT meter the shop uses;
+  required photos (windscreen + front side, plus finished car?).
+- Build plan once picked: new `job_photos` (job_id, kind, reading, taken_by, created_at = server time);
+  storage path includes cert_token (photos as private as the cert link; stricter option = private bucket
+  + edge function for signed URLs); upload compressed like Settings.jsx team photos; Siap gate with a
+  "teruskan juga" override (like the missing-VLT confirm in JobDrawer.advance); get_certificate returns the
+  photos; /sijil/ shows them; privacy page line; delete after warranty_until. Fix audit bugs 1-3 in the same build.
+
+Still open from (3): Had JPJ / Soalan lazim / Lokasi / footer restyle (owner direction), "Polish lampu depan"
+wording + adding it in Tetapan, README Setup 2-4 (alerts), hosting move off Vercel Hobby, ideas list, and the
+older items (colours stocked, back view, BMW badge, real hero photo, captions, prices, hours, Vercel access,
+merge only on owner's go-ahead).
