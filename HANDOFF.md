@@ -253,3 +253,7 @@ Polish on the sections under the tint preview (Servis lain, Cara tempah, Had JPJ
   "switches on" like the bay lights as the steps fade in one by one. On `--blue-ground` (dark top, joins the
   bottom of Servis lain). Colours only via `--stp-*`. Old `.steps/.step` CSS (01/02/03 numbers) removed.
   Next up: Had JPJ, Soalan lazim, Lokasi, footer (still pastel). Wait for the owner's direction on each.
+- Phone order = desktop order (owner, 2026-10-26): the tint preview car + sliders NO LONGER move into the
+  hero on phones; they stay in `#filem` after Hasil kerja kami, as on desktop. Removed the `[data-hero-tint]`
+  slot (index.html), the move in tint.js and the `.hero-tint` rules (hero.css). The phone hero shows the
+  banner car again. (The hero booking card is still desktop-only; owner left that as is.)

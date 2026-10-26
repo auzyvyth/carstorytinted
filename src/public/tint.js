@@ -4,14 +4,8 @@
 // window have their own sliders, never darker than the JPJ limits.
 import { tintOpacity } from '../shared/render.js';
 
-let phone;
 export function mountStudio() {
   const root = document.querySelector('[data-films]');
-  // A re-render (site.js) makes a fresh preview: drop the stale one in the hero, or
-  // bring a moved one home before reading the markup.
-  const slot = document.querySelector('[data-hero-tint]');
-  if (slot && root && !root.querySelector('.glass-col')) root.querySelector('.studio-grid')?.prepend(...slot.children);
-  slot?.replaceChildren();
   const range = root?.querySelector('[data-rear]');
   if (!range) return;
   const out = root.querySelector('[data-rear-out]');
@@ -21,7 +15,6 @@ export function mountStudio() {
   const tabs = [...root.querySelectorAll('[role="tab"]')];
 
   // "Tempah slot" carries the preview to the booking page: film, each pane's VLT, colour.
-  // Read through the glass column itself: on phones it has moved into the hero.
   const glass = root.querySelector('.glass-col');
   const book = () => root.querySelectorAll('[data-book]').forEach((a) => {
     const q = new URLSearchParams({ film: a.dataset.book, ws: glass.querySelector('[data-ws]').value, front: glass.querySelector('[data-front]').value, rear: range.value });
@@ -74,13 +67,4 @@ export function mountStudio() {
     book();
   }));
   book();
-  // Phones: the car and sliders sit in the hero, under the trust row; the film tabs and
-  // spec card stay in #filem and still drive them. Desktop keeps them beside the spec card.
-  if (slot) {
-    const col = root.querySelector('.glass-col'), grid = col.parentNode;
-    phone ??= matchMedia('(max-width: 860px)');
-    const fit = () => (phone.matches ? slot.append(col) : grid.prepend(col));
-    fit();
-    phone.onchange = fit;
-  }
 }
