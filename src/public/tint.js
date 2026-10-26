@@ -4,8 +4,14 @@
 // the windscreen stays at the JPJ limit; the front side window has its own slider.
 import { tintOpacity } from '../shared/render.js';
 
+let phone;
 export function mountStudio() {
   const root = document.querySelector('[data-films]');
+  // A re-render (site.js) makes a fresh preview: drop the stale one in the hero, or
+  // bring a moved one home before reading the markup.
+  const slot = document.querySelector('[data-hero-tint]');
+  if (slot && root && !root.querySelector('.glass-col')) root.querySelector('.studio-grid')?.prepend(...slot.children);
+  slot?.replaceChildren();
   const range = root?.querySelector('[data-rear]');
   if (!range) return;
   const out = root.querySelector('[data-rear-out]');
@@ -44,5 +50,14 @@ export function mountStudio() {
       fTag.textContent = v === 100 ? 'jernih' : `${v}%`;
       svg.setAttribute('aria-label', svg.getAttribute('aria-label').replace(/sisi depan (\d+%|tiada filem)/, `sisi depan ${v === 100 ? 'tiada filem' : `${v}%`}`));
     });
+  }
+  // Phones: the car and sliders sit in the hero, under the trust row; the film tabs and
+  // spec card stay in #filem and still drive them. Desktop keeps them beside the spec card.
+  if (slot) {
+    const col = root.querySelector('.glass-col'), grid = col.parentNode;
+    phone ??= matchMedia('(max-width: 860px)');
+    const fit = () => (phone.matches ? slot.append(col) : grid.prepend(col));
+    fit();
+    phone.onchange = fit;
   }
 }

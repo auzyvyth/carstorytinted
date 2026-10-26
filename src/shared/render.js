@@ -132,7 +132,7 @@ const TINT = '#06080d';
 function carSvg(rearVlt) {
   const layer = (zone, cls, vlt) => `<i class="cp-tint ${cls}" style="--m:url(/tint/car-front-${zone}.png);opacity:${tintOpacity(vlt)}"></i>`;
   return `<div class="car-view car-photo" role="img" aria-label="Pratonton tinted: cermin belakang ${rearVlt}%, cermin depan ${JPJ.windscreen}%, tingkap sisi depan ${JPJ.frontSide}%">
-  <img class="cp-base" src="/tint/car-front.webp" alt="" width="1264" height="848" loading="lazy" decoding="async">
+  <img class="cp-base" src="/tint/car-front.webp" alt="" width="1128" height="570" loading="lazy" decoding="async">
   ${layer('ws', 'tint-ws', JPJ.windscreen)}${layer('front', 'tint-front', JPJ.frontSide)}${layer('rear', 'tint-rear', rearVlt)}
   <i class="cp-glass" aria-hidden="true"></i>
   <i class="cp-sheen" aria-hidden="true"></i>

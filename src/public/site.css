@@ -532,7 +532,8 @@ main.book .page-head .crumb { margin-bottom: 8px; }
 }
 
 /* ---------- tint preview photo (carSvg in render.js): the car photo, three masked film layers, a moving sheen ---------- */
-.car-photo { position: relative; overflow: hidden; border-radius: 14px; aspect-ratio: 1264 / 848; background: #0d1220; }
+/* car-front.webp is cut out (transparent round the car, soft ground shadow), so no box behind it */
+.car-photo { position: relative; aspect-ratio: 1128 / 570; }
 .car-photo .cp-base { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .cp-tint, .cp-sheen { position: absolute; inset: 0; pointer-events: none;
   -webkit-mask: var(--m) center / 100% 100% no-repeat; mask: var(--m) center / 100% 100% no-repeat; }
@@ -544,10 +545,10 @@ main.book .page-head .crumb { margin-bottom: 8px; }
 .cp-tag { position: absolute; padding: 6px 10px; border-radius: 8px; background: rgba(6, 8, 13, .72); color: #fff; font-size: 13px; font-weight: 700; line-height: 1.2; white-space: nowrap; }
 .cp-tag b { color: #ffc71a; }
 .cp-tag small { display: block; font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, .7); }
-.cp-tag-rear { right: 3%; top: 17%; }
-.cp-tag-front { left: 52%; top: 12%; }
+.cp-tag-rear { right: 1%; top: 6%; }
+.cp-tag-front { left: 44%; top: 0; }
 .cp-note { margin-top: 8px; font-size: 12px; text-align: center; opacity: .6; }
-@media (max-width: 860px) { .cp-tag { font-size: 11px; padding: 4px 8px; } .cp-tag small { display: none; } .cp-tag-front { left: 38%; top: 8%; } .cp-tag-rear { right: 2%; top: 17%; } }
+@media (max-width: 860px) { .cp-tag { font-size: 11px; padding: 4px 8px; } .cp-tag small { display: none; } .cp-tag-front { left: 40%; top: 0; } .cp-tag-rear { right: 0; top: 6%; } }
 @media (prefers-reduced-motion: reduce) { .cp-sheen { animation: none; } }
 
 /* the glass itself: a fixed sky reflection so every pane reads as glass, even where the
