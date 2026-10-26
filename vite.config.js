@@ -26,6 +26,7 @@ const DEMO_BANNER = `<div class="demo-bar" role="note"><b>Versi demo</b> Data da
 function shopPages(siteUrl, demo) {
   const slots = {
     'hero-form': () => heroForm(catalog),
+    'cert-sample': () => R.certSample(),
     films: () => R.tintStudio(catalog),
     services: () => R.servicesSection(catalog),
     team: () => R.teamSection(catalog),

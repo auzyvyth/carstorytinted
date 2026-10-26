@@ -143,6 +143,14 @@ const rm0 = await p.locator('.hero-form [data-film-rm]').first().innerText();
 await p.click('.hero-form .seg >> nth=2');
 await p.waitForFunction((t) => document.querySelector('.hero-form [data-film-rm]').textContent !== t, rm0);
 check(true, 'hero form price changes with the car size');
+// 11-inch Chromebook (1366x768 screen, ~640px of page): hero with the whole booking form, and
+// the tint preview, each fit one screen (owner, 2026-10-26: "too big and too tall").
+await p.setViewportSize({ width: 1366, height: 640 });
+await p.waitForTimeout(200);
+const fit = await p.evaluate(() => ({ hero: document.querySelector('.hero').offsetHeight, form: document.querySelector('.hero-form').getBoundingClientRect().bottom,
+  films: document.querySelector('#filem').offsetHeight }));
+check(fit.hero <= 640 && fit.form <= 640 && fit.films <= 640, `hero + booking form and tint preview fit a Chromebook screen (${JSON.stringify(fit)})`);
+await p.setViewportSize({ width: 1280, height: 860 });
 check(await p.locator('.hero-form').evaluate((f) => f.action.endsWith('/tempah/')), 'hero form goes to the booking page');
 p = await page(375);
 await p.goto(`${BASE}/`);

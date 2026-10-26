@@ -48,6 +48,35 @@ export function vltRows(c) {
   const stamp = shot?.at ? `<p class="cert-proof">Foto meter diambil di kedai, ${esc(timeLabel(shot.at))}. Masa dicatat oleh sistem semasa foto dimuat naik.</p>` : '';
   return rows + head + stamp;
 }
+// Top-down car, front on the left. Glass shapes carry data-kind so a tap picks that window;
+// the labels above it (each over its own window) are the real buttons, the drawing is decoration.
+export function carPlanSvg(sel) {
+  const g = (kind, d) => `<path class="pp-glass${kind === sel ? ' on' : ''}" data-kind="${kind}" d="${d}"/>`;
+  return `<svg class="pp-svg" viewBox="0 14 360 142" aria-hidden="true">
+  <ellipse cx="122" cy="26" rx="9" ry="5" class="pp-mirror"/><ellipse cx="122" cy="144" rx="9" ry="5" class="pp-mirror"/>
+  <rect x="16" y="22" width="328" height="126" rx="58" class="pp-body"/>
+  <rect x="126" y="58" width="122" height="54" rx="8" class="pp-roof"/>
+  ${g('windscreen', 'M88 40 Q74 85 88 130 L120 116 Q112 85 120 54 Z')}
+  ${g('front', 'M128 32 L188 32 L188 50 L124 52 Z')}${g('front', 'M124 118 L188 120 L188 138 L128 138 Z')}
+  ${g('rear', 'M192 32 L246 32 L250 52 L192 50 Z')}${g('rear', 'M192 120 L250 118 L246 138 L192 138 Z')}
+  ${g('rear', 'M256 56 Q263 85 256 114 L282 126 Q294 85 282 44 Z')}
+</svg>`;
+}
+
+// Homepage sample of the design C certificate ("Contoh sijil"), baked at build time.
+// Same classes as the real page (cert.css), but static: no tapping, no meter photo
+// (we have no real one to show, and a sample never fakes one).
+export function certSample() {
+  const lbl = (pos, short, v, cls) => `<span class="pp-lbl pp-lbl-${pos}"><span>${short}</span><b class="${cls}">${v}</b></span>`;
+  return `<div class="pp pp-sample reveal" role="group" aria-label="Contoh sijil">
+  <div class="pp-top has-photo"><img class="pp-car" src="/kerja/04.webp" alt="" loading="lazy" width="1200" height="750">
+    <div class="pp-id"><p class="pp-eyebrow">Contoh sijil · Pasport tint</p><p class="pp-h">Perodua Myvi</p>
+    <p class="pp-sub">PKA 1*** · Nano Ceramic HD · 26 Okt 2026</p></div></div>
+  <div class="pp-plan"><p class="pp-sum ok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>${MEETS_JPJ}</p>
+    <div class="pp-car-plan">${lbl('front', 'Depan', '72%', 'ok')}${lbl('mid', 'Sisi depan', '52%', 'ok')}${lbl('back', 'Belakang', '18%', 'free')}<div class="pp-svg-wrap">${carPlanSvg('windscreen')}</div></div></div>
+  <div class="pp-warranty"><div class="pp-ring" aria-hidden="true">5<small>thn</small></div><div><p class="pp-wh">Waranti 5 tahun</p><p>Foto meter VLT pada cermin, masa dicatat oleh sistem. Pautan sijil dihantar melalui WhatsApp.</p></div></div>
+</div>`;
+}
 // The finished car, above the certificate details. '' when there is no such photo.
 export function carPhoto(c) {
   const p = photoOf(c, 'car');

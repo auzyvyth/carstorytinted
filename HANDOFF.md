@@ -369,3 +369,13 @@ The certificate design (A-D) is NOT picked yet: photos show on today's certifica
 - No warranty terms invented: the card says "Ada masalah filem? WhatsApp kami dengan nombor sijil", not the
   mockup's "Gelembung, kopak, bertukar ungu: kami ganti" (owner hasn't given terms).
 - Tests: UI 68/68, DB 12/12, logic + report pass.
+
+### Same session, later: short laptop screens + homepage sample (owner, 2026-10-26)
+- Owner's 11-inch Chromebook (1366x768, ~640px of page) showed the hero and tint preview too big and too
+  tall. New `@media (min-width: 861px/900px) and (max-height: 820px)` blocks: hero.css (header 72px, hero
+  copy + booking form sized to the screen height) and site.css (tint preview: car scales with 58svh,
+  shorter sliders/chips; every `section` 52px padding). Big screens unchanged. At 1366x640: hero 640 with
+  the whole form, tint preview 612, #sijil 653. UI test checks the fit.
+- Homepage #sijil sample = design C (`certSample()` in render.js, baked via the `cert-sample` slot;
+  `carPlanSvg` shared with /sijil/; cert.css loaded by hero.js). Static, no fake meter photo.
+- Tests: UI 69/69, logic + report pass. DB unchanged (12/12).

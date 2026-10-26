@@ -1,6 +1,7 @@
 // Homepage: the production site script, plus the hero's booking form.
 import { loadCatalog } from './site.js';
 import './hero.css';
+import './cert.css';  // the sample certificate in #sijil
 import defaults from '../shared/catalog.default.json';
 import { rm, hasNum } from '../shared/render.js';
 import { heroForm } from '../shared/heroForm.js';

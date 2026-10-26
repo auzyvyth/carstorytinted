@@ -9,7 +9,7 @@ import './cert.css';
 import './nav.js';
 import { rpc, apiReady, dateLabel } from '../shared/api.js';
 import { SHOP, fullAddress } from '../shared/shop.js';
-import { esc, VLT_WINDOWS, verdictOf, VERDICT_WORD, MEETS_JPJ, jpjSummary } from '../shared/render.js';
+import { esc, VLT_WINDOWS, verdictOf, VERDICT_WORD, MEETS_JPJ, jpjSummary, carPlanSvg as plan } from '../shared/render.js';
 import { saveImage, vltData } from './saveImage.js';
 
 const box = document.querySelector('[data-cert]');
@@ -28,21 +28,6 @@ function warrantyYears(c) {
   if (!c.warranty_until || !c.completed_at) return null;
   const y = Math.round((Date.parse(c.warranty_until) - Date.parse(c.completed_at)) / (365.25 * 864e5));
   return y >= 1 ? y : null;
-}
-
-// Top-down car, front on the left. Glass shapes carry data-kind so a tap picks that window;
-// the labels above it (each over its own window) are the real buttons, the drawing is decoration.
-function plan(sel) {
-  const g = (kind, d) => `<path class="pp-glass${kind === sel ? ' on' : ''}" data-kind="${kind}" d="${d}"/>`;
-  return `<svg class="pp-svg" viewBox="0 14 360 142" aria-hidden="true">
-  <ellipse cx="122" cy="26" rx="9" ry="5" class="pp-mirror"/><ellipse cx="122" cy="144" rx="9" ry="5" class="pp-mirror"/>
-  <rect x="16" y="22" width="328" height="126" rx="58" class="pp-body"/>
-  <rect x="126" y="58" width="122" height="54" rx="8" class="pp-roof"/>
-  ${g('windscreen', 'M88 40 Q74 85 88 130 L120 116 Q112 85 120 54 Z')}
-  ${g('front', 'M128 32 L188 32 L188 50 L124 52 Z')}${g('front', 'M124 118 L188 120 L188 138 L128 138 Z')}
-  ${g('rear', 'M192 32 L246 32 L250 52 L192 50 Z')}${g('rear', 'M192 120 L250 118 L246 138 L192 138 Z')}
-  ${g('rear', 'M256 56 Q263 85 256 114 L282 126 Q294 85 282 44 Z')}
-</svg>`;
 }
 
 function label(c, w, pos) {

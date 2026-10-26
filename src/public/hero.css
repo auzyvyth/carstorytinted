@@ -154,3 +154,30 @@
   .work-track img { border-radius: 8px; }
 }
 @media (prefers-reduced-motion: reduce) { .work-track { scroll-behavior: auto; } }
+
+/* Short laptop screens (owner, 2026-10-26: an 11-inch Chromebook, 1366x768, shows ~640px of
+   page): the hero, header included, fits one screen with the whole booking form visible.
+   Sizes follow the screen HEIGHT here, because width is not what runs out. */
+@media (min-width: 861px) and (max-height: 820px) {
+  .v4 .mast-in { height: 72px; }
+  .v4 .mast .wordmark { font-size: 19px; }
+  .v4 .mast .wordmark::before { width: 38px; height: 31px; margin-right: 10px; }
+  .v4 .mast .wordmark::after { left: 48px; font-size: 7.5px; }
+  .v4 .hero { min-height: max(560px, 100svh); }
+  .v4 .hero-in { padding-top: 84px; padding-bottom: 28px; }
+  .v4 .hero h1 { font-size: clamp(44px, min(6.2vw, 10.5svh), 92px); }
+  .hero-sub { margin-top: 14px; font-size: 15px; line-height: 1.5; }
+  .v4 .hero-btns { margin-top: 20px; gap: 12px; }
+  .hero-go, .v4 .hero-wa { min-height: 46px; padding: 0 18px; font-size: 15px; }
+  .hero-chips { margin-top: 18px; gap: 8px; }
+  .hero-chips li { min-height: 34px; font-size: 13px; padding: 0 12px; }
+  .hero-trust { margin-top: 10px; min-height: 38px; font-size: 13px; }
+  .hero-form { gap: 14px; padding: 20px 22px; }
+  .hero-form h2 { font-size: 22px; }
+  .hero-form legend { margin-bottom: 6px; font-size: 13px; }
+  .seg span { min-height: 34px; font-size: 13px; }
+  .film-opts { gap: 6px; }
+  .film-opt { min-height: 40px; padding: 0 14px; }
+  .film-name, .film-rm { font-size: 15px; }
+  .form-go { min-height: 46px; font-size: 16px; }
+}

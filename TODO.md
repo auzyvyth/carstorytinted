@@ -65,9 +65,6 @@ the owner (Maliki) to agree and pay.
       customer is personal data). Not automated yet: needs an edge function on a daily cron that
       removes the `bukti` files and `job_photos` rows where `jobs.warranty_until < today`
       (Storage files can't be deleted from SQL). Add a line to /privasi/ when it ships.
-- [ ] **Homepage sample certificate** (#sijil) still shows the old plain card; restyle it as a
-      small design C "Pasport kereta" so the sample matches what customers get (waits on the
-      owner's direction for the old sections, like Had JPJ / Lokasi).
 - [ ] **Booking alerts.** Deploy `notify-staff`, VAPID keys (never regenerate),
       `NOTIFY_SECRET`, `app_config` rows, Telegram backup (README Setup 2-3).
       Live check 2026-09-28: no edge function, `app_config` empty, 0 push devices,

@@ -106,6 +106,8 @@ h3 { font-size: 18px; font-weight: 700; line-height: 1.3; letter-spacing: -0.01e
 .lead { font-size: clamp(16px, 2vw, 18px); line-height: 1.6; color: var(--text-2); max-width: 560px; }
 .muted { color: var(--muted); }
 section { padding: 80px 0; }
+/* Short laptop screens (11-inch Chromebook): less air above and below every section. */
+@media (min-width: 861px) and (max-height: 820px) { section { padding: 52px 0; } }
 @media (max-width: 720px) { section { padding: 72px 0; } .sec-head { margin-bottom: 28px; gap: 12px; } }
 .sec-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px 32px; flex-wrap: wrap; margin-bottom: 36px; }
 .sec-head p { max-width: 440px; color: var(--text-2); font-size: 15px; }
@@ -696,3 +698,26 @@ main.book .page-head .crumb { margin-bottom: 8px; }
   background: linear-gradient(172deg, rgba(225, 235, 245, .34) 0%, rgba(225, 235, 245, .16) 34%, rgba(225, 235, 245, .05) 52%, transparent 66%),
               linear-gradient(118deg, transparent 58%, rgba(255, 255, 255, .12) 64%, transparent 72%); }
 @media (min-width: 900px) { #filem .stage { max-width: 480px; } #filem .dial { max-width: 480px; } #filem .dial label { margin-top: 2px; } #filem .dial .vs input { height: 100px; } #filem .sliders { margin-bottom: 8px; } }
+/* Short laptop screens (owner, 2026-10-26: 11-inch Chromebook, ~640px of page): the whole tint
+   preview fits one screen. The car scales with the screen HEIGHT; sliders and chips get shorter. */
+@media (min-width: 900px) and (max-height: 820px) {
+  #filem.studio { padding: 30px 0; }
+  #filem .sec-head { margin-bottom: 10px; }
+  #filem .sec-head h2 { font-size: clamp(28px, 5.4svh, 40px); }
+  #filem .sec-head p { font-size: 14px; }
+  #filem .tabs { margin-bottom: 0; }
+  .studio-grid { margin-top: 10px; gap: 36px; }
+  #filem .stage { max-width: min(480px, 58svh); padding-top: 10px; }
+  #filem .dial { max-width: 500px; margin-top: 2px; }
+  .cp-note { margin-top: 4px; }
+  #filem .sliders { margin: 2px 0 4px; }
+  .vs { gap: 4px; }
+  .vs b { font-size: 14px; }
+  #filem .dial .vs input { height: 60px; }
+  .dial .vs label { font-size: 12px; }
+  .tint-colours { margin: 4px 0 6px; gap: 6px; }
+  .tint-colours button { min-height: 32px; font-size: 12.5px; }
+  .tint-colours button i { width: 16px; height: 16px; }
+  .dial-note { font-size: 12px; }
+  #filem .spec-bar > * { padding: 9px 16px; }
+}
