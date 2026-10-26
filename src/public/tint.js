@@ -1,7 +1,7 @@
 // Makes the film picker live (markup: tintStudio in src/shared/render.js).
 // A tab shows that film's spec bar and fits the rear-darkness slider to the
 // film's range; the slider tints the rear windows. Front glass never changes:
-// it is drawn at the JPJ limits.
+// the windscreen stays at the JPJ limit; the front side window has its own slider.
 import { tintOpacity } from '../shared/render.js';
 
 export function mountStudio() {
@@ -33,4 +33,16 @@ export function mountStudio() {
   };
   tabs.forEach((t) => t.addEventListener('click', () => { pick(t); t.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }));
   range.addEventListener('input', paint);
+  // Front side window: its own slider, never darker than the JPJ limit (min in the markup).
+  const fr = root.querySelector('[data-front]');
+  if (fr) {
+    const fOut = root.querySelector('[data-front-out]'), fTag = root.querySelector('[data-front-tag]'), fLayer = root.querySelector('.tint-front');
+    fr.addEventListener('input', () => {
+      const v = Number(fr.value);
+      fLayer.style.opacity = tintOpacity(v);
+      fOut.textContent = v === 100 ? 'Tiada filem' : `${v}%`;
+      fTag.textContent = v === 100 ? 'jernih' : `${v}%`;
+      svg.setAttribute('aria-label', svg.getAttribute('aria-label').replace(/sisi depan (\d+%|tiada filem)/, `sisi depan ${v === 100 ? 'tiada filem' : `${v}%`}`));
+    });
+  }
 }

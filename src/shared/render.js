@@ -134,9 +134,9 @@ function carSvg(rearVlt) {
   <i class="cp-glass" aria-hidden="true"></i>
   <i class="cp-sheen" aria-hidden="true"></i>
   <span class="cp-tag cp-tag-rear">Belakang <b data-rear-tag>${rearVlt}%</b></span>
-  <span class="cp-tag cp-tag-front">Depan ${JPJ.frontSide}% <small>had JPJ</small></span>
+  <span class="cp-tag cp-tag-front">Depan <b data-front-tag>${JPJ.frontSide}%</b></span>
 </div>
-<p class="cp-note">Gambaran sahaja. Imej dijana komputer.</p>`;
+<p class="cp-note">Gambaran sahaja, imej dijana komputer.</p>`;
 }
 
 // The film picker: pick a film, see the car's windows tint, read the specs in
@@ -174,7 +174,9 @@ export function tintStudio(catalog) {
 <div class="dial">
   <label for="ts-rear">Kegelapan cermin belakang <b data-rear-out>${rear}%</b></label>
   <input id="ts-rear" type="range" data-rear min="${Array.isArray(first.vlt) ? first.vlt[0] : 5}" max="${Array.isArray(first.vlt) ? first.vlt[1] : 70}" step="5" value="${rear}">
-  <p class="dial-note">Cermin depan ${JPJ.windscreen}% dan tingkap sisi depan ${JPJ.frontSide}% kekal ikut had JPJ. Lebih kecil peratus, lebih gelap.</p>
+  <label for="ts-front">Kegelapan tingkap depan <b data-front-out>${JPJ.frontSide}%</b></label>
+  <input id="ts-front" type="range" data-front min="${JPJ.frontSide}" max="100" step="5" value="${JPJ.frontSide}">
+  <p class="dial-note">Had JPJ: tingkap depan ${JPJ.frontSide}%, cermin depan ${JPJ.windscreen}%. Lebih kecil, lebih gelap.</p>
 </div>
 </div><div class="spec-col">${panels}</div></div>`;
 }
