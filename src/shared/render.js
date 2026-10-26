@@ -120,31 +120,21 @@ const clampVlt = (f, v) => (Array.isArray(f.vlt) ? Math.min(f.vlt[1], Math.max(f
 // them. Each pane has a tint layer whose opacity is its VLT, so the visitor SEES
 // how much the film hides. A labelled pointer names each pane. The front pane
 // is drawn at the JPJ limit and never follows the slider.
+// The tint preview: a photo of a car with its glass split into three masked layers
+// (public/tint/*: windscreen, front side, rear), each darkened by a film layer.
+// Front glass is drawn at the JPJ limits; tint.js moves only .tint-rear.
+// The photo is AI-generated (owner, 2026-10-26), so it is labelled as an illustration.
+const TINT = '#06080d';
 function carSvg(rearVlt) {
-  const T = '#05070d';
-  const pane = (x) => `x="${x}" y="84" width="230" height="230" rx="18"`;
-  const tag = (cx, title, value) => `<g text-anchor="middle">
-    <text x="${cx}" y="24" font-size="23" font-weight="800" fill="#fff" letter-spacing=".06em">${title}</text>
-    <text x="${cx}" y="50" font-size="19" font-weight="600" fill="rgba(255,255,255,.7)">${value}</text>
-    <path d="M${cx} 60 L${cx} 74 M${cx - 8} 67 L${cx} 76 L${cx + 8} 67" stroke="#ffc71a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-  </g>`;
-  return `<svg class="car-view" viewBox="0 0 520 318" role="img" aria-label="Pratonton tinted: cermin belakang ${rearVlt}%, cermin depan ${JPJ.frontSide}%">
-  <defs><linearGradient id="ts-glass-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22325f"/><stop offset="1" stop-color="#101a3a"/></linearGradient>
-    <linearGradient id="ts-glare" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
-  <g font-family="Plus Jakarta Sans, system-ui, sans-serif">
-    ${tag(135, 'BELAKANG', `<tspan data-rear-tag>${rearVlt}%</tspan>`)}
-    ${tag(385, 'DEPAN', `${JPJ.frontSide}% (had JPJ)`)}
-    <rect ${pane(20)} fill="url(#ts-glass-bg)"/><rect ${pane(270)} fill="url(#ts-glass-bg)"/>
-    <g font-size="46" font-weight="800" fill="#ffd21f" text-anchor="middle">
-      <text x="135" y="214">Need a</text><text x="385" y="214">tint?</text>
-    </g>
-    <rect class="tint-rear" ${pane(20)} fill="${T}" style="opacity:${tintOpacity(rearVlt)}"/>
-    <rect class="tint-front" ${pane(270)} fill="${T}" style="opacity:${tintOpacity(JPJ.frontSide)}"/>
-    <rect ${pane(20)} fill="none" stroke="#2a3140" stroke-width="6"/><rect ${pane(270)} fill="none" stroke="#2a3140" stroke-width="6"/>
-    <clipPath id="ts-panes"><rect ${pane(20)}/><rect ${pane(270)}/></clipPath>
-    <g clip-path="url(#ts-panes)" aria-hidden="true"><rect class="glare" x="-140" y="60" width="90" height="300" fill="url(#ts-glare)" transform="skewX(-18)"/></g>
-  </g>
-</svg>`;
+  const layer = (zone, cls, vlt) => `<i class="cp-tint ${cls}" style="--m:url(/tint/saga-front-${zone}.png);opacity:${tintOpacity(vlt)}"></i>`;
+  return `<div class="car-view car-photo" role="img" aria-label="Pratonton tinted: cermin belakang ${rearVlt}%, cermin depan ${JPJ.windscreen}%, tingkap sisi depan ${JPJ.frontSide}%">
+  <img class="cp-base" src="/tint/saga-front.webp" alt="" width="1264" height="848" loading="lazy" decoding="async">
+  ${layer('ws', 'tint-ws', JPJ.windscreen)}${layer('front', 'tint-front', JPJ.frontSide)}${layer('rear', 'tint-rear', rearVlt)}
+  <i class="cp-sheen" aria-hidden="true"></i>
+  <span class="cp-tag cp-tag-rear">Belakang <b data-rear-tag>${rearVlt}%</b></span>
+  <span class="cp-tag cp-tag-front">Depan ${JPJ.frontSide}% <small>had JPJ</small></span>
+</div>
+<p class="cp-note">Gambaran sahaja. Imej dijana komputer.</p>`;
 }
 
 // The film picker: pick a film, see the car's windows tint, read the specs in
