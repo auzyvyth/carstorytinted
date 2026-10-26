@@ -1,7 +1,7 @@
 // Makes the film picker live (markup: tintStudio in src/shared/render.js).
 // A tab shows that film's spec bar and fits the rear-darkness slider to the
-// film's range; the slider tints the rear windows. Front glass never changes:
-// the windscreen stays at the JPJ limit; the front side window has its own slider.
+// film's range; the slider tints the rear windows. The windscreen and front side
+// window have their own sliders, never darker than the JPJ limits.
 import { tintOpacity } from '../shared/render.js';
 
 let phone;
@@ -20,6 +20,15 @@ export function mountStudio() {
   const tag = root.querySelector('[data-rear-tag]');
   const tabs = [...root.querySelectorAll('[role="tab"]')];
 
+  // "Tempah slot" carries the preview to the booking page: film, each pane's VLT, colour.
+  // Read through the glass column itself: on phones it has moved into the hero.
+  const glass = root.querySelector('.glass-col');
+  const book = () => root.querySelectorAll('[data-book]').forEach((a) => {
+    const q = new URLSearchParams({ film: a.dataset.book, ws: glass.querySelector('[data-ws]').value, front: glass.querySelector('[data-front]').value, rear: range.value });
+    const c = glass.querySelector('[data-tint-name][aria-checked="true"]');
+    if (c) q.set('warna', c.dataset.tintName);
+    a.href = `/tempah/?${q}`;
+  });
   const paint = () => {
     const v = Number(range.value);
     // Darker film = less glare: the light sweeping across the glass fades with it.
@@ -28,6 +37,7 @@ export function mountStudio() {
     rear.style.opacity = tintOpacity(v);
     if (tag) tag.textContent = `${v}%`;
     svg.setAttribute('aria-label', svg.getAttribute('aria-label').replace(/belakang \d+%/, `belakang ${v}%`));
+    book();
   };
   const pick = (tab) => {
     tabs.forEach((t) => t.setAttribute('aria-selected', String(t === tab)));
@@ -51,6 +61,7 @@ export function mountStudio() {
       o.textContent = v === 100 ? 'Tiada filem' : `${v}%`;
       if (tg) tg.textContent = v === 100 ? 'jernih' : `${v}%`;
       svg.setAttribute('aria-label', svg.getAttribute('aria-label').replace(new RegExp(`${said} (\\d+%|tiada filem)`), `${said} ${v === 100 ? 'tiada filem' : `${v}%`}`));
+      book();
     });
   };
   front('front', '.tint-front', 'sisi depan');
@@ -60,7 +71,9 @@ export function mountStudio() {
   sw.forEach((b) => b.addEventListener('click', () => {
     sw.forEach((x) => x.setAttribute('aria-checked', String(x === b)));
     svg.style.setProperty('--tint-c', b.dataset.tintC);
+    book();
   }));
+  book();
   // Phones: the car and sliders sit in the hero, under the trust row; the film tabs and
   // spec card stay in #filem and still drive them. Desktop keeps them beside the spec card.
   if (slot) {

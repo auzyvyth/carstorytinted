@@ -65,7 +65,7 @@ async function mockSupabase(route) {
   if (p === '/rest/v1/rpc/book_slot') {
     if (!/^0?1\d{8,9}$/.test(String(body.p_phone).replace(/\D/g, '').replace(/^6/, ''))) return json({ message: 'bad_phone' }, 400);
     const j = job({ source: 'web', stage: 'baru', customer_name: body.p_name, phone: '60' + String(body.p_phone).replace(/\D/g, '').replace(/^0/, ''),
-      car_model: body.p_car_model, car_size: body.p_car_size, film_id: body.p_film_id, scheduled_date: body.p_date, scheduled_slot: body.p_slot,
+      car_model: body.p_car_model, car_size: body.p_car_size, film_id: body.p_film_id, scheduled_date: body.p_date, scheduled_slot: body.p_slot, notes: body.p_notes || null,
       quoted_price: films.find((f) => f.id === body.p_film_id).prices[body.p_car_size], consent_at: now });
     jobs.push(j);
     return json({ ref: j.ref, date: j.scheduled_date, slot: j.scheduled_slot, quoted_price: j.quoted_price });
@@ -178,6 +178,33 @@ await p.waitForSelector('.done-box');
 check(await noSideScroll(p), 'booking confirmation fits 375px');
 await p.screenshot({ path: `${SHOTS}/4-book-done-375.png`, fullPage: true });
 check(jobs.some((j) => j.customer_name === 'Ahmad Faizal' && j.stage === 'baru' && j.source === 'web'), 'booking reached the database as a new web job');
+
+// 2b. The home tint preview's picks ride into the booking and land in its notes.
+await p.goto(`${BASE}/`);
+await p.waitForFunction(() => document.querySelector('.film-price')?.textContent.includes('RM250'));
+await p.$eval('#ts-ws', (e) => { e.value = '80'; e.dispatchEvent(new Event('input')); });
+await p.$eval('#ts-rear', (e) => { e.value = '15'; e.dispatchEvent(new Event('input')); });
+await p.click('[data-tint-name="bronze"]');
+await p.click('#filem [data-panel]:not([hidden]) [data-book]');
+await p.waitForSelector('[data-screen="saiz"]');
+check((await p.locator('.wiz-look').innerText()).includes('Bronze'), 'booking shows the tint picked on the home preview');
+await p.click('[data-size="small"]');
+await p.waitForSelector('[data-screen="hari"] [data-date]');
+await p.click(`[data-date="${shop(3)}"]`);
+await p.click('[data-slot="09:30"]');
+await p.click('[data-wait="tunggu"]');
+await p.waitForSelector('[data-screen="butiran"]');
+await p.fill('#f-name', 'Siti Pratonton');
+await p.fill('#f-phone', '0171234568');
+await p.fill('#f-plate', 'PKB 55');
+await p.check('input[name=consent]');
+await p.click('button:has-text("Sahkan tempahan")');
+await p.waitForSelector('.done-box');
+const lookNote = jobs.find((j) => j.customer_name === 'Siti Pratonton')?.notes || '';
+check(lookNote.startsWith('Pilihan pratonton: cermin depan 80%, tingkap depan 50%, belakang 15%, warna Bronze.'), `the preview's picks are saved in the booking notes (${lookNote})`);
+await p.goto(`${BASE}/tempah/?film=standard&ws=20&front=10&warna=x`);
+await p.waitForSelector('[data-screen="saiz"]');
+check(await p.locator('.wiz-look').count() === 0, 'a link darker than the JPJ limits carries no tint');
 check(p.errors.length === 0, `public pages have no JS errors ${p.errors.join(' | ')}`);
 
 // 3. Certificate page.

@@ -6,8 +6,8 @@
 import './site.css';
 import './nav.js';
 import { rpc, apiReady, shopDate, dayParts, dayLabel, slotLabel, DEMO } from '../shared/api.js';
-import { SHOP, CAR_SIZES, waLink, displayPhone, fullAddress, POLICY, WAIT_MODES, HEARD_FROM, CAR_MODELS } from '../shared/shop.js';
-import { esc, rm, hasNum, quote } from '../shared/render.js';
+import { SHOP, CAR_SIZES, JPJ, waLink, displayPhone, fullAddress, POLICY, WAIT_MODES, HEARD_FROM, CAR_MODELS } from '../shared/shop.js';
+import { esc, rm, hasNum, quote, TINT_COLOURS } from '../shared/render.js';
 import defaults from '../shared/catalog.default.json';
 
 // Every code book_slot / the network can raise, in the customer's words.
@@ -35,6 +35,22 @@ const st = {
   step: 'saiz', catalog: defaults, model: '', size: CAR_SIZES.some((s) => s.id === params.get('size')) ? params.get('size') : null, film: params.get('film'), addons: [], addonsDone: false,
   date: params.get('date'), moreDays: false, slot: null, wait: null, days: [], daysLoaded: false, busy: false, error: '', done: null, dir: 1,
 };
+
+// The look set on the home page preview (tint.js, ?ws=&front=&rear=&warna=): shown while
+// booking and saved at the top of the notes, so the shop sees what the customer chose.
+// Never darker than the JPJ limits, whatever the link says.
+const vltOf = (k, lo) => { const v = Number(params.get(k)); return params.get(k) && Number.isInteger(v) && v >= lo && v <= 100 ? v : null; };
+const vltText = (v) => (v === 100 ? 'tiada filem' : `${v}%`);
+const look = [['cermin depan', vltOf('ws', JPJ.windscreen)], ['tingkap depan', vltOf('front', JPJ.frontSide)], ['belakang', vltOf('rear', 5)]]
+  .filter(([, v]) => v !== null).map(([k, v]) => `${k} ${vltText(v)}`);
+const colour = TINT_COLOURS.find(([id]) => id === params.get('warna'))?.[1];
+if (colour) look.push(`warna ${colour}`);
+// Short form for the summary chip: "Tint 80 · 60 · 15% Bronze" (front, side, rear).
+const lookShort = () => {
+  const v = ['ws', 'front', 'rear'].map((k, i) => vltOf(k, [JPJ.windscreen, JPJ.frontSide, 5][i])).filter((x) => x !== null);
+  return [v.length && `Tint ${v.join(' · ')}%`, colour].filter(Boolean).join(' ');
+};
+const LOOK = look.length ? `Pilihan pratonton: ${look.join(', ')}.` : '';
 
 const film = () => st.catalog.films.find((f) => f.id === st.film);
 const q = () => quote(st.catalog, st.size, st.film, st.addons);
@@ -67,6 +83,7 @@ function summaryBar() {
   const chip = (step, text) => `<button type="button" class="wiz-chip" data-goto="${step}">${esc(text)}</button>`;
   const chips = [
     size && chip('saiz', size.label), f && chip('filem', f.name),
+    LOOK && `<span class="wiz-chip wiz-look" title="${esc(LOOK)}">${esc(lookShort())}</span>`,
     st.addons.length && chip('tambahan', `+${st.addons.length} tambahan`),
     st.date && st.step !== 'hari' && answered.hari() && chip('hari', dayLabel(st.date)), st.slot && chip('masa', slotLabel(st.slot)),
   ].filter(Boolean).join('');
@@ -115,11 +132,12 @@ const VIEWS = {
     <div><label class="field-label" for="f-model">Model kereta <span class="muted">(pilihan)</span></label><input class="input" id="f-model" name="model" list="car-models" maxlength="60" autocomplete="off" placeholder="cth. Myvi 2021" value="${esc(st.model)}">
       <datalist id="car-models">${CAR_MODELS.map(([m]) => `<option value="${esc(m)}">`).join('')}</datalist></div>
   </div>
+  ${LOOK ? `<p class="note">${esc(LOOK)} Kami catat untuk kedai.</p>` : ''}
   <details class="more"${v.heard || v.notes ? ' open' : ''}><summary>Tambah catatan (pilihan)</summary>
     <label class="field-label" for="f-heard">Dari mana anda tahu tentang kami?</label>
     <select class="input" id="f-heard" name="heard"><option value="">Pilih</option>${HEARD_FROM.map(([k, l]) => `<option value="${k}"${v.heard === k ? ' selected' : ''}>${l}</option>`).join('')}</select>
     <label class="field-label" for="f-notes">Catatan</label>
-    <textarea class="input" id="f-notes" name="notes" rows="3" maxlength="500" placeholder="cth. mahu cermin belakang lebih gelap">${esc(v.notes)}</textarea>
+    <textarea class="input" id="f-notes" name="notes" rows="3" maxlength="${500 - (LOOK ? LOOK.length + 1 : 0)}" placeholder="cth. mahu cermin belakang lebih gelap">${esc(v.notes)}</textarea>
   </details>
   <div class="hp" aria-hidden="true"><label>Laman web<input name="website" tabindex="-1" autocomplete="off"></label></div>
   <label class="consent"><input type="checkbox" name="consent" ${v.consent ? 'checked' : ''} required><span>Saya setuju data ini digunakan untuk tempahan, sijil dan waranti saya seperti dalam <a href="/privasi/" target="_blank">notis privasi</a>.</span></label>
@@ -230,7 +248,7 @@ root.addEventListener('submit', async (e) => {
   try {
     st.done = await rpc('book_slot', {
       p_name: st.form.name, p_phone: st.form.phone, p_car_model: st.model, p_plate: st.form.plate,
-      p_car_size: st.size, p_film_id: st.film, p_date: st.date, p_slot: st.slot, p_notes: st.form.notes, p_consent: true,
+      p_car_size: st.size, p_film_id: st.film, p_date: st.date, p_slot: st.slot, p_notes: [LOOK, st.form.notes].filter(Boolean).join('\n'), p_consent: true,
       p_addons: st.addons, p_wait_mode: st.wait, p_heard_from: st.form.heard || null,
     });
   } catch (err) {

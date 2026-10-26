@@ -180,7 +180,7 @@ export function tintStudio(catalog) {
   ${cells.map(([k, v]) => `<div class="spec-cell"><span>${k}</span><b>${v}</b></div>`).join('')}
   <div class="spec-buy"><div class="film-price">${from !== null ? `<span>dari</span> ${rm(from)}` : 'Tanya harga'}</div>
     ${from !== null ? `<p class="pnote">${PRICE_BASIS}</p>` : ''}
-    <a class="btn btn-sun" href="/tempah/?film=${encodeURIComponent(f.id)}" aria-label="Tempah slot, filem ${esc(f.name)}">Tempah slot</a></div>
+    <a class="btn btn-sun" data-book="${esc(f.id)}" href="/tempah/?film=${encodeURIComponent(f.id)}" aria-label="Tempah slot, filem ${esc(f.name)}">Tempah slot</a></div>
 </div>`;
   }).join('');
   // .studio-grid: on desktop the glass + slider sit left of the spec card (site.css),

@@ -494,6 +494,7 @@ span.wiz-back { border: 0; background: none; }
 .wiz-chips { flex: 1; min-width: 0; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
 .wiz-chip { flex: none; min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: #fff; font: 600 13px/1 var(--body); color: var(--text); cursor: pointer; }
 .wiz-chip:hover { border-color: var(--accent); color: var(--accent); }
+.wiz-look, .wiz-look:hover { display: inline-flex; align-items: center; cursor: default; color: var(--text); border-color: var(--line); }
 .wiz-total { flex: none; font-size: 20px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
 .wiz-total small { font-size: 12px; font-weight: 600; color: var(--muted); }
 
