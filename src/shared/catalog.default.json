@@ -136,6 +136,7 @@
  "site": {
   "services": [
    { "id": "polish", "name": "Polish kereta", "desc": "Harga dan masa ikut keadaan cat kereta anda. WhatsApp kami untuk sebut harga.", "price_from": null },
+   { "id": "polish-lampu", "name": "Polish lampu depan", "desc": "Lampu kusam atau kekuningan? Kami polish sampai jernih semula. WhatsApp kami untuk sebut harga.", "price_from": null },
    { "id": "karpet", "name": "Karpet kereta", "desc": "Harga ikut model kereta. WhatsApp kami untuk sebut harga.", "price_from": null }
   ],
   "team": [],

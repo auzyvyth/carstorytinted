@@ -235,3 +235,10 @@ Polish on the sections under the tint preview (Servis lain, Cara tempah, Had JPJ
   `.sec-head .eyebrow, .proof .eyebrow` now set 15px on purpose.
 - Servis lain: `.svc-grid` uses auto-fit, so two services fill the row instead of leaving an empty third column.
 - Tests: UI 57/57, report + logic pass.
+- Colour tokens (user, 2026-10-26: "use tokens from now on for these sections"): brand colours carry
+  `--accent-rgb` / `--orange-rgb` / `--sun-rgb` next to their hex; `--grad`, `--glow` (the `.glow` blobs)
+  and `--glass*` (frosted cards) are built from them. Servis lain reads only `--svc-*` tokens set on
+  `#servis`. Do the same for each section as it gets reworked (Cara tempah, Had JPJ, Soalan lazim next).
+- Servis lain: third card "Polish lampu depan" (headlamp polish) in catalog.default.json. NAME/WORDING TO
+  CONFIRM with the owner. The live site reads services from the DB (`shop_settings.site`), so the owner
+  must add it in Tetapan > Laman web for it to show in production.
