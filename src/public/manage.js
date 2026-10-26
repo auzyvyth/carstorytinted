@@ -12,7 +12,7 @@ import './nav.js';
 import { rpc, apiReady, dayLabel, dateLabel, slotLabel } from '../shared/api.js';
 import { SHOP, POLICY, waLink, fullAddress } from '../shared/shop.js';
 import { esc, rm, VLT_WINDOWS, verdictOf, MEETS_JPJ, jpjSummary, carPlanSvg } from '../shared/render.js';
-import { saveImage, vltData } from './saveImage.js';
+import { saveImage, saveCertImage } from './saveImage.js';
 
 const box = document.querySelector('[data-manage]');
 const token = new URLSearchParams(location.search).get('t') || '';
@@ -122,7 +122,16 @@ async function act(action) {
 
 box.addEventListener('click', (e) => { const b = e.target.closest('[data-act]'); if (b) act(b.dataset.act); });
 
-// The receipt (+ certificate once done) as one image for the phone's gallery.
+// The receipt rows for the certificate image: what the shop recorded, nothing estimated.
+function receiptRows(b) {
+  if (!hasMoney(b.price)) return null;
+  const paid = Number(b.paid) || 0, owed = Math.max(0, Number(b.price) - paid);
+  return [[b.price_final ? 'Harga' : 'Anggaran harga', rm(b.price)],
+    ...(paid > 0 ? [[`Dibayar${b.payment_method ? ` (${METHOD[b.payment_method] || b.payment_method})` : ''}`, rm(paid)]] : []),
+    ...(owed > 0 ? [['Baki', rm(owed), 'bad']] : paid > 0 ? [['Status', 'Dibayar penuh', 'ok']] : [])];
+}
+
+// Before the car is done: the booking and its price as one image for the phone's gallery.
 function imageOf(b) {
   const paid = Number(b.paid) || 0, owed = hasMoney(b.price) ? Math.max(0, Number(b.price) - paid) : 0;
   return {
@@ -135,8 +144,6 @@ function imageOf(b) {
         ...(paid > 0 ? [[`Dibayar${b.payment_method ? ` (${METHOD[b.payment_method] || b.payment_method})` : ''}`, rm(paid)]] : []),
         ...(b.done && owed > 0 ? [['Baki', rm(owed), 'bad']] : [])],
         note: b.done && owed === 0 && paid > 0 ? 'Dibayar penuh. Terima kasih!' : '' },
-      b.done && { heading: 'Sijil pemasangan', rows: [['Tarikh pasang', b.completed_at ? dateLabel(b.completed_at) : '-'], ...vltData(b),
-        ['Waranti hingga', b.warranty_until ? dateLabel(b.warranty_until) : 'Rujuk kedai']] },
     ].filter(Boolean),
   };
 }
@@ -144,7 +151,12 @@ box.addEventListener('click', async (e) => {
   const btn = e.target.closest('[data-save]');
   if (!btn || !current) return;
   btn.disabled = true;
-  try { await saveImage(imageOf(current), `Tinted-Carstory-${current.ref}.png`); } finally { btn.disabled = false; }
+  try {
+    const b = current;
+    // Done: the certificate image (design C) with the receipt card under it. Before: the booking card.
+    if (b.done) await saveCertImage(b, `Sijil-Tinted-Carstory-${b.ref}.png`, { receipt: receiptRows(b) });
+    else await saveImage(imageOf(b), `Tinted-Carstory-${b.ref}.png`);
+  } finally { btn.disabled = false; }
 });
 
 // Lost the link: the shop resends it from the staff app ("Hantar pautan"). There is
