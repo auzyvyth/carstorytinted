@@ -24,6 +24,9 @@
   --wash-blue: linear-gradient(180deg, #eef2ff, #f8f9ff);
   --wash-sun: linear-gradient(180deg, #fff1dd, #fffaf0);
   --wash-mix: radial-gradient(900px 440px at 90% 0%, rgba(244, 123, 32, 0.20), transparent 62%), radial-gradient(700px 360px at 60% 100%, rgba(255, 199, 26, 0.16), transparent 60%), radial-gradient(900px 520px at 0% 10%, rgba(29, 63, 196, 0.14), transparent 60%), #fbfcff;
+  /* the deep blue of the tint preview, also behind Servis lain */
+  --blue-ground: linear-gradient(170deg, #0b1231, #101b48 55%, #15276c);
+  --blue-ground-up: linear-gradient(190deg, #15276c, #101b48 45%, #0b1231);   /* same blue, light end on top: follows on from --blue-ground with no edge */
   --night: radial-gradient(700px 400px at 100% 100%, rgba(244, 123, 32, 0.22), transparent 60%), linear-gradient(160deg, #0b1333, #13235f 60%, #1d3fc4);
   /* light shop-colour blobs behind a section (.glow) */
   --glow: radial-gradient(28% 34% at 88% 18%, rgb(var(--orange-rgb) / 0.20), transparent 70%),
@@ -225,7 +228,7 @@ section { padding: 80px 0; }
 /* film picker: pick a film, see the tinted glass (markup tintStudio, src/public/tint.js).
    A full-width dark section (no card around it): same side margins as every other
    section via .wrap, blurred shop-colour light behind, the preview wider. */
-.studio { position: relative; overflow: hidden; color: #fff; background: linear-gradient(170deg, #0b1231, #101b48 55%, #15276c); }
+.studio { position: relative; overflow: hidden; color: #fff; background: var(--blue-ground); }
 .studio::before, .studio::after { content: ''; position: absolute; border-radius: 50%; filter: blur(70px); pointer-events: none; }
 .studio::before { width: 620px; height: 420px; left: 50%; bottom: -120px; transform: translateX(-50%); background: rgba(244, 123, 32, 0.34); }
 .studio::after { width: 420px; height: 420px; right: -120px; top: -140px; background: rgba(59, 108, 240, 0.40); }
@@ -442,46 +445,47 @@ main:has(> .page-head), main:has(> .wrap > .page-head), main.book { background: 
 .cert, .loc-card, .shot { background: linear-gradient(rgba(255,255,255,.78), rgba(255,255,255,.78)) padding-box, var(--grad) border-box; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
 .loc-card { border: 1px solid rgba(255, 255, 255, 0.8); background: rgba(255, 255, 255, 0.7); }
 
-/* other services (owner-edited). Picture left, a list of WhatsApp rows right.
-   Colours only through the --svc-* tokens, which read the section's theme. */
+/* other services (owner-edited). Owner's reference (2026-10-26): heading top-left, cards
+   stepping up to the right, white cards on the tint preview's blue. Colours only via --svc-*. */
 #servis {
-  --svc-ground: var(--s-ground);
-  --svc-title: var(--s-ink);
-  --svc-text: var(--s-text);
-  --svc-row: var(--s-ground-2);
-  --svc-row-hover: var(--s-ground-3);
-  --svc-name: var(--s-ink);
-  --svc-desc: var(--s-text);
-  --svc-ask: var(--s-accent);
-  --svc-caption: var(--s-muted);
-  background: var(--svc-ground); padding: 120px 0;
+  --svc-ground: var(--blue-ground-up);
+  --svc-title: #ffffff;
+  --svc-lead: rgb(255 255 255 / 0.72);
+  --svc-card: #ffffff;
+  --svc-card-hover: #f3f5fc;
+  --svc-icon: var(--accent);
+  --svc-name: var(--ink);
+  --svc-desc: var(--text-2);
+  --svc-ask: var(--accent);
+  --svc-step: 120px;   /* how far each card sits below the next one */
+  background: var(--svc-ground); color: var(--svc-title); padding: 112px 0;
 }
-.svc-in { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 64px; align-items: stretch; }
-/* the picture runs the full height of the text column */
-.svc-pic { margin: 0; display: flex; flex-direction: column; }
-.svc-pic img { flex: 1; min-height: 360px; width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; border-radius: 10px; }
-.svc-pic figcaption { margin-top: 10px; font-family: 'Barlow', var(--body); font-size: 15px; color: var(--svc-caption); }
-#servis h2 { font-family: 'Exo 2', system-ui, sans-serif; font-weight: 800; font-size: clamp(34px, 4.2vw, 56px); line-height: 1.02; letter-spacing: -0.01em; color: var(--svc-title); }
-.svc-lead { margin-top: 16px; max-width: 520px; font-family: 'Barlow', var(--body); font-size: 18px; line-height: 1.55; color: var(--svc-text); }
-.svc-list { list-style: none; display: grid; gap: 8px; margin-top: 32px; }
-.svc { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 88px; padding: 20px 24px; border-radius: 10px;
-  background: var(--svc-row); text-decoration: none; -webkit-tap-highlight-color: transparent; transition: background-color .15s, transform .1s ease-out; }
-.svc-text { display: grid; gap: 4px; min-width: 0; }
-.svc-name { font-family: 'Exo 2', system-ui, sans-serif; font-weight: 700; font-size: 22px; line-height: 1.2; color: var(--svc-name); }
-.svc-desc { font-family: 'Barlow', var(--body); font-size: 16px; line-height: 1.5; color: var(--svc-desc); }
-.svc-ask { display: inline-flex; align-items: center; gap: 8px; flex: none; font-family: 'Barlow', var(--body); font-weight: 600; font-size: 16px; color: var(--svc-ask); white-space: nowrap; }
-.svc-ask svg { width: 20px; height: 20px; transition: transform .2s cubic-bezier(.2, .9, .3, 1); }
-@media (hover: hover) { .svc:hover { background: var(--svc-row-hover); } .svc:hover .svc-ask svg { transform: scale(1.12); } }
+.svc-in { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: auto auto; gap: 24px; align-items: start; }
+.svc-head { grid-column: 1; grid-row: 1; padding-bottom: 16px; }
+#servis h2 { font-family: 'Exo 2', system-ui, sans-serif; font-weight: 800; font-size: clamp(40px, 4.6vw, 62px); line-height: 1.08; letter-spacing: -0.01em; color: var(--svc-title); }
+.svc-head p { margin-top: 18px; max-width: 320px; font-family: 'Barlow', var(--body); font-size: 17px; line-height: 1.55; color: var(--svc-lead); }
+.svc-list { display: contents; list-style: none; }
+/* the staircase: 1st card under the heading, 2nd one step up, 3rd at the top */
+.svc-list li:nth-child(1) { grid-column: 1; grid-row: 2; }
+.svc-list li:nth-child(2) { grid-column: 2; grid-row: 1 / span 2; margin-top: var(--svc-step); }
+.svc-list li:nth-child(3) { grid-column: 3; grid-row: 1 / span 2; }
+.svc-list li:nth-child(n+4) { grid-row: auto; }
+.svc-list li.reveal.pre { transition-delay: calc(var(--i) * 90ms); }
+.svc { display: flex; flex-direction: column; gap: 10px; height: 100%; padding: 28px; border-radius: 16px; background: var(--svc-card); text-decoration: none;
+  -webkit-tap-highlight-color: transparent; transition: background-color .15s, transform .2s cubic-bezier(.2, .9, .3, 1); }
+.svc-icon { display: block; width: 40px; height: 40px; margin-bottom: 10px; color: var(--svc-icon); }
+.svc-icon svg { width: 100%; height: 100%; }
+.svc-name { font-family: 'Exo 2', system-ui, sans-serif; font-weight: 700; font-size: 21px; line-height: 1.25; color: var(--svc-name); }
+.svc-desc { flex: 1; font-family: 'Barlow', var(--body); font-size: 16px; line-height: 1.55; color: var(--svc-desc); }
+.svc-ask { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; font-family: 'Barlow', var(--body); font-weight: 600; font-size: 16px; color: var(--svc-ask); }
+.svc-ask svg { width: 20px; height: 20px; }
+@media (hover: hover) { .svc:hover { background: var(--svc-card-hover); transform: translateY(-4px); } }
 .svc:active { transform: scale(.99); }
-.svc:focus-visible { outline: 2px solid var(--svc-ask); outline-offset: 3px; }
+.svc:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
 @media (max-width: 860px) {
   #servis { padding: 80px 0; }
-  .svc-in { grid-template-columns: minmax(0, 1fr); gap: 32px; }
-  .svc-pic { order: 2; }
-  .svc-pic img { flex: none; height: auto; min-height: 0; aspect-ratio: 6 / 5; }
-}
-@media (max-width: 520px) {
-  .svc { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .svc-in { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .svc-head, .svc-list li:nth-child(n) { grid-column: 1; grid-row: auto; margin-top: 0; }
 }
 
 /* team (owner-edited) */

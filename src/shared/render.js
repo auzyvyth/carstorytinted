@@ -207,15 +207,25 @@ export function tintStudio(catalog) {
 export const siteOf = (catalog) => ({ services: [], team: [], videos: [], ...(catalog?.site || {}) });
 
 // Other services (polish, car carpet...). Not bookable online: the price and time depend
-// on the car, so every row ends in a WhatsApp ask, never an invented number. Each row is
-// one link (the whole row is the thumb target).
-const WA_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20.5l1.3-4.3A8.6 8.6 0 1 1 8 19.4z"/><path d="M9 8.6c0 3.2 3.2 6.4 6.4 6.4l1.2-1.6-2-1-1 1c-1.2-.4-2.6-1.8-3-3l1-1-1-2z" stroke-width="1.4"/></svg>';
+// on the car, so every card ends in a WhatsApp ask, never an invented number. Each card is
+// one link (the whole card is the thumb target).
+const svg = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const WA_ICON = svg('<path d="M3.5 20.5l1.3-4.3A8.6 8.6 0 1 1 8 19.4z"/><path d="M9 8.6c0 3.2 3.2 6.4 6.4 6.4l1.2-1.6-2-1-1 1c-1.2-.4-2.6-1.8-3-3l1-1-1-2z" stroke-width="1.4"/>');
+// icon per service id; owner-added services get the spanner
+const SVC_ICONS = {
+  polish: svg('<path d="M10 3l1.9 5.1L17 10l-5.1 1.9L10 17l-1.9-5.1L3 10l5.1-1.9z"/><path d="M18 14l.9 2.1L21 17l-2.1.9L18 20l-.9-2.1L15 17l2.1-.9z"/>'),
+  'polish-lampu': svg('<path d="M11 5H9.5a7 7 0 0 0 0 14H11z"/><path d="M15 7.5l5-1.5M15 12h5.5M15 16.5l5 1.5"/>'),
+  karpet: svg('<rect x="5" y="3" width="14" height="18" rx="3"/><path d="M8.5 7.5h7M8.5 11h7M8.5 14.5h7M8.5 18h7" stroke-width="1.4"/>'),
+};
+const SVC_DEFAULT_ICON = svg('<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3.5 17.5l3 3 5.8-5.8a4 4 0 0 0 5.4-5.4l-2.4 2.4-2.6-.5-.5-2.6z"/>');
 export function servicesHtml(catalog) {
   const list = siteOf(catalog).services.filter((x) => x?.name);
   if (!list.length) return '';
   const c = SHOP.contacts[0];
-  return `<ul class="svc-list">${list.map((x) => `<li><a class="svc" href="${waLink(c.phone, `Salam, saya nak tanya pasal ${x.name}.`)}" rel="noopener">
-  <div class="svc-text"><h3 class="svc-name">${esc(x.name)}</h3>${x.desc ? `<p class="svc-desc">${esc(x.desc)}</p>` : ''}</div>
+  return `<ul class="svc-list">${list.map((x, i) => `<li class="reveal" style="--i:${i}"><a class="svc" href="${waLink(c.phone, `Salam, saya nak tanya pasal ${x.name}.`)}" rel="noopener">
+  <span class="svc-icon">${SVC_ICONS[x.id] || SVC_DEFAULT_ICON}</span>
+  <h3 class="svc-name">${esc(x.name)}</h3>
+  ${x.desc ? `<p class="svc-desc">${esc(x.desc)}</p>` : ''}
   <span class="svc-ask">${WA_ICON}${hasNum(x.price_from) ? `dari ${rm(x.price_from)}` : 'Tanya harga'}</span>
 </a></li>`).join('')}</ul>`;
 }
@@ -268,18 +278,17 @@ const sec = (id, cls, eyebrow, title, lead, body) => (body ? `<section id="${id}
     <div class="reveal">${body}</div>
   </div>
 </section>` : '');
-// Dark section (theme-dark tokens, site.css). Picture = the shop's hex ceiling mirrored in a
-// customer's bonnet, cropped from kerja/13 above the watermark.
+// Blue section (same ground as the tint preview), heading top-left and the cards stepping
+// up to the right (owner's reference, 2026-10-26). Cards fade in one after another (.reveal, --i).
 export const servicesSection = (c) => {
   const body = servicesHtml(c);
-  return body ? `<section id="servis" class="theme-dark">
+  return body ? `<section id="servis">
   <div class="wrap svc-in">
-    <figure class="svc-pic reveal"><img src="/servis-polish.webp" alt="Lampu heksagon kedai terpantul pada bonet Proton Persona" width="600" height="500" loading="lazy" decoding="async"><figcaption>Bay kami, Sungai Jawi</figcaption></figure>
-    <div class="svc-body reveal">
+    <div class="svc-head reveal">
       <h2>Bukan tinted sahaja.</h2>
-      <p class="svc-lead">Polish dan karpet juga. Harga ikut kereta anda, jadi WhatsApp kami dan kami sebut harga dulu sebelum mula.</p>
-      ${body}
+      <p>Harga ikut kereta anda. WhatsApp kami, kami sebut harga dulu sebelum mula.</p>
     </div>
+    ${body}
   </div>
 </section>` : '';
 };
