@@ -3,7 +3,7 @@ import { supabase } from './supabase.js';
 import { SHOP, CAR_SIZES, JPJ, WAIT_MODES, HEARD_FROM, displayPhone } from '../shared/shop.js';
 import { quote, rm as rmExact } from '../shared/render.js';
 import { shopDate } from '../shared/api.js';
-import { NEXT, vltWarnings, certUrl, manageUrl, balance, num, firstName, waCustomer, slotUse, walkInSlot, isClosedDay, receiptText } from './logic.js';
+import { NEXT, vltWarnings, vltPreset, certUrl, manageUrl, balance, num, firstName, waCustomer, slotUse, walkInSlot, isClosedDay, receiptText } from './logic.js';
 import { METHODS } from './report.js';
 import { DEMO } from '../shared/api.js';
 import { Sheet, StageChip, Icon, rmFmt } from './ui.jsx';
@@ -11,7 +11,8 @@ import JobPhotos, { missingRequired } from './JobPhotos.jsx';
 
 const FIELDS = ['customer_name', 'phone', 'car_model', 'plate', 'car_size', 'film_id', 'scheduled_date', 'scheduled_slot',
   'price', 'paid_amount', 'vlt_windscreen', 'vlt_front', 'vlt_rear', 'notes', 'no_followup', 'installer_id', 'payment_method', 'addons', 'wait_mode', 'heard_from'];
-const NUMERIC = ['price', 'paid_amount', 'vlt_windscreen', 'vlt_front', 'vlt_rear'];
+const VLT = ['vlt_windscreen', 'vlt_front', 'vlt_rear'];
+const NUMERIC = ['price', 'paid_amount', ...VLT];
 const ERR = {
   jobs_phone_check: 'Nombor telefon tidak sah.',
   jobs_customer_name_check: 'Isi nama pelanggan.',
@@ -36,6 +37,10 @@ function toForm(job, settings, jobs = [], preset = null) {
   // Staff read and type Malaysian numbers the local way; the DB stores 60xxxxxxxxx.
   if (job?.phone) f.phone = displayPhone(job.phone);
   if (job && (job.price === null || job.price === undefined) && job.quoted_price !== null && job.quoted_price !== undefined) f.price = String(Number(job.quoted_price));
+  // Unmeasured glass starts at its target VLT. Part of the baseline, so it is not an
+  // unsaved change: it reaches the database only once typed over, or confirmed at "siap".
+  const pre = vltPreset(job, settings?.films?.find((x) => x.id === f.film_id));
+  for (const k of VLT) if (f[k] === '' && pre[k] !== null) f[k] = String(pre[k]);
   return f;
 }
 
@@ -121,6 +126,8 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
   const cap = settings?.cars_per_slot || 1;
   const use = f.scheduled_date ? slotUse(jobs, f.scheduled_date, job?.id) : {};
   const digits = String(f.phone).replace(/\D/g, '');
+  // Glass still showing its target, not a meter reading typed in.
+  const presetLeft = VLT.filter((k) => (job?.[k] ?? null) === null && f[k] !== '' && f[k] === base.current[k]);
 
   async function save(extra = {}) {
     setErr('');
@@ -138,6 +145,7 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
     try {
       const all = toRow(f);
       if (isNew) {
+        for (const k of presetLeft) all[k] = null;
         return await api.create({ ...all, ...extra, source, stage: extra.stage || (waitlist ? 'baru' : 'disahkan'),
           ...(waitlist ? { scheduled_date: shopDate(0), scheduled_slot: null, waitlist_at: new Date().toISOString() } : {}) });
       }
@@ -159,12 +167,16 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
   async function advance() {
     const n = NEXT[job.stage];
     if (!n) return;
-    if (n.to === 'siap' && [f.vlt_windscreen, f.vlt_front, f.vlt_rear].every((v) => v === '' || v === null)
+    const extra = { stage: n.to };
+    if (n.to === 'siap' && presetLeft.length) {
+      if (!window.confirm('Bacaan VLT masih nilai cadangan, belum diukur dengan meter. Guna nilai ini dalam sijil pelanggan?')) return;
+      for (const k of presetLeft) extra[k] = Number(f[k]);
+    }
+    if (n.to === 'siap' && VLT.every((k) => f[k] === '' || f[k] === null)
       && !window.confirm('Tiada bacaan VLT direkod. Sijil akan tunjuk "tidak direkodkan". Teruskan?')) return;
     const noPhoto = n.to === 'siap' ? missingRequired(photos) : [];
     if (noPhoto.length && !window.confirm(`Foto meter belum diambil: ${noPhoto.map((x) => x.label.toLowerCase()).join(' dan ')}. Sijil pelanggan akan tanpa foto bukti. Teruskan juga?`)) return;
     if (n.to === 'siap' && warns.length && !window.confirm(`${warns.join('. ')}. Kereta ini akan GAGAL ujian JPJ. Teruskan juga?`)) return;
-    const extra = { stage: n.to };
     if (n.to === 'selesai') extra.paid_amount = Math.max(num(f.paid_amount) || 0, num(f.price) || 0);
     const saved = await save(extra);
     if (saved) toast(`${saved.customer_name}: ${n.label.toLowerCase()}`);
@@ -239,13 +251,19 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
       {clash && <div className="warnline" role="status">Kerja ini baru dikemaskini di telefon lain. Perubahan anda yang belum disimpan dikekalkan; semak sebelum Simpan.</div>}
       {!isNew && (
         <div className="card box">
-          <div className="box-h"><StageChip stage={job.stage} />
-            <span className="row-actions">
-              {!DEMO && <a className="btn btn-sm" href={`tel:+${job.phone}`}>Telefon</a>}
-              <a className="btn btn-sm" href={waCustomer(job.phone)} target="_blank" rel="noopener">{Icon.wa}WhatsApp</a>
-              {/* The customer's one page (status, receipt, certificate). Lost it? Send it again. */}
-              {manageUrl(job) && <a className="btn btn-sm" href={waCustomer(job.phone, `Salam ${firstName(job)}, ini pautan tempahan anda di ${SHOP.name} (${job.ref}). Status, resit dan sijil anda ada di sini: ${manageUrl(job)}`)} target="_blank" rel="noopener">Hantar pautan</a>}
-            </span>
+          {/* What you look for first: which car, whose, what stage. Then the ways to reach them. */}
+          <div className="jd-hero">
+            <div className="jd-car">
+              <b>{job.car_model || 'Model tidak direkod'}</b>
+              {job.plate && <span className="jd-plate">{job.plate}</span>}
+            </div>
+            <div className="jd-who"><span>{job.customer_name} · {displayPhone(job.phone)}</span><StageChip stage={job.stage} /></div>
+          </div>
+          <div className="jd-acts">
+            {!DEMO && <a className="btn btn-sm" href={`tel:+${job.phone}`}>Telefon</a>}
+            <a className="btn btn-sm btn-wa" href={waCustomer(job.phone)} target="_blank" rel="noopener">{Icon.wa}WhatsApp</a>
+            {/* The customer's one page (status, receipt, certificate). Lost it? Send it again. */}
+            {manageUrl(job) && <a className="btn btn-sm" href={waCustomer(job.phone, `Salam ${firstName(job)}, ini pautan tempahan anda di ${SHOP.name} (${job.ref}). Status, resit dan sijil anda ada di sini: ${manageUrl(job)}`)} target="_blank" rel="noopener">Hantar pautan</a>}
           </div>
           {job.archived_at && <div className="warnline">Dipadam. Tidak dikira dalam senarai atau laporan.</div>}
           {job.customer_confirmed_at && job.stage !== 'batal' && <div className="okline">Pelanggan sahkan akan datang (melalui pautan)</div>}
@@ -269,25 +287,12 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
       )}
 
       <div className="card box">
-        <div className="micro">Pelanggan</div>
+        <div className="micro">Kereta dan filem</div>
         <div className="grid2">
-          <label className="fld"><span>Nama</span><input className="in" value={f.customer_name} onChange={set('customer_name')} maxLength={80} /></label>
-          <label className="fld"><span>Telefon</span><input className="in" type="tel" inputMode="tel" value={f.phone} onChange={set('phone')} placeholder="012-345 6789" /></label>
           <label className="fld"><span>Model kereta</span><input className="in" value={f.car_model} onChange={set('car_model')} maxLength={60} /></label>
           <label className="fld"><span>No. plat</span><input className="in" value={f.plate} onChange={set('plate')} maxLength={12} style={{ textTransform: 'uppercase' }} /></label>
           <label className="fld"><span>Saiz</span><select className="in" value={f.car_size} onChange={set('car_size')}>{CAR_SIZES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}</select></label>
           <label className="fld"><span>Filem</span><select className="in" value={f.film_id} onChange={set('film_id')}>{(settings?.films || []).map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
-          {/* Filled automatically by whoever presses "mula kerja"; change it if someone else did the job. */}
-          <label className="fld"><span>Dipasang oleh</span><select className="in" value={f.installer_id || ''} onChange={set('installer_id')}>
-            <option value="">Belum ditentukan</option>
-            {staff.filter((p) => p.active || p.id === f.installer_id).map((p) => <option key={p.id} value={p.id}>{p.name}{p.id === me.id ? ' (anda)' : ''}</option>)}
-          </select></label>
-          <label className="fld"><span>Semasa kerja</span><select className="in" value={f.wait_mode || ''} onChange={set('wait_mode')}>
-            <option value="">Tidak pasti</option>{WAIT_MODES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
-          </select></label>
-          <label className="fld"><span>Tahu dari</span><select className="in" value={f.heard_from || ''} onChange={set('heard_from')}>
-            <option value="">Tidak direkod</option>{HEARD_FROM.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
-          </select></label>
         </div>
         {(settings?.addons || []).length > 0 && (
           <div className="fld"><span>Tambahan</span>
@@ -300,6 +305,31 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
             </div>
           </div>
         )}
+      </div>
+
+      <div className="card box">
+        <div className="micro">Pelanggan</div>
+        <label className="fld"><span>Nama</span><input className="in" value={f.customer_name} onChange={set('customer_name')} maxLength={80} /></label>
+        <div className="grid2">
+          <label className="fld"><span>Telefon</span><input className="in" type="tel" inputMode="tel" value={f.phone} onChange={set('phone')} placeholder="012-345 6789" /></label>
+          <label className="fld"><span>Tahu dari</span><select className="in" value={f.heard_from || ''} onChange={set('heard_from')}>
+            <option value="">Tidak direkod</option>{HEARD_FROM.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+          </select></label>
+        </div>
+      </div>
+
+      <div className="card box">
+        <div className="micro">Kerja</div>
+        <div className="grid2">
+          {/* Filled automatically by whoever presses "mula kerja"; change it if someone else did the job. */}
+          <label className="fld"><span>Dipasang oleh</span><select className="in" value={f.installer_id || ''} onChange={set('installer_id')}>
+            <option value="">Belum ditentukan</option>
+            {staff.filter((p) => p.active || p.id === f.installer_id).map((p) => <option key={p.id} value={p.id}>{p.name}{p.id === me.id ? ' (anda)' : ''}</option>)}
+          </select></label>
+          <label className="fld"><span>Semasa kerja</span><select className="in" value={f.wait_mode || ''} onChange={set('wait_mode')}>
+            <option value="">Tidak pasti</option>{WAIT_MODES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+          </select></label>
+        </div>
       </div>
 
       <div className="card box">
@@ -335,10 +365,11 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
       <div className="card box">
         <div className="box-h"><span className="micro">Bacaan VLT selepas pasang (%)</span>{!warns.length && f.vlt_windscreen !== '' && f.vlt_front !== '' && <span className="okline">Dalam had JPJ</span>}</div>
         <div className="grid3">
-          <label className="fld"><span>Cermin depan · min {JPJ.windscreen}</span><input className="in tab-num" type="number" inputMode="numeric" min="0" max="100" value={f.vlt_windscreen} onChange={set('vlt_windscreen')} /></label>
-          <label className="fld"><span>Sisi depan · min {JPJ.frontSide}</span><input className="in tab-num" type="number" inputMode="numeric" min="0" max="100" value={f.vlt_front} onChange={set('vlt_front')} /></label>
-          <label className="fld"><span>Belakang · bebas</span><input className="in tab-num" type="number" inputMode="numeric" min="0" max="100" value={f.vlt_rear} onChange={set('vlt_rear')} /></label>
+          <label className="fld"><span>Cermin depan · min {JPJ.windscreen}</span><input className={`in tab-num${presetLeft.includes('vlt_windscreen') ? ' in-preset' : ''}`} type="number" inputMode="numeric" min="0" max="100" value={f.vlt_windscreen} onChange={set('vlt_windscreen')} /></label>
+          <label className="fld"><span>Sisi depan · min {JPJ.frontSide}</span><input className={`in tab-num${presetLeft.includes('vlt_front') ? ' in-preset' : ''}`} type="number" inputMode="numeric" min="0" max="100" value={f.vlt_front} onChange={set('vlt_front')} /></label>
+          <label className="fld"><span>Belakang · bebas</span><input className={`in tab-num${presetLeft.includes('vlt_rear') ? ' in-preset' : ''}`} type="number" inputMode="numeric" min="0" max="100" value={f.vlt_rear} onChange={set('vlt_rear')} /></label>
         </div>
+        {presetLeft.length > 0 && <div className="muted" style={{ fontSize: 13 }}>Diisi dengan nilai sasaran (pilihan pelanggan atau had JPJ). Tukar kepada bacaan meter selepas pasang.</div>}
         {warns.map((w) => <div key={w} className="warnline">{w}</div>)}
         {!isNew && ['dalam_kerja', 'siap', 'selesai'].includes(job.stage) && <JobPhotos job={job} photos={photos} setPhotos={setPhotos} form={f} toast={toast} />}
       </div>

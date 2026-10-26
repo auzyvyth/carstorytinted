@@ -41,6 +41,20 @@ export function vltWarnings(j) {
   return w;
 }
 
+// The VLT the drawer starts with when nothing is measured yet: what the customer picked in
+// the booking preview (saved at the top of the notes by booking.js), else the JPJ minimum
+// for the front glass and the film's darkest for the rear. A target, not a reading: staff
+// overwrite it with the meter value.
+export function vltPreset(j, film) {
+  const pick = (re) => { const m = String(j?.notes || '').match(re); return !m ? null : m[1] ? 100 : Number(m[2]); };
+  const look = (k) => pick(new RegExp(`Pilihan pratonton:[^\\n]*?${k} (?:(tiada filem)|(\\d{1,3})%)`));
+  return {
+    vlt_windscreen: look('cermin depan') ?? JPJ.windscreen,
+    vlt_front: look('tingkap depan') ?? JPJ.frontSide,
+    vlt_rear: look('belakang') ?? (Array.isArray(film?.vlt) ? film.vlt[0] : null),
+  };
+}
+
 const daysSince = (iso, today) => Math.round((Date.parse(today) - Date.parse(String(iso).slice(0, 10))) / 864e5);
 
 // "Perlu tindakan": one row per JOB (never one per reason), highest priority first.

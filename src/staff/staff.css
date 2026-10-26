@@ -159,12 +159,25 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .sheet-h { position: sticky; top: 0; z-index: 2; background: var(--card); border-bottom: 1px solid var(--line); padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
 .sheet-h h2 { font-size: 15px; font-weight: 700; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sheet-b { padding: 16px; display: grid; gap: 12px; }
+/* grid children default to min-width:auto: one wide row (the contact buttons did) pushed the
+   whole drawer past the screen edge on phones */
+.sheet-b > * { min-width: 0; }
+/* drawer summary: the car is the headline, then whose it is, then the ways to reach them */
+.jd-hero { display: grid; gap: 4px; }
+.jd-car { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.jd-car b { font-size: 20px; font-weight: 800; letter-spacing: -.01em; text-transform: capitalize; }
+.jd-plate { font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 6px; background: var(--fill-2); color: var(--sec); font-variant-numeric: tabular-nums; }
+.jd-who { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; color: var(--muted); font-size: 14px; }
+.jd-acts { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 6px; }
+.jd-acts .btn { justify-content: center; }
+/* a VLT still at its target, not yet a meter reading */
+.in.in-preset { color: var(--faint); font-style: italic; }
 .sheet-f { position: sticky; bottom: 0; background: var(--card); border-top: 1px solid var(--line); padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); display: flex; gap: 8px; margin-top: auto; }
 .sheet-f .btn-primary { flex: 1; }
 .box { padding: 14px 16px; display: grid; gap: 10px; }
 .box-h { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; align-items: end; }
 .fld { display: grid; gap: 4px; min-width: 0; }
 .fld > span { font-size: 12.5px; font-weight: 600; color: var(--muted); }
 .in { width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--raised); font-size: 16px; min-width: 0; color: var(--ink); }
