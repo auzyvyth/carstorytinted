@@ -548,13 +548,25 @@ main.book .page-head .crumb { margin-bottom: 8px; }
   background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, .22) 45%, transparent 60%) 0 0 / 300% 100% no-repeat;
   animation: cp-sheen 6s ease-in-out infinite; }
 @keyframes cp-sheen { 0% { background-position: 100% 0; } 60%, 100% { background-position: 0 0; } }
-.cp-tag { position: absolute; padding: 6px 10px; border-radius: 8px; background: rgba(6, 8, 13, .72); color: #fff; font-size: 13px; font-weight: 700; line-height: 1.2; white-space: nowrap; }
-.cp-tag b { color: #ffc71a; }
-.cp-tag small { display: block; font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, .7); }
-.cp-tag-rear { right: 1%; top: 6%; }
-.cp-tag-front { left: 44%; top: 0; }
+/* callouts: thin labels on circuit-style leader lines (cp-lines, drawn in % of the frame);
+   each label sits on its line's end, the dot on the glass */
+.cp-lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.cp-lines path { fill: none; stroke: rgba(255, 199, 26, .8); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.cp-lines .dot { stroke: #ffc71a; stroke-width: 5; stroke-linecap: round; }
+.cp-tag { position: absolute; padding-bottom: 3px; color: rgba(255, 255, 255, .82); font-size: 12px; font-weight: 500; letter-spacing: .02em; line-height: 1; white-space: nowrap; }
+.cp-tag b { color: #ffc71a; font-weight: 700; }
+.cp-tag-ws { left: 0; bottom: 88%; }
+.cp-tag-front { right: 27%; bottom: 97%; }
+.cp-tag-rear { right: 0; bottom: 97%; }
+.stage { padding-top: 14px; }
+/* sliders stand upright, side by side: up = darker (min VLT at the top) */
+.sliders { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 4px 0 14px; }
+.vs { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.vs b { color: var(--sun); font-size: 15px; font-variant-numeric: tabular-nums; }
+.dial .vs label { font-size: 13px; text-align: center; }
+.dial .vs input, #filem .dial .vs input { writing-mode: vertical-lr; width: 28px; height: 150px; margin: 0; }
 .cp-note { margin-top: 8px; font-size: 12px; text-align: center; opacity: .6; }
-@media (max-width: 860px) { .cp-tag { font-size: 11px; padding: 4px 8px; } .cp-tag small { display: none; } .cp-tag-front { left: 40%; top: 0; } .cp-tag-rear { right: 0; top: 6%; } }
+@media (max-width: 860px) { .cp-tag { font-size: 10.5px; } }
 @media (prefers-reduced-motion: reduce) { .cp-sheen { animation: none; } }
 
 /* the glass itself: a fixed sky reflection so every pane reads as glass, even where the
@@ -563,4 +575,4 @@ main.book .page-head .crumb { margin-bottom: 8px; }
   -webkit-mask: url(/tint/car-front-glass.png) center / 100% 100% no-repeat; mask: url(/tint/car-front-glass.png) center / 100% 100% no-repeat;
   background: linear-gradient(172deg, rgba(225, 235, 245, .34) 0%, rgba(225, 235, 245, .16) 34%, rgba(225, 235, 245, .05) 52%, transparent 66%),
               linear-gradient(118deg, transparent 58%, rgba(255, 255, 255, .12) 64%, transparent 72%); }
-@media (min-width: 900px) { #filem .stage { max-width: 480px; } #filem .dial { max-width: 480px; } #filem .dial label { margin-top: 2px; } }
+@media (min-width: 900px) { #filem .stage { max-width: 480px; } #filem .dial { max-width: 480px; } #filem .dial label { margin-top: 2px; } #filem .dial .vs input { height: 100px; } #filem .sliders { margin-bottom: 8px; } }
