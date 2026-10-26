@@ -402,3 +402,4 @@ The certificate design (A-D) is NOT picked yet: photos show on today's certifica
   (Saya akan datang / Batalkan, or WhatsApp + Simpan gambar). Right: "Tempahan anda" / "Resit" (money).
   Done: the design C certificate (readings over the car, meter photos, warranty) in the left column.
 - The certificate block is a <div>, not <section>: site.css gives every section 80px padding.
+- 0006_job_photos.sql applied on live Supabase (tinted-carstory) 2026-10-26 by the owner via SQL editor; verified: RLS + 3 policies, bukti bucket (2 MB, webp/jpeg) + 3 staff policies, no anon access to table/bucket/cert_photos.
