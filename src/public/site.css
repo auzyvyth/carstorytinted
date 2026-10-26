@@ -699,12 +699,13 @@ h2 { font-size: var(--step-head); line-height: .98; }
 h3 { font-size: var(--step-lead); letter-spacing: -0.02em; line-height: 1.15; }
 a { color: var(--papan); }
 
-/* the action: flat sign yellow, cut to the window's slant */
-.btn-cta, .btn-sun, .btn-win { display: inline-flex; align-items: center; justify-content: center; min-height: 50px; padding: 0 calc(22px + var(--slant)) 0 22px; border: 0; border-radius: 0;
+/* the action: flat sign yellow in a rounded square; it answers on press, not on release */
+.btn-cta, .btn-sun, .btn-win { display: inline-flex; align-items: center; justify-content: center; min-height: 50px; padding: 0 24px; border: 0; border-radius: 12px;
   background: var(--huruf); color: var(--ink); font-family: var(--display); font-weight: 700; font-size: 16px; letter-spacing: -0.01em; text-decoration: none; box-shadow: none;
-  clip-path: polygon(0 0, calc(100% - var(--slant)) 0, 100% 100%, 0 100%); transition: transform .16s ease-out, background-color .15s; }
-.btn-cta:hover, .btn-sun:hover, .btn-win:hover { background: #ffd447; }
-.btn-cta:active, .btn-sun:active, .btn-win:active { transform: scale(.97); transition-duration: 0s; }
+  clip-path: none; transition: transform .1s ease-out, background-color .15s; -webkit-tap-highlight-color: transparent; }
+@media (hover: hover) { .btn-cta:hover, .btn-sun:hover, .btn-win:hover { background: #ffd447; } }
+.btn-cta:active, .btn-sun:active, .btn-win:active { transform: scale(.97); }
+@media (prefers-reduced-motion: reduce) { .btn-cta:active, .btn-sun:active, .btn-win:active { transform: none; } }
 .btn-win-sm { min-height: 42px; font-size: 15px; }
 
 /* header: a plain bar, wordmark, four links, one action */
