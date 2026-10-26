@@ -3,6 +3,7 @@
 import './site.css';
 import './hero.css';  // the blue header every public page now shares
 import './doc.css';
+import './dark.css';
 import './nav.js';
 import { rpc, apiReady } from '../shared/api.js';
 import { tintStudio, pricesHtml, servicesSection, teamSection, videosSection } from '../shared/render.js';

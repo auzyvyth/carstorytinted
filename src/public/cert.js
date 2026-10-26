@@ -9,6 +9,7 @@ import './hero.css';
 import './cert.css';
 import './booking.css';
 import './manage.css';
+import './dark.css';
 import './nav.js';
 import { rpc, apiReady, dateLabel } from '../shared/api.js';
 import { SHOP, fullAddress, waLink } from '../shared/shop.js';

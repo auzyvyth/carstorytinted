@@ -1,0 +1,70 @@
+/* The homepage's last light sections on the new dark look (owner, 2026-10-26: "match the
+   theme"). The page now runs dark from top to bottom, alternating two grounds so it keeps
+   a rhythm: near-black (as "Hasil kerja kami") and the site blue (as the hero and booking).
+     cara (blue) -> sijil (black) -> video (blue) -> galeri (black) -> pasukan (blue)
+     -> soalan (black) -> lokasi (blue) -> footer (black, every page)
+   Surfaces inside are a tone step (white at 5-8%), never an outline or a drop effect. */
+#sijil, #galeri, #soalan { --dk-ground: #05070f; }
+#video, #pasukan, #lokasi { --dk-ground: var(--blue-ground); }
+:is(#sijil, #video, #galeri, #pasukan, #soalan, #lokasi) {
+  --dk-ink: #ffffff; --dk-text: rgba(255, 255, 255, .74); --dk-faint: rgba(255, 255, 255, .55);
+  --dk-panel: rgba(255, 255, 255, .06); --dk-panel-2: rgba(255, 255, 255, .1); --dk-rule: rgba(255, 255, 255, .1);
+  position: relative; overflow: hidden; isolation: isolate; background: var(--dk-ground); color: var(--dk-ink);
+}
+/* the blue sections keep the hero's two soft lights; the pastel blobs are gone */
+:is(#sijil, #video, #galeri, #pasukan, #soalan, #lokasi).glow::after { display: none; }
+:is(#video, #pasukan, #lokasi)::before { content: ''; position: absolute; z-index: -1; width: 520px; height: 520px; right: -160px; top: -200px;
+  border-radius: 50%; filter: blur(70px); background: rgba(59, 108, 240, .35); pointer-events: none; }
+
+:is(#sijil, #video, #galeri, #pasukan, #soalan, #lokasi) h2 {
+  font-family: 'Exo 2', system-ui, sans-serif; font-weight: 800; letter-spacing: -0.01em; color: var(--dk-ink); }
+:is(#sijil, #video, #galeri, #pasukan, #soalan, #lokasi) :is(.eyebrow, .sec-head .eyebrow) { color: var(--sun); } /* taste-skill-ignore: the site's existing section labels, recoloured */
+:is(#sijil, #video, #galeri, #pasukan, #soalan, #lokasi) :is(.sec-head p, .lead, .note) { color: var(--dk-text); }
+:is(#sijil, #video, #galeri, #pasukan, #soalan, #lokasi) a:not(.btn) { color: var(--dk-ink); }
+:is(#sijil, #video, #galeri, #pasukan, #soalan, #lokasi) .note b { color: var(--dk-ink); }
+
+/* Ikut had JPJ: the limit bars */
+#sijil .limits { border-top-color: var(--dk-rule); }
+#sijil .limit { border-bottom-color: var(--dk-rule); }
+#sijil .limit-top { color: var(--dk-text); }
+#sijil .limit-top b { color: var(--dk-ink); }
+#sijil .bar { background: var(--dk-panel-2); }
+#sijil .bar i { background: var(--sun); }
+
+/* Soalan lazim */
+#soalan .faqs { background: var(--dk-panel); padding: 4px 24px; }
+#soalan .faq { border-bottom-color: var(--dk-rule); }
+#soalan .faq summary { color: var(--dk-ink); }
+#soalan .faq summary::after { color: var(--dk-faint); }
+#soalan .faq summary:hover { color: var(--sun); }
+#soalan .faq p { color: var(--dk-text); }
+
+/* Lokasi */
+#lokasi .loc-card { background: var(--dk-panel); color: var(--dk-ink); }
+#lokasi .loc-card h3 { color: var(--dk-faint); }
+#lokasi .loc-card p, #lokasi .contact { color: var(--dk-ink); }
+#lokasi .contact { border-top-color: var(--dk-rule); }
+#lokasi .contact small, #lokasi .contact span, #lokasi .shopfront figcaption { color: var(--dk-text); }
+#lokasi .map { background: var(--dk-panel); }
+:is(#sijil, #lokasi, #pasukan, #video, #galeri, #soalan) .btn-line {
+  background: transparent; border: 1.5px solid rgba(255, 255, 255, .32); color: var(--dk-ink); }
+:is(#sijil, #lokasi, #pasukan, #video, #galeri, #soalan) .btn-line:hover { background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .5); }
+
+/* Pasukan, galeri, video */
+#pasukan .member { background: var(--dk-panel); }
+#pasukan .member figcaption b { color: var(--dk-ink); }
+#pasukan .member figcaption span { color: var(--sun); }
+#pasukan .member figcaption p { color: var(--dk-text); }
+#galeri .shot { background: var(--dk-panel); }
+#galeri .shot figcaption b { color: var(--dk-ink); }
+#galeri .shot figcaption span { color: var(--sun); }
+
+/* Footer, every page: near-black, the same close as the header when it goes solid */
+.foot { background: #000208; color: #fff; }
+.foot::before { display: none; }
+.foot .wordmark { color: #fff; }
+.foot .wordmark span { color: var(--sun); }
+.foot-sub, .foot-base { color: rgba(255, 255, 255, .55); }
+.foot-cols h4 { color: rgba(255, 255, 255, .55); }
+.foot-cols a { color: rgba(255, 255, 255, .85); }
+.foot-cols a:hover { color: var(--sun); }

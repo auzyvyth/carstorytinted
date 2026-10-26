@@ -12,6 +12,7 @@ import './site.css';
 import './hero.css';
 import './cert.css';
 import './booking.css';
+import './dark.css';
 import './nav.js';
 import { rpc, apiReady, shopDate, dayParts, dayLabel, slotLabel, DEMO } from '../shared/api.js';
 import { SHOP, CAR_SIZES, JPJ, waLink, displayPhone, fullAddress, POLICY, WAIT_MODES, CAR_MODELS } from '../shared/shop.js';

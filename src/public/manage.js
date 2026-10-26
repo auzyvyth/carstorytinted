@@ -8,6 +8,7 @@ import './hero.css';
 import './cert.css';
 import './booking.css';
 import './manage.css';
+import './dark.css';
 import './nav.js';
 import { rpc, apiReady, dayLabel, dateLabel, slotLabel } from '../shared/api.js';
 import { SHOP, POLICY, waLink, fullAddress } from '../shared/shop.js';
