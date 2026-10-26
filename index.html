@@ -84,15 +84,21 @@
 
 <div data-services><!--@services--></div>
 
-<section class="glow alt">
+<section id="cara" aria-labelledby="cara-h">
+  <!-- the shop's hexagon ceiling, faded in from the right -->
+  <svg class="stp-bg" aria-hidden="true" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1280 480"><defs>
+    <pattern id="stp-hx" width="84" height="146" patternUnits="userSpaceOnUse" patternTransform="translate(0,-20)"><path d="M42 0 L84 24 L84 73 L42 97 L0 73 L0 24 Z M42 97 L42 146"/></pattern>
+    <linearGradient id="stp-fade" x1="0" x2="1"><stop offset=".35" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff"/></linearGradient>
+    <mask id="stp-mask"><rect width="1280" height="480" fill="url(#stp-fade)"/></mask></defs>
+    <rect width="1280" height="480" fill="url(#stp-hx)" mask="url(#stp-mask)"/></svg>
   <div class="wrap">
-    <div class="sec-head reveal"><div><p class="eyebrow">Cara tempah</p><h2>Siap dalam tiga langkah.</h2></div></div>
-    <div class="steps reveal">
-      <div class="step"><h3>Pilih filem dan saiz</h3><p>Harga kereta kompak terus nampak. Saiz lain kami sahkan dulu.</p></div>
-      <div class="step"><h3>Pilih slot kosong</h3><p>Tempah online 24 jam. Tiada deposit.</p></div>
-      <div class="step"><h3>Datang, siap, dapat sijil</h3><p>Bayar di kedai selepas siap. Sijil dihantar ke WhatsApp.</p></div>
-    </div>
-    <a class="btn btn-cta" href="/tempah/">Tempah slot</a>
+    <h2 id="cara-h" class="reveal">Siap dalam tiga langkah.</h2>
+    <ol class="stp-list">
+      <li class="stp reveal" style="--i:0"><svg class="stp-hex" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z"/><text x="32" y="40" text-anchor="middle">1</text></svg><h3>Pilih filem dan saiz</h3><p>Harga kereta kompak terus nampak. Saiz lain kami sahkan dulu.</p></li>
+      <li class="stp reveal" style="--i:1"><svg class="stp-hex" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z"/><text x="32" y="40" text-anchor="middle">2</text></svg><h3>Pilih slot kosong</h3><p>Tempah online 24 jam. Tiada deposit.</p></li>
+      <li class="stp reveal" style="--i:2"><svg class="stp-hex" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z"/><text x="32" y="40" text-anchor="middle">3</text></svg><h3>Datang, siap, dapat sijil</h3><p>Bayar di kedai selepas siap. Sijil dihantar ke WhatsApp.</p></li>
+    </ol>
+    <a class="stp-go reveal" style="--i:3" href="/tempah/">Tempah slot</a>
   </div>
 </section>
 
