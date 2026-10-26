@@ -532,9 +532,11 @@ main.book .page-head .crumb { margin-bottom: 8px; }
 }
 
 /* ---------- tint preview photo (carSvg in render.js): the car photo, three masked film layers, a moving sheen ---------- */
-/* car-front.webp is cut out (transparent round the car, soft ground shadow), so no box behind it */
+/* half-box: the full photo (cp-bg) shows only from 42% down; the cut-out car (cp-base, transparent
+   round the car) sits over it, so the roof and glass stand out above the box */
 .car-photo { position: relative; aspect-ratio: 1128 / 570; }
-.car-photo .cp-base { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.car-photo .cp-base, .car-photo .cp-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.car-photo .cp-bg { clip-path: inset(42% 0 0 0 round 14px); }
 .cp-tint, .cp-sheen { position: absolute; inset: 0; pointer-events: none;
   -webkit-mask: var(--m) center / 100% 100% no-repeat; mask: var(--m) center / 100% 100% no-repeat; }
 .cp-tint { background: #06080d; transition: opacity .3s ease; }
