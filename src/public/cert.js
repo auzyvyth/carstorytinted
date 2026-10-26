@@ -9,11 +9,12 @@ import './hero.css';
 import './cert.css';
 import './booking.css';
 import './manage.css';
+import './dark.css';
 import './nav.js';
 import { rpc, apiReady, dateLabel } from '../shared/api.js';
 import { SHOP, fullAddress, waLink } from '../shared/shop.js';
 import { esc, VLT_WINDOWS, verdictOf, VERDICT_WORD, MEETS_JPJ, jpjSummary, carPlanSvg as plan } from '../shared/render.js';
-import { saveImage, vltData } from './saveImage.js';
+import { saveCertImage } from './saveImage.js';
 
 const box = document.querySelector('[data-cert]');
 const token = new URLSearchParams(location.search).get('t') || '';
@@ -124,10 +125,6 @@ box.addEventListener('click', async (e) => {
   const c = current;
   btn.disabled = true;
   try {
-    await saveImage({ title: 'Sijil pemasangan tinted', ref: c.ref, customer: c.customer, blocks: [
-      { rows: [['Kereta', [c.car_model, c.plate].filter(Boolean).join(' · ') || '-'], ['Filem', c.film || '-'], ['Tarikh pasang', c.completed_at ? dateLabel(c.completed_at) : '-']] },
-      { heading: 'Bacaan VLT selepas pasang', rows: [...vltData(c), ['Waranti hingga', c.warranty_until ? dateLabel(c.warranty_until) : 'Rujuk kedai']],
-        note: jpjSummary(c) === 'ok' ? `${MEETS_JPJ}. Sijil ini rekod kedai, bukan dokumen JPJ.` : 'Sijil ini rekod kedai, bukan dokumen JPJ.' },
-    ] }, `Sijil-Tinted-Carstory-${c.ref}.png`);
+    await saveCertImage(c, `Sijil-Tinted-Carstory-${c.ref}.png`);
   } finally { btn.disabled = false; }
 });

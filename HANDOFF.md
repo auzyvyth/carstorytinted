@@ -416,3 +416,10 @@ The certificate design (A-D) is NOT picked yet: photos show on today's certifica
 - Removed dead code: old wizard/booking/customer-page CSS (~90 lines), next-free-slot loader (site.js),
   carDiagram, vltRows/carPhoto, sizeForModel, unused colour vars. `wiz-*` hooks renamed `bk-total` / `bk-strip-t`.
 - FAQ "lulus JPJ" -> "ikut had JPJ". Tests: UI 78/78, logic + report pass, taste lint 0 FAIL.
+
+### Same session: certificate image + homepage dark + (next) dashboard
+- `src/public/saveImage.js` rewritten: `saveCertImage(c, file, { receipt })` draws design C on a canvas (car photo,
+  readings over the car from `carPlanSvg` path data, meter photos + times, installer, warranty ring, receipt card
+  on /urus/). Photos load with crossOrigin (Supabase Storage sends CORS); a photo that fails is left out.
+- `src/public/dark.css` (loaded on every public page): #sijil, #video, #galeri, #pasukan, #soalan, #lokasi alternate
+  near-black / site blue; footer near-black everywhere. Old pastel shadows/blur removed from site.css at the source.
