@@ -39,3 +39,17 @@ loadCatalog().then((cat) => {
   const keep = film && [...form.querySelectorAll('input[name="film"]')].find((i) => i.value === film);
   if (keep) keep.checked = true;
 });
+
+// Our work: the arrows page the strip by one screenful; each greys out at its end.
+const track = document.querySelector('.work-track');
+const workBtns = [...document.querySelectorAll('[data-work]')];
+if (track && workBtns.length) {
+  const sync = () => {
+    const max = track.scrollWidth - track.clientWidth - 2;
+    workBtns.forEach((b) => { b.disabled = b.dataset.work === '-1' ? track.scrollLeft <= 2 : track.scrollLeft >= max; });
+  };
+  workBtns.forEach((b) => b.addEventListener('click', () => track.scrollBy({ left: Number(b.dataset.work) * track.clientWidth, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })));
+  track.addEventListener('scroll', sync, { passive: true });
+  addEventListener('resize', sync);
+  sync();
+}
