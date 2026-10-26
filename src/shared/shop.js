@@ -22,9 +22,6 @@ export const SHOP = {
   facebook: 'https://www.facebook.com/people/Tinted-Carstory-AUTO/100083588581977/',
   // TODO(owner): Google Business review link, e.g. https://g.page/r/XXXX/review
   googleReviewUrl: '',
-  // TODO(owner): before/after photos, e.g. { src: '/gallery/myvi.webp', alt: 'Myvi, Nano Ceramic' }.
-  // Empty = the gallery section is not rendered at all (no stock photos, ever).
-  gallery: [],
   // Towns within a short drive; used for "kawasan" copy and JSON-LD areaServed.
   areaServed: ['Sungai Jawi', 'Sungai Bakap', 'Nibong Tebal', 'Simpang Ampat', 'Parit Buntar', 'Bandar Baharu'],
 };

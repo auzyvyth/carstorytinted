@@ -425,3 +425,15 @@ The certificate design (A-D) is NOT picked yet: photos show on today's certifica
   on /urus/). Photos load with crossOrigin (Supabase Storage sends CORS); a photo that fails is left out.
 - `src/public/dark.css` (loaded on every public page): #sijil, #video, #galeri, #pasukan, #soalan, #lokasi alternate
   near-black / site blue; footer near-black everywhere. Old pastel shadows/blur removed from site.css at the source.
+
+### Same session: photo upload "resets everything" FIXED (branch, not released) + gallery removed
+- Root cause: `App()` reloaded the staff row on every `onAuthStateChange`, keyed on the session OBJECT.
+  supabase-js (auth-js `_onVisibilityChanged` -> `_recoverAndRefresh`) fires SIGNED_IN every time the tab becomes
+  visible again, i.e. after the camera / file picker. So the app went to "Memuatkan...", unmounted the workspace and
+  lost the open job, typed VLT and the photo mid-upload. Live log evidence: GET /rest/v1/staff + full jobs reload at
+  12:50:18. Now keyed on the user id (`uid`, App.jsx). UI test fires window visibilitychange; it fails on the old code.
+- Safety net for Android killing the tab during the camera: JobDrawer keeps unsaved fields in sessionStorage
+  (`cs-draft-<jobId>`), restores them on reopen with "Perubahan yang belum disimpan dipulihkan", clears on save/discard.
+- Removed the dormant "Kereta pelanggan kami" gallery (galleryHtml, the `gallery` slot, SHOP.gallery, its CSS): it
+  only ever showed demo placeholders; real photos live in "Hasil kerja kami". Owner-photos TODO item removed.
+- Tests: UI 81/81, logic + report pass.

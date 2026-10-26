@@ -300,20 +300,6 @@ section { padding: 80px 0; }
 .fail { color: var(--bad); font-weight: 600; white-space: nowrap; }
 .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; margin: 0 6px 0 4px; vertical-align: middle; }
 
-/* gallery: real customer cars */
-.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 16px; }
-.shot { border-radius: 16px; overflow: hidden; }
-.shot img, .shot-empty > div { display: block; width: 100%; aspect-ratio: 4/3; object-fit: cover; }
-.shot-empty > div { display: grid; place-items: center; font-size: 13px; font-weight: 600; color: var(--muted); background: repeating-linear-gradient(135deg, var(--accent-soft) 0 12px, #fff 12px 24px); }
-.shot figcaption { display: flex; justify-content: space-between; gap: 8px; padding: 12px 14px; font-size: 14px; }
-.shot figcaption b { color: var(--ink); font-weight: 700; }
-.shot figcaption span { color: var(--orange-ink); font-weight: 600; }
-/* phones: one swipeable row instead of six stacked photos */
-@media (max-width: 640px) {
-  .gallery { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 78%; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; scrollbar-width: none; }
-  .shot { scroll-snap-align: start; }
-}
-
 /* shopfront photo in the location card */
 .shopfront { border-radius: 12px; overflow: hidden; }
 /* height:auto: the img's height="790" attribute otherwise wins over aspect-ratio and
@@ -505,7 +491,6 @@ section { padding: 80px 0; }
 /* ---- booking: one question per screen (src/public/booking.js) ---- */
 [data-booking] { scroll-margin-top: 72px; }  /* clears the site header, which slides back in on scroll-up */
 
-
 .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .tiles.one { grid-template-columns: minmax(0, 1fr); }
 .tiles.days { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -524,7 +509,6 @@ section { padding: 80px 0; }
 .more { margin-top: 18px; }
 .more summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--accent); }
 /* running choices + price, under the progress bar (not pinned over the form) */
-
 
 /* past question 1: the page title steps aside so every screen fits without scrolling */
 
