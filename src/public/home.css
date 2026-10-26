@@ -297,3 +297,56 @@
 }
 @media (prefers-reduced-motion: reduce) { .hero-form.nudge { animation: none; } .form-go:active { transform: none; } }
 @media (prefers-reduced-transparency: reduce) { .hero-form { background: #0a0e18; -webkit-backdrop-filter: none; backdrop-filter: none; } }
+
+/* ---------- trust row: the hero's dark ground continues, four facts as large figures ---------- */
+.home .trust-sec { padding: 0 0 56px; background: var(--k-bg, #000208); }
+.trust-row { list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-top: 1px solid rgba(255, 255, 255, .12); padding-top: 36px; }
+.trust-row li { display: grid; gap: 6px; padding: 0 28px; }
+.trust-row li:first-child { padding-left: 0; }
+.trust-row li + li { border-left: 1px solid rgba(255, 255, 255, .12); }
+.trust-row b { font-family: 'Exo 2', var(--display); font-weight: 800; font-size: clamp(26px, 2.6vw, 38px); line-height: 1.05; color: var(--k-yellow, #ffc61a); }
+.trust-row span { font-family: 'Barlow', var(--body); font-size: 15px; line-height: 1.45; color: #c3c8d4; }
+
+/* ---------- drawn cars: stand-ins for the shop's photographs ---------- */
+.car-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.car-card { margin: 0; display: grid; gap: 16px; padding: 36px 24px 24px; border-radius: 16px; background: var(--v-soft); }
+.car-draw { width: 100%; height: auto; }
+.car-card figcaption { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.car-card b { font-size: 19px; color: var(--v-navy); }
+.car-card span { font-size: 14px; }
+.car-note { margin-top: 18px; text-align: center; font-size: 14px; }
+
+/* ---------- film comparison: one column per film, heat rejection as a bar ---------- */
+.home .cmp-sec { background: var(--v-soft); }
+.cmp-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+.cmp { display: flex; flex-direction: column; gap: 14px; padding: 26px; border-radius: 16px; background: #fff; }
+.cmp h3 { font-size: 20px; font-weight: 800; }
+.cmp-ir b { display: block; font-size: 34px; font-weight: 800; letter-spacing: -0.03em; color: var(--v-blue); line-height: 1.05; }
+.cmp-ir span { font-size: 14px; }
+.cmp-bar { display: block; height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--v-blue) var(--w), #e3e8f3 var(--w)); }
+.cmp dl { display: grid; gap: 10px; margin: 4px 0 auto; }
+.cmp dl div { display: flex; justify-content: space-between; gap: 12px; font-size: 15px; }
+.cmp dt { color: var(--v-text); }
+.cmp dd { font-weight: 700; color: var(--v-navy); text-align: right; }
+.cmp-go { display: flex; align-items: center; justify-content: center; min-height: 48px; margin-top: 8px; border-radius: 8px; border: 1.5px solid var(--v-blue);
+  color: var(--v-blue); font-weight: 700; font-size: 16px; text-decoration: none; transition: background-color .15s, color .15s, transform .1s ease-out; }
+.cmp-go:hover { background: var(--v-blue); color: #fff; }
+.cmp-go:active { transform: scale(.98); }
+
+/* ---------- reviews: where the real ones are ---------- */
+.rev-in { text-align: center; max-width: 640px; }
+.rev-in h2 { font-size: clamp(30px, 3.2vw, 44px); font-weight: 800; }
+.rev-in > p { margin-top: 12px; font-size: 17px; }
+.rev-links { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 24px; margin-top: 28px; }
+.rev-fb { font-weight: 700; color: var(--v-navy); text-underline-offset: 5px; }
+
+@media (max-width: 1100px) { .cmp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 860px) {
+  .home .trust-sec { padding-bottom: 40px; }
+  .trust-row { grid-template-columns: 1fr 1fr; gap: 24px 0; padding-top: 28px; }
+  .trust-row li { padding: 0 16px; }
+  .trust-row li:nth-child(odd) { padding-left: 0; border-left: 0; }
+  .car-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .car-card { padding: 24px 18px 18px; }
+  .cmp-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+}

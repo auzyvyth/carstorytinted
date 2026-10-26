@@ -33,6 +33,9 @@ function shopPages(siteUrl, demo) {
     'price-table': () => R.priceTable(catalog),
     showcase: () => H.filmShowcase(catalog),
     'hero-form': () => H.heroForm(catalog),
+    'trust-row': () => H.trustRow(catalog),
+    'tint-gallery': () => H.tintGallery(),
+    'film-compare': () => H.filmCompare(catalog),
     menu: () => H.menuHtml(catalog),
     'faq-cards': () => H.faqCards(),
     'visit-links': () => H.visitLinks(),
@@ -47,7 +50,7 @@ function shopPages(siteUrl, demo) {
     'ld-shop': () => R.ldScript(R.localBusinessLd(siteUrl, catalog)),
   };
   const vars = {
-    SITE_URL: siteUrl, ADDRESS: fullAddress(), TOWN: SHOP.town, STATE: SHOP.state,
+    SITE_URL: siteUrl, FACEBOOK: SHOP.facebook, ADDRESS: fullAddress(), TOWN: SHOP.town, STATE: SHOP.state,
     // Nearby towns only: the copy reads "di <town>, dekat <AREAS>", so listing the
     // shop's own town here printed "di Sungai Jawi, dekat Sungai Jawi, ...".
     AREAS: SHOP.areaServed.filter((t) => t !== SHOP.town).join(', '), JPJ_WS: JPJ.windscreen, JPJ_FS: JPJ.frontSide, JPJ_FINE: JPJ.fine,

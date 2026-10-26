@@ -174,3 +174,8 @@ Owner's rule: a booking holds its slot, walk-ins get whatever is left.
 - Polish + karpet are listed as services with "Tanya harga" + WhatsApp, NOT bookable
   online (see TODO: needs packages + durations from the owner).
 - No stock photos, ever: every image on the site is the shop's own.
+
+## Stand-ins to replace before launch (2026-10-26)
+- Hero car (`public/hero-car.webp`): cut from the owner's AI mockup screenshot. Replace with a real photo of a car tinted at the shop.
+- "Rupa tinted, ikut saiz kereta" (`#rupa`): drawn cars (`carDrawing` in `src/shared/homeRender.js`), captioned as drawings. Replace each with a real photo (Kecil, Sedan, SUV / MPV) and drop the caption.
+- "Apa kata pelanggan" (`#ulasan`): links to the shop's Google profile and Facebook only. Add real review quotes or a Google rating only with the customer's permission and the real figure; never invent one.
