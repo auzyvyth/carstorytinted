@@ -244,7 +244,7 @@ Polish on the sections under the tint preview (Servis lain, Cara tempah, Had JPJ
   must add it in Tetapan > Laman web for it to show in production.
 - Servis lain, owner's direction (2026-10-26, replaces the dark/photo version, which the owner rejected):
   layout copied from his reference shot: big heading top-left, white cards stepping up to the right
-  (`--svc-step`), an icon per service id (`SVC_ICONS` in render.js; unknown ids get a spanner), on the tint
+  (`--svc-step`) with the `--grad` edge (`--svc-border`), an icon per service id (`SVC_ICONS` in render.js; unknown ids get a spanner), on the tint
   preview's blue (`--blue-ground-up`, the same blue flipped so it joins #filem with no edge). Cards fade in
   one after another on scroll (`.reveal` + `--i` delay). Theme for the remaining sections: WAIT for the
   owner's direction, do not convert them. `theme-dark` / `theme-light` token sets stay in site.css, unused.
