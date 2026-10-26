@@ -330,6 +330,7 @@ await p.click('.sheet-f button:has-text("Tandakan siap")');
 await p.waitForTimeout(300);
 const siti = jobs.find((j) => j.customer_name === 'Siti Aminah');
 check(siti.stage === 'siap' && siti.vlt_front === 52 && Boolean(siti.cert_token), 'marking done saves VLT and mints a certificate');
+check(!(await p.locator('.sheet').innerText()).includes('telefon lain'), 'your own save never shows the "updated on another phone" warning');
 const last = patches[patches.length - 1] || {};
 check(!('customer_name' in last) && !('price' in last) && 'vlt_front' in last, `save sends only changed fields (${Object.keys(last).join(',')})`);
 // Two phones on one job: the other phone's save lands without wiping what you typed.
@@ -350,7 +351,11 @@ await p.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
 await p.waitForTimeout(400);
 check(await p.locator('.sheet label:has-text("Harga") input').inputValue() === '500'
   && await p.locator('.sheet [role=status]').isVisible(), 'same field changed on both phones: yours kept, warning shown');
+let closeAsk = '';
+p.once('dialog', (d) => { closeAsk = d.message(); d.accept(); });
 await p.click('.sheet [aria-label="Tutup"]');
+await p.waitForTimeout(200);
+check(closeAsk.includes('belum disimpan') && await p.locator('.sheet').count() === 0, 'closing a job with unsaved changes asks first, then closes');
 // Money needs a method: marking paid in full without one is refused, with one it goes through.
 await p.click('.pills button:has-text("Siap")');
 await p.click('.jcard:has-text("Lim Ah Kow")');

@@ -21,7 +21,9 @@ const errText = (e) => ERR[Object.keys(ERR).find((k) => String(e?.message).inclu
 
 function toForm(job, settings, jobs = [], preset = null) {
   const f = {};
-  for (const k of FIELDS) f[k] = job?.[k] ?? '';
+  // Numbers as text, the way an input holds them: "72" typed and 72 saved must compare
+  // equal, or every save looks like a clash with another phone (it did, 2026-10-26).
+  for (const k of FIELDS) f[k] = NUMERIC.includes(k) ? (job?.[k] === null || job?.[k] === undefined ? '' : String(Number(job[k]))) : job?.[k] ?? '';
   // Add-ons as a sorted string, so "unchanged" compares equal (arrays never do).
   f.addons = [...(job?.addons || [])].sort().join(',');
   // A new job is usually a walk-in being done now: today, in the slot running now.
@@ -33,7 +35,7 @@ function toForm(job, settings, jobs = [], preset = null) {
   }
   // Staff read and type Malaysian numbers the local way; the DB stores 60xxxxxxxxx.
   if (job?.phone) f.phone = displayPhone(job.phone);
-  if (job && (job.price === null || job.price === undefined) && job.quoted_price !== null) f.price = job.quoted_price ?? '';
+  if (job && (job.price === null || job.price === undefined) && job.quoted_price !== null && job.quoted_price !== undefined) f.price = String(Number(job.quoted_price));
   return f;
 }
 
@@ -173,6 +175,8 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
     await api.update(job.id, { cert_sent_at: new Date().toISOString() }).catch(() => {});
   }
 
+  const dirty = () => FIELDS.some((k) => f[k] !== base.current[k]);
+  const close = () => { if (!busy && dirty() && !window.confirm('Ada perubahan belum disimpan (cth. bacaan VLT). Tutup tanpa simpan?')) return; onClose(); };
   const next = job && NEXT[job.stage];
   const title = isNew ? 'Kerja baru' : `${job.customer_name} · ${job.ref}`;
 
@@ -210,7 +214,7 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
       </>;
 
   return (
-    <Sheet title={title} onClose={onClose} footer={footer} headerExtra={menuEl}>
+    <Sheet title={title} onClose={close} footer={footer} headerExtra={menuEl}>
       {clash && <div className="warnline" role="status">Kerja ini baru dikemaskini di telefon lain. Perubahan anda yang belum disimpan dikekalkan; semak sebelum Simpan.</div>}
       {!isNew && (
         <div className="card box">
