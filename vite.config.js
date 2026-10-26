@@ -32,6 +32,7 @@ function shopPages(siteUrl, demo) {
     prices: () => R.pricesHtml(catalog),
     'price-table': () => R.priceTable(catalog),
     showcase: () => H.filmShowcase(catalog),
+    'hero-form': () => H.heroForm(catalog),
     menu: () => H.menuHtml(catalog),
     'faq-cards': () => H.faqCards(),
     'visit-links': () => H.visitLinks(),

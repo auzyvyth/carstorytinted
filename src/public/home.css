@@ -256,3 +256,44 @@
   .v4 .mast.js-nav .mast-nav a + a:not(.nav-cta) { border-top-color: rgba(255, 255, 255, .12); }
   .v4 .mast.js-nav .mast-nav a.nav-cta { background: var(--k-yellow); color: #111; }
 }
+
+/* ---------- hero form (desktop): the two easy questions, live price, then the booking page ---------- */
+.hero-form { display: none; }
+@media (min-width: 861px) {
+  .v4 .hero-in { display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 400px); gap: clamp(32px, 5vw, 80px); align-items: center; }
+  .v4 .hero h1 { font-size: clamp(46px, 5.4vw, 84px); }
+  .hero-form { display: grid; gap: 22px; padding: 28px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, .14);
+    background: rgba(6, 10, 20, .74); -webkit-backdrop-filter: blur(18px) saturate(140%); backdrop-filter: blur(18px) saturate(140%);
+    font-family: 'Barlow', var(--body); color: #fff; }
+  .hero-form h2 { font-family: 'Exo 2', var(--display); font-weight: 700; font-size: 26px; letter-spacing: 0; color: #fff; }
+  .hero-form fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+  .hero-form legend { padding: 0; margin-bottom: 10px; font-size: 14px; font-weight: 500; color: var(--k-grey); }
+  .hero-form input { position: absolute; opacity: 0; pointer-events: none; }
+  .segs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 10px; background: rgba(255, 255, 255, .06); }
+  .seg span { display: grid; place-items: center; min-height: 40px; padding: 0 4px; border-radius: 7px; font-weight: 600; font-size: 14px; color: #dfe2ea; text-align: center; line-height: 1.1; cursor: pointer; transition: background-color .15s, color .15s; }
+  .seg:hover span { color: #fff; background: rgba(255, 255, 255, .06); }
+  .seg input:checked + span { background: var(--k-yellow); color: #111; }
+  .film-opts { display: grid; gap: 8px; }
+  .film-opt { display: flex; align-items: center; gap: 12px; min-height: 50px; padding: 0 16px; border-radius: 9px; border: 1px solid rgba(255, 255, 255, .14); cursor: pointer; transition: border-color .15s, background-color .15s; }
+  .film-opt::before { content: ''; flex: none; width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, .45); transition: border .15s; }
+  .film-opt:has(input:checked) { border-color: var(--k-yellow); background: rgba(255, 198, 26, .07); }
+  .film-opt:has(input:checked)::before { border: 5px solid var(--k-yellow); }
+  .film-opt:hover { border-color: rgba(255, 255, 255, .35); }
+  .film-name { flex: 1; font-weight: 600; font-size: 16px; }
+  .film-rm { font-weight: 600; font-size: 16px; font-variant-numeric: tabular-nums; color: #fff; }
+  .hero-form input:focus-visible + span, .film-opt:has(input:focus-visible) { outline: 2px solid #fff; outline-offset: 2px; }
+  .form-go { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 54px; border: 0; border-radius: 8px; cursor: pointer;
+    background: var(--k-yellow); color: #111; font-family: 'Barlow', var(--body); font-weight: 600; font-size: 17px;
+    box-shadow: 0 0 22px rgba(255, 198, 26, .4), 0 0 2px rgba(255, 198, 26, .9); transition: transform .1s ease-out, background-color .15s, box-shadow .2s; }
+  .form-go svg { width: 20px; height: 20px; transition: transform .2s cubic-bezier(.2, .9, .3, 1); }
+  .form-go:hover { background: #ffd34d; }
+  .form-go:hover svg { transform: translateX(3px); }
+  .form-go:active { transform: scale(.98); }
+  .form-go:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+  /* the hero button lands here: one ring of light so the eye finds the form */
+  @keyframes nudge { 0% { box-shadow: 0 0 0 0 rgba(255, 198, 26, .7); } 100% { box-shadow: 0 0 0 18px rgba(255, 198, 26, 0); } }
+  .hero-form.nudge { animation: nudge .8s ease-out 2; }
+  .hero-car { opacity: .85; }
+}
+@media (prefers-reduced-motion: reduce) { .hero-form.nudge { animation: none; } .form-go:active { transform: none; } }
+@media (prefers-reduced-transparency: reduce) { .hero-form { background: #0a0e18; -webkit-backdrop-filter: none; backdrop-filter: none; } }

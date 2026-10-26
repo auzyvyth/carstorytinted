@@ -32,7 +32,7 @@ const errText = (code) => ERRORS[code] || 'Ada masalah. Cuba lagi atau WhatsApp 
 const root = document.querySelector('[data-booking]');
 const params = new URLSearchParams(location.search);
 const st = {
-  step: 'saiz', catalog: defaults, model: '', size: null, film: params.get('film'), addons: [], addonsDone: false,
+  step: 'saiz', catalog: defaults, model: '', size: CAR_SIZES.some((s) => s.id === params.get('size')) ? params.get('size') : null, film: params.get('film'), addons: [], addonsDone: false,
   date: params.get('date'), moreDays: false, slot: null, wait: null, days: [], daysLoaded: false, busy: false, error: '', done: null, dir: 1,
 };
 
@@ -196,6 +196,8 @@ function go(step, dir, { push = true } = {}) {
   root.scrollIntoView({ behavior: calm.matches ? 'auto' : 'smooth', block: 'start' });
 }
 const calm = matchMedia('(prefers-reduced-motion: reduce)');
+// Came from the home page form with size (and film) answered: open on the first open question.
+if (st.size) st.step = ['filem', 'tambahan'].filter((k) => STEPS().includes(k)).find((k) => !answered[k]()) || 'hari';
 history.replaceState({ step: st.step }, '', location.pathname + location.search);
 addEventListener('popstate', (e) => { if (!st.done && e.state?.step) go(e.state.step, -1, { push: false }); });
 
@@ -257,6 +259,7 @@ function downloadIcs() {
 
 // Preselect from the home page links (?film=, ?date=) and use live prices.
 render();
+if (st.step === 'hari' && !st.daysLoaded) loadDays();
 if (apiReady) {
   rpc('get_catalog').then((c) => { if (c?.films) { st.catalog = c; render(); } }).catch(() => {});
 }

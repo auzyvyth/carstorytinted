@@ -2,7 +2,7 @@
 // The motif is a car side window: a block whose one edge slants like a door's rear glass.
 // Every renderer here is pure: the build bakes the default catalogue, home.js repaints
 // with the live one.
-import { SHOP, JPJ, waLink } from './shop.js';
+import { SHOP, JPJ, waLink, CAR_SIZES } from './shop.js';
 import { esc, rm, hasNum, minPrice, tintOpacity, siteOf, FAQ } from './render.js';
 
 const priceOf = (f) => minPrice(f);
@@ -70,4 +70,21 @@ export function visitLinks() {
   const q = encodeURIComponent(SHOP.mapsQuery);
   const wa = SHOP.contacts.map((c) => `<a class="coupon-link" href="${waLink(c.phone, 'Salam, saya nak tanya pasal tinted.')}" rel="noopener">WhatsApp ${esc(c.name)}</a>`).join('');
   return `${wa}<a class="coupon-link" href="https://waze.com/ul?q=${q}" rel="noopener">Buka di Waze</a><a class="coupon-link" href="https://www.google.com/maps/search/?api=1&query=${q}" rel="noopener">Buka di Google Maps</a>`;
+}
+
+// Hero booking form: the two easy questions, the price live, then the rest of the booking.
+// A plain GET to /tempah/, so it works without script; the booking page skips what is answered.
+export function heroForm(catalog, size = 'small') {
+  const films = catalog.films || [];
+  const sizes = CAR_SIZES.map((s) => `<label class="seg"><input type="radio" name="size" value="${s.id}"${s.id === size ? ' checked' : ''} required><span>${esc(s.label)}</span></label>`).join('');
+  const rows = films.map((f, i) => {
+    const p = f.prices?.[size];
+    return `<label class="film-opt"><input type="radio" name="film" value="${esc(f.id)}"${i === 0 ? ' checked' : ''} required><span class="film-name">${esc(f.name)}</span><span class="film-rm" data-film-rm="${esc(f.id)}">${hasNum(p) ? rm(p) : 'Tanya'}</span></label>`;
+  }).join('');
+  return `<form class="hero-form" id="borang" action="/tempah/" method="get" aria-labelledby="borang-h">
+  <h2 id="borang-h">Tempah slot</h2>
+  <fieldset><legend>Saiz kereta</legend><div class="segs">${sizes}</div></fieldset>
+  <fieldset><legend>Filem</legend><div class="film-opts">${rows}</div></fieldset>
+  <button type="submit" class="form-go">Pilih tarikh <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+</form>`;
 }

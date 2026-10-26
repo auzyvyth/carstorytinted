@@ -3,7 +3,8 @@
 import { loadCatalog } from './site.js';
 import './home.css';
 import { filmShowcase, menuHtml } from '../shared/homeRender.js';
-import { tintOpacity } from '../shared/render.js';
+import defaults from '../shared/catalog.default.json';
+import { tintOpacity, rm, hasNum } from '../shared/render.js';
 import { JPJ } from '../shared/shop.js';
 
 function mountShowcase() {
@@ -31,9 +32,31 @@ function mountShowcase() {
   range.addEventListener('input', paint);
 }
 
+// Hero form: each film's price follows the car size picked.
+let catalog = defaults;
+const form = document.querySelector('.hero-form');
+function paintPrices() {
+  if (!form) return;
+  const size = form.querySelector('input[name="size"]:checked')?.value;
+  for (const f of catalog.films || []) {
+    const el = form.querySelector(`[data-film-rm="${CSS.escape(f.id)}"]`);
+    if (el) el.textContent = hasNum(f.prices?.[size]) ? rm(f.prices[size]) : 'Tanya';
+  }
+}
+form?.addEventListener('change', paintPrices);
+// "Tempah Slot Sekarang" goes to the form when the form is on screen (desktop); else to /tempah/.
+document.querySelector('[data-to-form]')?.addEventListener('click', (e) => {
+  if (!form || !form.offsetParent) return;
+  e.preventDefault();
+  form.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+  form.querySelector('input:checked')?.focus({ preventScroll: true });
+  form.classList.remove('nudge'); void form.offsetWidth; form.classList.add('nudge');
+});
+
 // Live catalogue (owner edits prices and services in the staff app).
 loadCatalog().then((cat) => {
   if (!cat?.films) return;
+  catalog = cat; paintPrices();
   const show = document.querySelector('[data-show]');
   if (show) { show.innerHTML = filmShowcase(cat); mountShowcase(); }
   const menu = document.querySelector('[data-menu]');
