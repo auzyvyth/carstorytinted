@@ -307,6 +307,21 @@ check((await p.locator('.warnline').allInnerTexts()).some((t) => t.includes('Sis
 check(await noSideScroll(p), 'job drawer fits 375px');
 await p.screenshot({ path: `${SHOTS}/8-drawer-375.png`, fullPage: true });
 await p.locator('.grid3 input').nth(1).fill('52');
+// Coming back to the tab (after the camera or a file picker) must not reset the app: supabase-js
+// announces the session again then, and that used to blank the app and lose typed readings.
+const staffReads = calls.filter((c) => c === 'GET /rest/v1/staff').length;
+await p.evaluate(() => {
+  const set = (v) => { Object.defineProperty(document, 'visibilityState', { value: v, configurable: true }); Object.defineProperty(document, 'hidden', { value: v === 'hidden', configurable: true }); document.dispatchEvent(new Event('visibilitychange')); window.dispatchEvent(new Event('visibilitychange')); };
+  set('hidden'); set('visible');
+});
+await p.waitForTimeout(1200);
+check(await p.locator('.sheet').count() === 1 && await p.locator('.grid3 input').nth(1).inputValue() === '52', 'returning to the tab keeps the open job and typed readings');
+check(calls.filter((c) => c === 'GET /rest/v1/staff').length - staffReads <= 1, 'returning to the tab does not reload the whole app');
+// The tab can still be killed while the camera app is open: unsaved readings come back on reload.
+await p.reload();
+await p.waitForSelector('.sheet');
+await p.waitForTimeout(500);
+check(await p.locator('.grid3 input').nth(1).inputValue() === '52' && (await p.locator('.sheet .okline').allInnerTexts()).some((t) => t.includes('dipulihkan')), 'unsaved readings survive a page reload and say so');
 // Photo proof: Siap asks first while the windscreen + front meter photos are missing.
 check(await p.locator('.shot-slot').count() === 4, 'job screen shows 4 photo slots');
 let asked = '';

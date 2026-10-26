@@ -66,6 +66,25 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
   // What the form looked like when it last matched the database. A field that
   // differs from this is one YOU changed; only those are sent on Save.
   const base = useRef(toForm(job, settings, jobs, preset));
+  // Unsaved edits survive the tab being closed under us (Android can kill the page while the
+  // camera app is open). Kept per job in this tab's sessionStorage; cleared on save or discard.
+  const draftKey = job ? `cs-draft-${job.id}` : null;
+  const [restored, setRestored] = useState(false);
+  useEffect(() => {
+    if (!draftKey) return;
+    try {
+      const d = JSON.parse(sessionStorage.getItem(draftKey) || 'null');
+      if (d && FIELDS.some((k) => k in d && d[k] !== base.current[k])) { setF((cur) => ({ ...cur, ...d })); setRestored(true); }
+    } catch { /* private mode */ }
+  }, [draftKey]);
+  useEffect(() => {
+    if (!draftKey) return;
+    try {
+      const changed = Object.fromEntries(FIELDS.filter((k) => f[k] !== base.current[k]).map((k) => [k, f[k]]));
+      if (Object.keys(changed).length) sessionStorage.setItem(draftKey, JSON.stringify(changed)); else sessionStorage.removeItem(draftKey);
+    } catch { /* quota / private mode */ }
+  }, [f, draftKey]);
+  const dropDraft = () => { try { if (draftKey) sessionStorage.removeItem(draftKey); } catch { /* ignore */ } };
   const set = (k) => (e) => setF((p) => ({ ...p, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
 
   const loadEvents = useCallback(async () => {
@@ -130,6 +149,7 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
       const patch = { ...changed, ...extra };
       const saved = Object.keys(patch).length ? await api.update(job.id, patch) : job;
       setClash(false);
+      dropDraft(); setRestored(false);
       return saved;
     } catch (e) {
       setErr(errText(e)); return null;
@@ -176,7 +196,7 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
   }
 
   const dirty = () => FIELDS.some((k) => f[k] !== base.current[k]);
-  const close = () => { if (!busy && dirty() && !window.confirm('Ada perubahan belum disimpan (cth. bacaan VLT). Tutup tanpa simpan?')) return; onClose(); };
+  const close = () => { if (!busy && dirty() && !window.confirm('Ada perubahan belum disimpan (cth. bacaan VLT). Tutup tanpa simpan?')) return; dropDraft(); onClose(); };
   const next = job && NEXT[job.stage];
   const title = isNew ? 'Kerja baru' : `${job.customer_name} · ${job.ref}`;
 
@@ -215,6 +235,7 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
 
   return (
     <Sheet title={title} onClose={close} footer={footer} headerExtra={menuEl}>
+      {restored && <div className="okline" role="status">Perubahan yang belum disimpan dipulihkan. Tekan Simpan untuk simpan.</div>}
       {clash && <div className="warnline" role="status">Kerja ini baru dikemaskini di telefon lain. Perubahan anda yang belum disimpan dikekalkan; semak sebelum Simpan.</div>}
       {!isNew && (
         <div className="card box">

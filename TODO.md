@@ -5,7 +5,8 @@ built. Only the "Sell" section is being done now. Everything after it waits for
 the owner (Maliki) to agree and pay.
 
 ## 0. Next build (agreed 2026-09-28)
-- [ ] **DASH-1 (owner, 2026-10-26): staff + owner dashboard redesign, after the public pages.**
+- [ ] **DASH-1 (owner, 2026-10-26): staff + owner dashboard redesign.** Phase 1 DONE (dark Premium look on
+      every staff screen + today card). Next: a "This week" follow-up list, delta + sparkline tiles, CRM-1 job screen.
       Model it on the ShiftOS Salesman Premium dashboard (owner: "like how we did ShiftOS salesman
       premium dashboard"): one setup list, a "this week" call list at the top, quiet stat tiles,
       one accent, depth by tone. Supersedes UI-1 below; read ShiftOS DASHBOARD_DESIGN.md and
@@ -50,11 +51,6 @@ the owner (Maliki) to agree and pay.
       and how long each takes. They show on the site as "Tanya harga" + WhatsApp only;
       making them bookable needs durations, because a half-day polish breaks the
       time-block/bay maths the booking runs on.
-- [ ] **Photos from the owner (the site's biggest remaining gap).** Shot list: 3 before/after
-      pairs (same car, same angle), 1 installer mid-job, 1 VLT meter reading on a window
-      (also settles the unconfirmed meter claim), 1 finished car outside the shop, one
-      portrait per team member (he uploads these himself in Tetapan > Laman web).
-      Then: before/after drag slider, and a real car window in the tint preview.
 - [ ] **Grant check (Geran Digital PMKS Madani, BSN).** 50% matching, max RM5,000,
       but ONLY for solutions bought from an MDEC Digitalisation Partner (MD-status
       company). We are not one, so he can't claim it on this build today. Confirm

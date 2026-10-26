@@ -189,12 +189,17 @@ export default function App() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  // Keyed on WHO is signed in, not on the session object. supabase-js announces the session
+  // again whenever the tab comes back into view (after the camera or a file picker, an hourly
+  // token refresh); reloading the staff row then blanked the app to "Memuatkan..." and threw
+  // away the open job, typed VLT readings and a photo mid-upload (owner, 2026-10-26).
+  const uid = session ? session.user.id : session;  // id, null (signed out) or undefined (unknown)
   useEffect(() => {
-    if (!session) { setMe(session === null ? null : undefined); return; }
+    if (!uid) { setMe(uid === null ? null : undefined); return; }
     setMe(undefined);
-    supabase.from('staff').select('id, name, role, active').eq('id', session.user.id).maybeSingle()
+    supabase.from('staff').select('id, name, role, active').eq('id', uid).maybeSingle()
       .then(({ data }) => setMe(data && data.active ? data : false));
-  }, [session]);
+  }, [uid]);
 
   const signOut = async () => {
     await forgetThisDevice();

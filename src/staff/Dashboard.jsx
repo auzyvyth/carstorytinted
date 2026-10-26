@@ -137,6 +137,7 @@ export default function Dashboard({ me, jobs, settings, staff = [], push, device
   const waiting = useMemo(() => jobs.filter((j) => j.waitlist_at && !j.scheduled_slot && j.stage !== 'batal' && j.scheduled_date === today)
     .sort((a, b) => String(a.waitlist_at).localeCompare(String(b.waitlist_at))), [jobs, today]);
   const stats = useMemo(() => monthStats(jobs, today), [jobs, today]);
+  const doneToday = useMemo(() => jobs.filter((j) => ['siap', 'selesai'].includes(j.stage) && klDate(j.completed_at) === today).length, [jobs, today]);
   const size = (id) => CAR_SIZES.find((s) => s.id === id)?.label || '';
   // A worker's own month: cars they finished (no money, same rule as the owner tiles).
   const mine = useMemo(() => {
@@ -151,9 +152,16 @@ export default function Dashboard({ me, jobs, settings, staff = [], push, device
       {/* Demo runs on a laptop that can never ring: a warning there only reads as "broken". */}
       {!DEMO && <PushNotice push={push} devices={devices} />}
       {error && <div className="notice"><p className="warnline">{error}</p></div>}
-      <div className="page-h">
+      {/* Premium's greeting card: today at a glance. Each number is said once on this page:
+          free bays live in the walk-in card below, money in "Bulan ini". */}
+      <div className="today-card">
         <div><div className="micro">{dayParts(today).dow}, {dayParts(today).date} {dayParts(today).mon}</div><h1>{greeting()}, {me.name}</h1></div>
         <button className="btn btn-primary" onClick={() => onNew()}>{Icon.plus}Kerja baru</button>
+        <div className="today-stats">
+          <div><b>{todays.length}</b><span>kereta hari ini</span></div>
+          <div><b>{doneToday}</b><span>siap hari ini</span></div>
+          <div className={actions.length ? 'hot' : ''}><b>{actions.length}</b><span>perlu tindakan</span></div>
+        </div>
       </div>
       <WalkInCard jobs={jobs} settings={settings} tick={tick} onNew={onNew} />
 

@@ -22,9 +22,6 @@ export const SHOP = {
   facebook: 'https://www.facebook.com/people/Tinted-Carstory-AUTO/100083588581977/',
   // TODO(owner): Google Business review link, e.g. https://g.page/r/XXXX/review
   googleReviewUrl: '',
-  // TODO(owner): before/after photos, e.g. { src: '/gallery/myvi.webp', alt: 'Myvi, Nano Ceramic' }.
-  // Empty = the gallery section is not rendered at all (no stock photos, ever).
-  gallery: [],
   // Towns within a short drive; used for "kawasan" copy and JSON-LD areaServed.
   areaServed: ['Sungai Jawi', 'Sungai Bakap', 'Nibong Tebal', 'Simpang Ampat', 'Parit Buntar', 'Bandar Baharu'],
 };
@@ -40,13 +37,14 @@ export const CAR_SIZES = [
 // minimum light that must pass through glass + film combined (VLT).
 export const JPJ = { windscreen: 70, frontSide: 50, fine: 'RM2,000 atau penjara 6 bulan' };
 
+// Stage dots in the staff app, lightened for its dark look (2026-10-26) so they read on #111318.
 export const STAGES = [
-  { id: 'baru', label: 'Baru', hint: 'Tempahan belum disahkan', color: '#2563eb' },
-  { id: 'disahkan', label: 'Disahkan', hint: 'Slot disahkan dengan pelanggan', color: '#0891b2' },
-  { id: 'dalam_kerja', label: 'Dalam kerja', hint: 'Kereta di kedai', color: '#d97706' },
-  { id: 'siap', label: 'Siap', hint: 'Siap, tunggu bayaran', color: '#7c3aed' },
-  { id: 'selesai', label: 'Selesai', hint: 'Dibayar penuh', color: '#16a34a' },
-  { id: 'batal', label: 'Batal', hint: 'Tak jadi', color: '#9ca3af' },
+  { id: 'baru', label: 'Baru', hint: 'Tempahan belum disahkan', color: '#60a5fa' },
+  { id: 'disahkan', label: 'Disahkan', hint: 'Slot disahkan dengan pelanggan', color: '#22d3ee' },
+  { id: 'dalam_kerja', label: 'Dalam kerja', hint: 'Kereta di kedai', color: '#fbbf24' },
+  { id: 'siap', label: 'Siap', hint: 'Siap, tunggu bayaran', color: '#a78bfa' },
+  { id: 'selesai', label: 'Selesai', hint: 'Dibayar penuh', color: '#6ee7b7' },
+  { id: 'batal', label: 'Batal', hint: 'Tak jadi', color: '#848b98' },
 ];
 
 export const waLink = (phone, text = '') =>
