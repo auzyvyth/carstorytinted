@@ -1,22 +1,21 @@
 /* Homepage hero (owner's dark banner, 2026-10-26), laid over the production page.
    Neutralises the production hero's own photo panel and wash, and sets the header on the banner. */
-.v4 .hero::before { content: none; }
+.v4 .hero::before, .v4 .hero::after { content: ''; position: absolute; z-index: -1; border-radius: 50%; filter: blur(70px); pointer-events: none;
+  top: auto; right: auto; bottom: auto; left: auto; opacity: 1; -webkit-mask-image: none; mask-image: none; }   /* clear the old photo panel's rules (site.css .hero::before) */
+.v4 .hero::before { width: 620px; height: 420px; left: 50%; bottom: -120px; transform: translateX(-50%); background: var(--hero-light-low); }
+.v4 .hero::after { width: 420px; height: 420px; right: -120px; top: -140px; background: var(--hero-light-high); }
 .v4 .mast::after { content: none; }
 .v4 .hero { background-image: none; }
 
 /* ---------- hero v4: the owner's dark banner (2026-10-26). Car in blue light on the right,
    type in Exo 2 / Barlow, sign-yellow action. Sizes are the banner's, scaled from its 1080px width.
-   Ground (owner, 2026-10-26): no photo, a deep ocean blue. Light near the surface (top), darker into the deep, so the
-   bottom meets the tint preview's dark blue with no edge. Change the hero's colours with the --hero-* tokens only. ---------- */
+   Ground (owner, 2026-10-26): no photo, the tint preview's own background (.studio in site.css): --blue-ground plus
+   its two blurred lights, orange low in the middle, blue top right. Change the hero's colours with the --hero-* tokens only. ---------- */
 .v4 { --k-bg: #000208; --k-yellow: #ffc61a; --k-line: rgba(255, 255, 255, .22); --k-grey: #c3c8d4; }
 .v4 .hero {
-  --hero-surface: #0b5d8f;   /* top: sunlit water */
-  --hero-mid: #063a66;
-  --hero-deep: #031d3d;
-  --hero-floor: #0b1231;     /* bottom: = the first colour of --blue-ground (tint preview) */
-  --hero-ray: rgb(64 170 230 / .22);
-  --hero-ground: radial-gradient(70% 55% at 72% 0%, var(--hero-ray), transparent 70%),
-                 linear-gradient(180deg, var(--hero-surface), var(--hero-mid) 38%, var(--hero-deep) 72%, var(--hero-floor));
+  --hero-ground: var(--blue-ground);
+  --hero-light-low: rgba(244, 123, 32, 0.34);
+  --hero-light-high: rgba(59, 108, 240, 0.40);
   position: relative; isolation: isolate; overflow: clip; background: var(--hero-ground); color: #fff;
   padding: 0 !important; min-height: max(620px, min(100svh, 900px)); display: flex; align-items: center; }
 .v4 .hero-in { width: 100%; padding-top: 128px; padding-bottom: 72px; }
