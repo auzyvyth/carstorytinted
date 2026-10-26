@@ -547,5 +547,5 @@ main.book .page-head .crumb { margin-bottom: 8px; }
 .cp-tag-rear { right: 3%; top: 17%; }
 .cp-tag-front { left: 52%; top: 12%; }
 .cp-note { margin-top: 8px; font-size: 12px; text-align: center; opacity: .6; }
-@media (max-width: 860px) { .cp-tag { font-size: 11px; padding: 4px 8px; } .cp-tag small { font-size: 10px; } }
+@media (max-width: 860px) { .cp-tag { font-size: 11px; padding: 4px 8px; } .cp-tag small { display: none; } .cp-tag-front { left: 38%; top: 8%; } .cp-tag-rear { right: 2%; top: 17%; } }
 @media (prefers-reduced-motion: reduce) { .cp-sheen { animation: none; } }
