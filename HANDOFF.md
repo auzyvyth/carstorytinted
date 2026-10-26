@@ -395,3 +395,10 @@ The certificate design (A-D) is NOT picked yet: photos show on today's certifica
   "Tempah slot" with the look, steps section); UI test 2c counts them.
 - Tests: UI 76/76. Taste lint: 0 FAIL (warnings kept on purpose: option-row outlines match the hero form,
   brand font, calendar date padding). Chromebook 1366x640: every step fits without scrolling.
+
+### Same session, after release #8: /urus/ (customer page) on the new design
+- `src/public/manage.js` view rewritten + `src/public/manage.css`; `urus/index.html` on the blue v4 page
+  (reuses booking.css + cert.css). Left: "Salam, <name>", status line, 5-step progress, date/time, actions
+  (Saya akan datang / Batalkan, or WhatsApp + Simpan gambar). Right: "Tempahan anda" / "Resit" (money).
+  Done: the design C certificate (readings over the car, meter photos, warranty) in the left column.
+- The certificate block is a <div>, not <section>: site.css gives every section 80px padding.
