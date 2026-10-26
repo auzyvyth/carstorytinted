@@ -4,7 +4,7 @@ import './site.css';
 import './nav.js';
 import { rpc, apiReady, dateLabel } from '../shared/api.js';
 import { SHOP, fullAddress } from '../shared/shop.js';
-import { esc, vltRows } from '../shared/render.js';
+import { esc, vltRows, carPhoto } from '../shared/render.js';
 import { saveImage, vltData } from './saveImage.js';
 
 const box = document.querySelector('[data-cert]');
@@ -18,6 +18,7 @@ function show(c) {
   <div class="cert-head"><span class="wordmark"><span>Tinted</span> Carstory</span><span class="muted" style="font-size:13px">No. ${esc(c.ref)}</span></div>
   <p class="eyebrow" style="margin:4px 0 2px">Sijil pemasangan tinted</p>
   <p class="muted" style="font-size:14px;margin-bottom:8px">Untuk ${esc(c.customer)}</p>
+  ${carPhoto(c)}
   <div class="cert-row"><span>Kereta</span><b>${esc([c.car_model, c.plate].filter(Boolean).join(' · ') || '-')}</b></div>
   <div class="cert-row"><span>Filem</span><b>${esc(c.film || '-')}</b></div>
   <div class="cert-row"><span>Tarikh pasang</span><b>${c.completed_at ? dateLabel(c.completed_at) : '-'}</b></div>

@@ -240,4 +240,40 @@ end $$;
 select pg_temp.expect_error($q$select manage_booking((select tok from t_tok2), 'confirm')$q$, 'too_late');
 commit;
 \echo 'ok 11 walk-in reserve, add-on quote, customer link confirm/cancel, one book_slot'
+-- 12. Photo proof (0006): staff add photos as themselves with the server's time; anon can't
+--     read the table; photos reach the public only through the certificate token.
+begin; set local role anon;
+select pg_temp.expect_error('select * from job_photos', 'permission denied');
+select pg_temp.expect_error($q$insert into job_photos (job_id, kind, url) select id, 'front', 'https://x/a.webp' from jobs limit 1$q$, 'permission denied');
+do $$ begin
+  if (get_certificate((select cert_token from t_tok))->'photos') <> '[]'::jsonb then raise exception 'photos should start empty'; end if;
+end $$;
+commit;
+begin; set local role authenticated; set local request.jwt.claim.sub = '22222222-2222-2222-2222-222222222222';
+insert into job_photos (job_id, kind, url, created_at)
+  select id, 'windscreen', 'https://x.supabase.co/storage/v1/object/public/bukti/a.webp', now() - interval '3 days'
+  from jobs where cert_token = (select cert_token from t_tok);
+select pg_temp.expect_error($q$insert into job_photos (job_id, kind, url, taken_by) select id, 'front', 'https://x/b.webp', '11111111-1111-1111-1111-111111111111' from jobs where cert_token = (select cert_token from t_tok)$q$, 'row-level security');
+select pg_temp.expect_error($q$insert into job_photos (job_id, kind, url) select id, 'windscreen', 'https://x/c.webp' from jobs where cert_token = (select cert_token from t_tok)$q$, 'duplicate key');
+select pg_temp.expect_error($q$insert into job_photos (job_id, kind, url) select id, 'front', 'javascript:alert(1)' from jobs where cert_token = (select cert_token from t_tok)$q$, 'check constraint');
+select pg_temp.expect_error($q$update job_photos set url = 'https://evil/x.webp'$q$, 'permission denied');
+do $$ declare p job_photos; begin
+  select * into p from job_photos;
+  if p.taken_by <> '22222222-2222-2222-2222-222222222222' then raise exception 'taken_by not stamped'; end if;
+  if p.created_at < now() - interval '1 minute' then raise exception 'photo time was backdated'; end if;
+end $$;
+commit;
+begin; set local role authenticated; set local request.jwt.claim.sub = '33333333-3333-3333-3333-333333333333';
+do $$ begin if exists (select 1 from job_photos) then raise exception 'inactive staff read photos'; end if; end $$;
+select pg_temp.expect_error($q$insert into job_photos (job_id, kind, url, taken_by) select id, 'rear', 'https://x/d.webp', '33333333-3333-3333-3333-333333333333' from jobs limit 1$q$, 'row-level security');
+commit;
+begin; set local role anon;
+do $$ declare c jsonb; begin
+  c := get_certificate((select cert_token from t_tok));
+  if jsonb_array_length(c->'photos') <> 1 or c->'photos'->0->>'kind' <> 'windscreen' then raise exception 'photo missing on certificate: %', c; end if;
+  if c->'photos'->0 ? 'taken_by' or c->'photos'->0 ? 'job_id' then raise exception 'photo leaks ids: %', c; end if;
+end $$;
+select pg_temp.expect_error($q$select cert_photos(gen_random_uuid())$q$, 'permission denied');
+commit;
+\echo 'ok 12 photo proof: staff-only table, stamped by the server, public only via the certificate token'
 \echo 'ALL DB TESTS PASSED'

@@ -33,6 +33,9 @@ const jobs = [
 ];
 const calls = [];
 const patches = [];
+// Photo proof (0006_job_photos.sql). Lim's finished job already has a meter photo on the windscreen.
+const photos = [{ id: crypto.randomUUID(), job_id: jobs[2].id, kind: 'windscreen', url: '/kerja/01.webp', created_at: now }];
+const uploads = [];
 
 function slotsFrom(from, days) {
   const rows = [];
@@ -49,7 +52,8 @@ function slotsFrom(from, days) {
 async function mockSupabase(route) {
   const req = route.request();
   const url = new URL(req.url());
-  const body = req.postDataJSON?.() ?? null;
+  let body = null;
+  try { body = req.postDataJSON?.() ?? null; } catch { /* a photo upload is not JSON */ }
   const single = (req.headers().accept || '').includes('vnd.pgrst.object');
   const json = (data, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(data) });
   const p = url.pathname;
@@ -73,7 +77,8 @@ async function mockSupabase(route) {
   if (p === '/rest/v1/rpc/get_certificate') {
     const j = jobs.find((x) => x.cert_token === body.p_token);
     return json(j ? { ref: j.ref, customer: j.customer_name.split(' ')[0], car_model: j.car_model, plate: 'PNB 1***', film: 'Nano Ceramic',
-      vlt_windscreen: j.vlt_windscreen, vlt_front: j.vlt_front, vlt_rear: j.vlt_rear, completed_at: shop(0), warranty_until: shop(365 * 5) } : null);
+      vlt_windscreen: j.vlt_windscreen, vlt_front: j.vlt_front, vlt_rear: j.vlt_rear, completed_at: shop(0), warranty_until: shop(365 * 5),
+      photos: photos.filter((x) => x.job_id === j.id).map((x) => ({ kind: x.kind, url: x.url, at: `${shop(0)}T12:14` })) } : null);
   }
   if (p === '/rest/v1/rpc/push_device_count') return json(0);
   if (p.startsWith('/rest/v1/rpc/')) return route.fulfill({ status: 204, body: '' });
@@ -88,6 +93,13 @@ async function mockSupabase(route) {
     return json(single ? settings : [settings]);
   }
   if (p === '/rest/v1/job_events') return json([]);
+  if (p.startsWith('/storage/v1/object/')) { uploads.push(`${req.method()} ${p}`); return json({ Key: p.split('/object/')[1] }); }
+  if (p === '/rest/v1/job_photos') {
+    const q = (k) => url.searchParams.get(k)?.replace('eq.', '');
+    if (req.method() === 'POST') { const r = { id: crypto.randomUUID(), taken_by: OWNER.id, created_at: new Date().toISOString(), ...body }; photos.push(r); return json(single ? r : [r], 201); }
+    if (req.method() === 'DELETE') { photos.splice(photos.findIndex((x) => x.id === q('id')), 1); return route.fulfill({ status: 204, body: '' }); }
+    return json(photos.filter((x) => x.job_id === q('job_id')));
+  }
   if (p === '/rest/v1/jobs') {
     const id = url.searchParams.get('id')?.replace('eq.', '');
     if (req.method() === 'PATCH') { patches.push(body); const j = jobs.find((x) => x.id === id); Object.assign(j, body, { updated_at: new Date().toISOString() });
@@ -211,6 +223,10 @@ check(p.errors.length === 0, `public pages have no JS errors ${p.errors.join(' |
 await p.goto(`${BASE}/sijil/?t=${'a'.repeat(36)}`);
 await p.waitForSelector('.cert');
 check((await p.locator('.cert').innerText()).includes('Lulus JPJ'), 'certificate shows JPJ pass for 72/52');
+check(await p.locator('.cert .pass').first().evaluate((e) => getComputedStyle(e).color === 'rgb(21, 128, 61)'), 'certificate "Lulus" is green, not grey');
+check(await p.locator('.cert').evaluate((e) => !getComputedStyle(e).backgroundImage.includes('0.78')), 'certificate card is solid white, not frosted');
+check(await p.locator('.cert-thumb img[alt="Foto meter VLT pada cermin depan"]').count() === 1, 'certificate shows the windscreen meter photo');
+check((await p.locator('.cert-proof').innerText()).includes('12:14'), 'certificate says when the meter photo was taken');
 await p.screenshot({ path: `${SHOTS}/5-cert-375.png`, fullPage: true });
 await p.goto(`${BASE}/sijil/?t=nope`);
 check((await p.locator('[data-cert]').innerText()).toLowerCase().includes('tidak dijumpai'), 'bad certificate token shows not found');
@@ -252,6 +268,25 @@ check((await p.locator('.warnline').allInnerTexts()).some((t) => t.includes('Sis
 check(await noSideScroll(p), 'job drawer fits 375px');
 await p.screenshot({ path: `${SHOTS}/8-drawer-375.png`, fullPage: true });
 await p.locator('.grid3 input').nth(1).fill('52');
+// Photo proof: Siap asks first while the windscreen + front meter photos are missing.
+check(await p.locator('.shot-slot').count() === 4, 'job screen shows 4 photo slots');
+let asked = '';
+p.once('dialog', (d) => { asked = d.message(); d.dismiss(); });
+await p.click('.sheet-f button:has-text("Tandakan siap")');
+await p.waitForTimeout(300);
+check(asked.includes('cermin depan dan sisi depan') && jobs.find((j) => j.customer_name === 'Siti Aminah').stage === 'dalam_kerja', 'Siap asks before going ahead without meter photos');
+const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
+for (const n of [0, 1]) {
+  const [chooser] = await Promise.all([p.waitForEvent('filechooser'), p.locator('.shot-btn').nth(n).click()]);
+  await chooser.setFiles({ name: 'meter.png', mimeType: 'image/png', buffer: PNG });
+  await p.locator('.shot-slot').nth(n).locator('img').waitFor();
+}
+const sitiId = jobs.find((j) => j.customer_name === 'Siti Aminah').id;
+check(photos.filter((x) => x.job_id === sitiId).map((x) => x.kind).sort().join() === 'front,windscreen', 'photos saved against the job, one per window');
+check(uploads.filter((u) => u.startsWith('POST /storage/v1/object/bukti/')).length === 2, 'photos uploaded to the bukti bucket');
+check(await noSideScroll(p), 'job drawer with photos fits 375px');
+await p.locator(".shots").scrollIntoViewIfNeeded();
+await p.screenshot({ path: `${SHOTS}/8b-drawer-photos-375.png` });
 await p.click('.sheet-f button:has-text("Tandakan siap")');
 await p.waitForTimeout(300);
 const siti = jobs.find((j) => j.customer_name === 'Siti Aminah');

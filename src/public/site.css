@@ -337,10 +337,16 @@ section { padding: 80px 0; }
 .cert { border-radius: 16px; box-shadow: 0 24px 60px rgba(20, 35, 95, 0.14); padding: 24px; border: 2px solid transparent; background: linear-gradient(#fff, #fff) padding-box, var(--grad) border-box; }
 .cert-head { display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; border-bottom: 1px solid var(--line); margin-bottom: 10px; }
 .cert-row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; font-size: 14px; }
-.cert-row span { color: var(--muted); }
+.cert-row > span { color: var(--muted); }
+.cert-row.has-thumb { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; column-gap: 12px; }
+.cert-thumb { display: block; width: 64px; height: 48px; border-radius: 8px; overflow: hidden; background: #0b1020; }
+.cert-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cert-car { display: block; margin: 2px 0 14px; border-radius: 12px; overflow: hidden; aspect-ratio: 16 / 9; background: #0b1020; }
+.cert-car img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cert-proof { margin-top: 8px; font-size: 12.5px; color: var(--muted); }
 .cert-row b { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; text-align: right; }
-.pass { color: var(--ok); font-weight: 600; }
-.fail { color: var(--bad); font-weight: 600; }
+.pass { color: var(--ok); font-weight: 600; white-space: nowrap; }
+.fail { color: var(--bad); font-weight: 600; white-space: nowrap; }
 .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; margin: 0 6px 0 4px; vertical-align: middle; }
 .checks { list-style: none; display: grid; gap: 10px; margin-top: 20px; }
 .checks li { display: flex; gap: 10px; align-items: center; color: var(--text-2); font-size: 15px; }
@@ -480,7 +486,7 @@ main:has(> .page-head), main:has(> .wrap > .page-head), main.book { background: 
 .glow > .wrap { position: relative; }
 
 /* frosted glass cards, so the light shows through */
-.cert, .loc-card, .shot { background: linear-gradient(rgba(255,255,255,.78), rgba(255,255,255,.78)) padding-box, var(--grad) border-box; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.loc-card, .shot { background: linear-gradient(rgba(255,255,255,.78), rgba(255,255,255,.78)) padding-box, var(--grad) border-box; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
 .loc-card { border: 1px solid rgba(255, 255, 255, 0.8); background: rgba(255, 255, 255, 0.7); }
 
 /* other services (owner-edited). Owner's reference (2026-10-26): heading top-left, cards

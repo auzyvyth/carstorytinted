@@ -10,6 +10,7 @@ const TZ = 'Asia/Kuala_Lumpur';
 const day = (n) => new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date(Date.now() + n * 864e5));
 const iso = (n, hh = 10) => new Date(`${day(n)}T${String(hh).padStart(2, '0')}:00:00+08:00`).toISOString();
 const uid = () => crypto.randomUUID();
+const PHOTO_ORDER = ['windscreen', 'front', 'rear', 'car'];
 const ref = () => Math.random().toString(16).slice(2, 8).toUpperCase();
 const token = () => Array.from(crypto.getRandomValues(new Uint8Array(18)), (b) => b.toString(16).padStart(2, '0')).join('');
 
@@ -227,6 +228,10 @@ export async function demoFetch(input, init = {}) {
     save(db);
     return reply({ ref: j.ref, date: j.scheduled_date, slot: j.scheduled_slot, quoted_price: j.quoted_price, manage_token: j.manage_token });
   }
+  // Photo proof (0006_job_photos.sql): certificate order, server time, no staff ids.
+  const photosOf = (j) => (db.photos || []).filter((x) => x.job_id === j.id)
+    .sort((a, b) => PHOTO_ORDER.indexOf(a.kind) - PHOTO_ORDER.indexOf(b.kind))
+    .map((x) => ({ kind: x.kind, url: x.url, at: new Intl.DateTimeFormat('sv-SE', { timeZone: TZ, dateStyle: 'short', timeStyle: 'short' }).format(new Date(x.created_at)).replace(' ', 'T') }));
   if (p === '/rest/v1/rpc/get_certificate') {
     const j = db.jobs.find((x) => x.cert_token === body.p_token && ['siap', 'selesai'].includes(x.stage));
     if (!j) return reply(null);
@@ -234,7 +239,7 @@ export async function demoFetch(input, init = {}) {
     return reply({ ref: j.ref, customer: j.customer_name.split(' ')[0], car_model: j.car_model,
       plate: pl ? pl.slice(0, Math.max(pl.length - 3, 1)) + '*'.repeat(Math.min(3, pl.length - 1)) : null,
       film: db.settings.films.find((f) => f.id === j.film_id)?.name, vlt_windscreen: j.vlt_windscreen, vlt_front: j.vlt_front, vlt_rear: j.vlt_rear,
-      completed_at: j.completed_at?.slice(0, 10), warranty_until: j.warranty_until });
+      completed_at: j.completed_at?.slice(0, 10), warranty_until: j.warranty_until, photos: photosOf(j) });
   }
   // The customer's own link (get_booking / manage_booking in 0003).
   if (p === '/rest/v1/rpc/get_booking' || p === '/rest/v1/rpc/manage_booking') {
@@ -249,7 +254,8 @@ export async function demoFetch(input, init = {}) {
           plate: pl ? pl.slice(0, Math.max(pl.length - 3, 1)) + '*'.repeat(Math.min(3, pl.length - 1)) : null,
           price: x.price ?? x.quoted_price, price_final: x.price !== null && x.price !== undefined, paid: x.paid_amount, payment_method: x.payment_method, done,
           completed_at: done ? x.completed_at?.slice(0, 10) : null, warranty_until: done ? x.warranty_until : null,
-          vlt_windscreen: done ? x.vlt_windscreen : null, vlt_front: done ? x.vlt_front : null, vlt_rear: done ? x.vlt_rear : null };
+          vlt_windscreen: done ? x.vlt_windscreen : null, vlt_front: done ? x.vlt_front : null, vlt_rear: done ? x.vlt_rear : null,
+          photos: done ? photosOf(x) : [] };
       })() });
     if (p.endsWith('get_booking')) return reply(j ? view(j) : null);
     if (!j) return fail('not_found');
@@ -278,6 +284,17 @@ export async function demoFetch(input, init = {}) {
   if (p === '/rest/v1/job_events') {
     if (method === 'POST') { const e = { id: Math.random(), at: new Date().toISOString(), ...body }; db.events.push(e); save(db); return out([e]); }
     return out(db.events.filter((e) => e.job_id === eq('job_id')).sort((a, b) => String(b.at).localeCompare(String(a.at))));
+  }
+  if (p === '/rest/v1/job_photos') {
+    db.photos = db.photos || [];
+    if (method === 'POST') {
+      if (!PHOTO_ORDER.includes(body.kind)) return fail('bad_kind');
+      if (db.photos.some((x) => x.job_id === body.job_id && x.kind === body.kind)) return reply({ message: 'duplicate key value violates unique constraint' }, 409);
+      const row = { id: uid(), job_id: body.job_id, kind: body.kind, url: body.url, taken_by: me, created_at: new Date().toISOString() };
+      db.photos.push(row); save(db); return out([row]);
+    }
+    if (method === 'DELETE') { db.photos = db.photos.filter((x) => x.id !== eq('id')); save(db); return reply(undefined, 204); }
+    return out(db.photos.filter((x) => x.job_id === eq('job_id')));
   }
   if (p === '/rest/v1/jobs') {
     const id = eq('id');

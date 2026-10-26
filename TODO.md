@@ -58,6 +58,16 @@ the owner (Maliki) to agree and pay.
       setup, what is monthly, what is a paid add-on.
 
 ## 2. On signing: setup (included in the setup fee)
+- [ ] **Run `0006_job_photos.sql`** in the Supabase SQL editor (photo proof: `job_photos` table,
+      `bukti` bucket, photos on the certificate). Until it runs, the photo slots in the job
+      screen fail to save and the certificate shows no photos.
+- [ ] **PHOTO-PURGE: delete meter photos when the warranty ends** (PDPA: car + plate linked to a
+      customer is personal data). Not automated yet: needs an edge function on a daily cron that
+      removes the `bukti` files and `job_photos` rows where `jobs.warranty_until < today`
+      (Storage files can't be deleted from SQL). Add a line to /privasi/ when it ships.
+- [ ] **Certificate design**: owner picks A-D from the mockups
+      (https://claude.ai/artifact/LmQCrgqFgtNQ2aqhFxd1HQ). Photos already show on today's
+      certificate as small thumbnails beside each reading; the pick restyles the page.
 - [ ] **Booking alerts.** Deploy `notify-staff`, VAPID keys (never regenerate),
       `NOTIFY_SECRET`, `app_config` rows, Telegram backup (README Setup 2-3).
       Live check 2026-09-28: no edge function, `app_config` empty, 0 push devices,

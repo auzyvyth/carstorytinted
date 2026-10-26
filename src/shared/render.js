@@ -9,14 +9,35 @@ export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
 export const rm = (n) => `RM${Math.round(Number(n)).toLocaleString('en-MY')}`;
 // VLT readings with the JPJ verdict. Shared by the certificate (/sijil/) and the
 // customer's own page (/urus/), so the two can never disagree about pass/fail.
+// With photo proof (0006_job_photos.sql), each reading carries the meter photo taken on
+// that window; tapping it opens the full picture.
+const PHOTO_ALT = { windscreen: 'cermin depan', front: 'tingkap sisi depan', rear: 'tingkap belakang' };
+const photoOf = (c, kind) => (Array.isArray(c.photos) ? c.photos : []).find((p) => p.kind === kind && /^(https:|data:image\/|\/)/.test(String(p.url)));
+const thumb = (p, alt) => `<a class="cert-thumb" href="${esc(p.url)}" target="_blank" rel="noopener"><img src="${esc(p.url)}" alt="Foto meter VLT pada ${alt}" loading="lazy" width="64" height="48"></a>`;
 export function vltRows(c) {
-  const row = (label, v, min) => {
+  const row = (kind, label, v, min) => {
     if (v === null || v === undefined) return '';
     const verdict = min ? (v >= min ? '<span class="pass"><i class="dot"></i>Lulus JPJ</span>' : '<span class="fail"><i class="dot"></i>Bawah had</span>') : '<span class="muted">Tiada had</span>';
-    return `<div class="cert-row"><span>${label}${min ? ` <small class="muted">(min ${min}%)</small>` : ''}</span><b>${v}% ${verdict}</b></div>`;
+    const p = photoOf(c, kind);
+    return `<div class="cert-row${p ? ' has-thumb' : ''}">${p ? thumb(p, PHOTO_ALT[kind]) : ''}<span>${label}${min ? ` <small class="muted">(min ${min}%)</small>` : ''}</span><b>${v}% ${verdict}</b></div>`;
   };
-  const rows = row('Cermin depan', c.vlt_windscreen, JPJ.windscreen) + row('Tingkap sisi depan', c.vlt_front, JPJ.frontSide) + row('Belakang', c.vlt_rear, 0);
-  return rows || '<p class="note">Bacaan VLT tidak direkodkan untuk kerja ini.</p>';
+  const rows = row('windscreen', 'Cermin depan', c.vlt_windscreen, JPJ.windscreen) + row('front', 'Tingkap sisi depan', c.vlt_front, JPJ.frontSide) + row('rear', 'Belakang', c.vlt_rear, 0);
+  if (!rows) return '<p class="note">Bacaan VLT tidak direkodkan untuk kerja ini.</p>';
+  const shot = (Array.isArray(c.photos) ? c.photos : []).find((p) => p.kind !== 'car');
+  // The time is the server's upload time (0006), so it is worth saying so.
+  const stamp = shot?.at ? `<p class="cert-proof">Foto meter diambil di kedai, ${esc(timeLabel(shot.at))}. Masa dicatat oleh sistem semasa foto dimuat naik.</p>` : '';
+  return rows + stamp;
+}
+// The finished car, above the certificate details. '' when there is no such photo.
+export function carPhoto(c) {
+  const p = photoOf(c, 'car');
+  return p ? `<a class="cert-car" href="${esc(p.url)}" target="_blank" rel="noopener"><img src="${esc(p.url)}" alt="Kereta selepas siap dipasang tinted" loading="lazy"></a>` : '';
+}
+const MON = ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun', 'Jul', 'Ogo', 'Sep', 'Okt', 'Nov', 'Dis'];
+// "2026-10-26T12:14" (shop time, from the server) -> "26 Okt 2026, 12:14".
+function timeLabel(at) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2})/.exec(String(at));
+  return m ? `${Number(m[3])} ${MON[Number(m[2]) - 1]} ${m[1]}, ${m[4]}` : '';
 }
 export const hasNum = (v) => v !== null && v !== undefined && v !== '' && !Number.isNaN(Number(v));
 

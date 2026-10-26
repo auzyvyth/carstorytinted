@@ -335,3 +335,23 @@ Still open from (3): Had JPJ / Soalan lazim / Lokasi / footer restyle (owner dir
 wording + adding it in Tetapan, README Setup 2-4 (alerts), hosting move off Vercel Hobby, ideas list, and the
 older items (colours stocked, back view, BMW badge, real hero photo, captions, prices, hours, Vercel access,
 merge only on owner's go-ahead).
+
+## Session 2026-10-26 (5) (branch claude/wizardly-fermi-4q1fbq, from ccr-adac2795-ujjh34 1472aea; main = 772d224, not merged)
+Photo proof, first build (owner: "start the project, the dashboard now"). Capture flow = E (Petak foto).
+The certificate design (A-D) is NOT picked yet: photos show on today's certificate as thumbnails.
+- `supabase/migrations/0006_job_photos.sql` (NOT run on Supabase yet): `job_photos` (job_id, kind
+  windscreen|front|rear|car, url, taken_by = auth.uid(), created_at forced to server time by trigger),
+  unique (job_id, kind), staff select/insert/delete, no update, anon nothing. Bucket `bukti`: public by
+  URL, random file names, NO anon select policy so it can't be listed; staff insert/select/delete.
+  `cert_photos(job)` (internal, no grants) feeds `get_certificate` + `get_booking` (`photos` key; booking
+  only once done). DB test 12 covers it.
+- Job screen: `src/staff/JobPhotos.jsx`, 4 slots under the VLT readings (dalam_kerja/siap/selesai only).
+  Shrinks to 1280px WebP on the phone (drops EXIF/GPS), retake replaces, Buang deletes file + row.
+  "Tandakan siap" asks first when the windscreen or front photo is missing (`missingRequired`).
+- Certificate (`src/shared/render.js` vltRows + carPhoto): thumbnail per reading, finished-car photo on
+  top, "Masa dicatat oleh sistem" line. Used by /sijil/ and /urus/.
+- Sijil audit bugs 1-3 fixed: verdict colour (`.cert-row > span`), solid white cert (dropped `.cert` from
+  the frosted rule), sample `role="group"`. Sample now says "Nano Ceramic HD". Verdicts don't wrap.
+- Demo backend + UI mock know `job_photos`. Tests: UI 66/66, DB 12/12, report + logic pass.
+- Open: PHOTO-PURGE (TODO), "Lulus JPJ" wording on the verdict vs "Memenuhi had JPJ semasa diukur"
+  (owner call), the hero/tint-preview line, and everything from (4).

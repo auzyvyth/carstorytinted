@@ -7,6 +7,7 @@ import { NEXT, vltWarnings, certUrl, manageUrl, balance, num, firstName, waCusto
 import { METHODS } from './report.js';
 import { DEMO } from '../shared/api.js';
 import { Sheet, StageChip, Icon, rmFmt } from './ui.jsx';
+import JobPhotos, { missingRequired } from './JobPhotos.jsx';
 
 const FIELDS = ['customer_name', 'phone', 'car_model', 'plate', 'car_size', 'film_id', 'scheduled_date', 'scheduled_slot',
   'price', 'paid_amount', 'vlt_windscreen', 'vlt_front', 'vlt_rear', 'notes', 'no_followup', 'installer_id', 'payment_method', 'addons', 'wait_mode', 'heard_from'];
@@ -57,6 +58,7 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
   const [err, setErr] = useState('');
   const [menu, setMenu] = useState(false);
   const [events, setEvents] = useState([]);
+  const [photos, setPhotos] = useState([]);
   const [note, setNote] = useState('');
   const [clash, setClash] = useState(false);
   // What the form looked like when it last matched the database. A field that
@@ -70,6 +72,10 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
     setEvents(data || []);
   }, [job]);
   useEffect(() => { loadEvents(); }, [loadEvents, job?.stage, job?.paid_amount]);
+  useEffect(() => {
+    if (!job?.id) return;
+    supabase.from('job_photos').select('*').eq('job_id', job.id).then(({ data }) => setPhotos(Array.isArray(data) ? data : []));
+  }, [job?.id]);
   // The job changed underneath us (the other phone saved, or our own save came back).
   // Take the new values for every field you have NOT touched; keep what you typed.
   useEffect(() => {
@@ -133,6 +139,8 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
     if (!n) return;
     if (n.to === 'siap' && [f.vlt_windscreen, f.vlt_front, f.vlt_rear].every((v) => v === '' || v === null)
       && !window.confirm('Tiada bacaan VLT direkod. Sijil akan tunjuk "tidak direkodkan". Teruskan?')) return;
+    const noPhoto = n.to === 'siap' ? missingRequired(photos) : [];
+    if (noPhoto.length && !window.confirm(`Foto meter belum diambil: ${noPhoto.map((x) => x.label.toLowerCase()).join(' dan ')}. Sijil pelanggan akan tanpa foto bukti. Teruskan juga?`)) return;
     if (n.to === 'siap' && warns.length && !window.confirm(`${warns.join('. ')}. Kereta ini akan GAGAL ujian JPJ. Teruskan juga?`)) return;
     const extra = { stage: n.to };
     if (n.to === 'selesai') extra.paid_amount = Math.max(num(f.paid_amount) || 0, num(f.price) || 0);
@@ -307,6 +315,7 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
           <label className="fld"><span>Belakang · bebas</span><input className="in tab-num" type="number" inputMode="numeric" min="0" max="100" value={f.vlt_rear} onChange={set('vlt_rear')} /></label>
         </div>
         {warns.map((w) => <div key={w} className="warnline">{w}</div>)}
+        {!isNew && ['dalam_kerja', 'siap', 'selesai'].includes(job.stage) && <JobPhotos job={job} photos={photos} setPhotos={setPhotos} form={f} toast={toast} />}
       </div>
 
       {!isNew && job.cert_token && (
