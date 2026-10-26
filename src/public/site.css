@@ -549,3 +549,10 @@ main.book .page-head .crumb { margin-bottom: 8px; }
 .cp-note { margin-top: 8px; font-size: 12px; text-align: center; opacity: .6; }
 @media (max-width: 860px) { .cp-tag { font-size: 11px; padding: 4px 8px; } .cp-tag small { display: none; } .cp-tag-front { left: 38%; top: 8%; } .cp-tag-rear { right: 2%; top: 17%; } }
 @media (prefers-reduced-motion: reduce) { .cp-sheen { animation: none; } }
+
+/* the glass itself: a fixed sky reflection so every pane reads as glass, even where the
+   photo shows none (the generated door window looks rolled down without it) */
+.cp-glass { position: absolute; inset: 0; pointer-events: none;
+  -webkit-mask: url(/tint/car-front-glass.png) center / 100% 100% no-repeat; mask: url(/tint/car-front-glass.png) center / 100% 100% no-repeat;
+  background: linear-gradient(172deg, rgba(225, 235, 245, .34) 0%, rgba(225, 235, 245, .16) 34%, rgba(225, 235, 245, .05) 52%, transparent 66%),
+              linear-gradient(118deg, transparent 58%, rgba(255, 255, 255, .12) 64%, transparent 72%); }
