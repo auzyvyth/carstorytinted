@@ -242,3 +242,14 @@ Polish on the sections under the tint preview (Servis lain, Cara tempah, Had JPJ
 - Servis lain: third card "Polish lampu depan" (headlamp polish) in catalog.default.json. NAME/WORDING TO
   CONFIRM with the owner. The live site reads services from the DB (`shop_settings.site`), so the owner
   must add it in Tetapan > Laman web for it to show in production.
+- THEME DECISION (2026-10-26): the page goes DARK below the tint preview, to match the owner's banner
+  (black + sign yellow, Exo 2 / Barlow). Compared side by side on Servis lain: light read as a second
+  website starting after the navy tint preview. Sections take `theme-dark` or `theme-light` (site.css,
+  `--s-*` roles); flipping one is a one-word class change. Taste-skill rules apply to reworked
+  sections: no eyebrow, no glass, no gradient fills, no shadows at rest, no hairlines.
+- Servis lain rebuilt (render.js `servicesSection`): photo `public/servis-polish.webp` (kerja/13 cropped
+  above the watermark: the hex ceiling mirrored in a Persona bonnet) next to a list where each whole row
+  is the WhatsApp link. Source photo is only 600px wide, slightly soft on retina; a sharper shot of a
+  polished bonnet under the hex lights would replace it.
+- Next, same treatment: Cara tempah, Had JPJ, Soalan lazim, Lokasi, footer (still pastel, eyebrows,
+  Plus Jakarta Sans). `.taste-skill/` (inspector output) is gitignored.

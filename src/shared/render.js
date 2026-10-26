@@ -207,17 +207,17 @@ export function tintStudio(catalog) {
 export const siteOf = (catalog) => ({ services: [], team: [], videos: [], ...(catalog?.site || {}) });
 
 // Other services (polish, car carpet...). Not bookable online: the price and time depend
-// on the car, so every card ends in a WhatsApp ask, never an invented number.
+// on the car, so every row ends in a WhatsApp ask, never an invented number. Each row is
+// one link (the whole row is the thumb target).
+const WA_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20.5l1.3-4.3A8.6 8.6 0 1 1 8 19.4z"/><path d="M9 8.6c0 3.2 3.2 6.4 6.4 6.4l1.2-1.6-2-1-1 1c-1.2-.4-2.6-1.8-3-3l1-1-1-2z" stroke-width="1.4"/></svg>';
 export function servicesHtml(catalog) {
   const list = siteOf(catalog).services.filter((x) => x?.name);
   if (!list.length) return '';
   const c = SHOP.contacts[0];
-  return `<div class="svc-grid">${list.map((x) => `<article class="svc">
-  <h3>${esc(x.name)}</h3>
-  ${x.desc ? `<p>${esc(x.desc)}</p>` : ''}
-  <div class="svc-foot"><b>${hasNum(x.price_from) ? `<span>dari</span> ${rm(x.price_from)}` : 'Tanya harga'}</b>
-  <a class="btn btn-line btn-sm" href="${waLink(c.phone, `Salam, saya nak tanya pasal ${x.name}.`)}" rel="noopener">WhatsApp</a></div>
-</article>`).join('')}</div>`;
+  return `<ul class="svc-list">${list.map((x) => `<li><a class="svc" href="${waLink(c.phone, `Salam, saya nak tanya pasal ${x.name}.`)}" rel="noopener">
+  <div class="svc-text"><h3 class="svc-name">${esc(x.name)}</h3>${x.desc ? `<p class="svc-desc">${esc(x.desc)}</p>` : ''}</div>
+  <span class="svc-ask">${WA_ICON}${hasNum(x.price_from) ? `dari ${rm(x.price_from)}` : 'Tanya harga'}</span>
+</a></li>`).join('')}</ul>`;
 }
 
 const safeImg = (u) => (/^(https:\/\/|data:image\/(webp|jpeg|png);base64,)/.test(String(u || '')) ? String(u) : '');
@@ -268,7 +268,21 @@ const sec = (id, cls, eyebrow, title, lead, body) => (body ? `<section id="${id}
     <div class="reveal">${body}</div>
   </div>
 </section>` : '');
-export const servicesSection = (c) => sec('servis', 'glow warm', 'Servis lain', 'Bukan tinted sahaja.', 'Harga ikut kereta anda. WhatsApp kami, kami sebut harga dulu sebelum mula.', servicesHtml(c));
+// Dark section (theme-dark tokens, site.css). Picture = the shop's hex ceiling mirrored in a
+// customer's bonnet, cropped from kerja/13 above the watermark.
+export const servicesSection = (c) => {
+  const body = servicesHtml(c);
+  return body ? `<section id="servis" class="theme-dark">
+  <div class="wrap svc-in">
+    <figure class="svc-pic reveal"><img src="/servis-polish.webp" alt="Lampu heksagon kedai terpantul pada bonet Proton Persona" width="600" height="500" loading="lazy" decoding="async"><figcaption>Bay kami, Sungai Jawi</figcaption></figure>
+    <div class="svc-body reveal">
+      <h2>Bukan tinted sahaja.</h2>
+      <p class="svc-lead">Polish dan karpet juga. Harga ikut kereta anda, jadi WhatsApp kami dan kami sebut harga dulu sebelum mula.</p>
+      ${body}
+    </div>
+  </div>
+</section>` : '';
+};
 export const teamSection = (c) => sec('pasukan', 'glow', 'Pasukan kami', 'Kenali siapa yang pasang.', '', teamHtml(c));
 export const videosSection = (c) => sec('video', 'glow alt', 'Video', 'Tengok kami bekerja.', '', videosHtml(c));
 
