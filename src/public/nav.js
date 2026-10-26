@@ -47,10 +47,23 @@ if (mast) {
     if (Math.abs(dy) < DEAD) return;
     const keep = y < mast.offsetHeight * 2 || mast.classList.contains('open') || mast.contains(document.activeElement);
     mast.classList.toggle('tucked', dy > 0 && !keep);
+    syncSolid();
     lastY = y;
   };
   window.addEventListener('scroll', () => {
     if (!ticking) { ticking = true; requestAnimationFrame(update); }
   }, { passive: true });
   mast.addEventListener('focusin', () => mast.classList.remove('tucked'));
+}
+
+// Homepage: the header sits see-through on the hero photo and turns solid once the
+// page scrolls or the phone menu opens (body.on-photo, see home.css).
+function syncSolid() {
+  if (!mast || !document.body.classList.contains('on-photo')) return;
+  mast.classList.toggle('solid', window.scrollY > 24 || mast.classList.contains('open'));
+}
+syncSolid();
+if (mast && document.body.classList.contains('on-photo')) {
+  window.addEventListener('scroll', syncSolid, { passive: true });
+  new MutationObserver(syncSolid).observe(mast, { attributes: true, attributeFilter: ['class'] });
 }

@@ -1,0 +1,179 @@
+/* Booking page (/tempah/, booking.js). Same ground as the homepage hero and tint preview (the
+   site blue with its two soft lights) and the same option rows as the hero's booking form, so
+   the customer arrives somewhere they recognise. One accent: the yellow, on what is picked and on
+   the one button. Left: the question. Right (desktop): "Tempahan anda", filling in as they answer.
+   Sized to fit an 11-inch Chromebook (~640px of page) with no scrolling. */
+.bk-page { position: relative; isolation: isolate; overflow: hidden; min-height: 100svh; color: #fff; background: var(--blue-ground);
+  padding: 116px 0 64px; }
+.bk-page::before, .bk-page::after { content: ''; position: absolute; z-index: -1; border-radius: 50%; filter: blur(70px); pointer-events: none; }
+.bk-page::before { width: 620px; height: 420px; left: 30%; bottom: -160px; background: rgba(244, 123, 32, .30); }
+.bk-page::after { width: 420px; height: 420px; right: -120px; top: -140px; background: rgba(59, 108, 240, .40); }
+body:has(.bk-page) { background: #0b1231; }
+
+.bk-head { display: flex; align-items: baseline; gap: 8px 20px; flex-wrap: wrap; margin-bottom: 20px; }
+.bk-head h1 { font-family: 'Exo 2', system-ui, sans-serif; font-weight: 800; font-size: clamp(30px, 4vw, 44px); line-height: 1; color: #fff; letter-spacing: 0; }
+.bk-head p { font-size: 14px; color: var(--k-grey); max-width: 52ch; }
+
+.bk { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 40px; align-items: start; }
+.bk-main { min-width: 0; max-width: 640px; }
+.bk-side { position: sticky; top: 96px; }
+
+/* progress: back, bar, count */
+.bk-top { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; min-height: 40px; }
+.bk-back { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 8px; border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.04); color: #fff; cursor: pointer; transition: background-color .15s, transform .1s; }
+.bk-back svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.bk-back:hover { background: rgba(255,255,255,.1); }
+.bk-back:active { transform: scale(.95); }
+.bk-bar { flex: 1; height: 4px; border-radius: 4px; background: rgba(255,255,255,.12); overflow: hidden; }
+.bk-bar i { display: block; height: 100%; background: var(--k-yellow); border-radius: 4px; transition: width .35s ease; }
+.bk-count { flex: none; font-size: 13px; font-weight: 600; color: var(--k-grey); font-variant-numeric: tabular-nums; }
+
+/* the question */
+.bk-card.from-right { animation: bk-in-r .32s cubic-bezier(.2, .9, .3, 1) both; }
+.bk-card.from-left { animation: bk-in-l .32s cubic-bezier(.2, .9, .3, 1) both; }
+@keyframes bk-in-r { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+@keyframes bk-in-l { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
+.bk-q { font-family: 'Exo 2', system-ui, sans-serif; font-weight: 800; font-size: clamp(28px, 3.4vw, 40px); line-height: 1.05; color: #fff; letter-spacing: 0; outline: none; }
+.bk-hint { margin-top: 8px; font-size: 15px; color: var(--k-grey); }
+.bk-hint a, .bk-consent a, .bk-pay a { color: #fff; }
+.bk-sub { margin: 18px 0 10px; font-size: 14px; font-weight: 600; color: var(--k-grey); }
+
+/* option rows, the hero form's language: outlined row, yellow ring when picked */
+.bk-opts { display: grid; gap: 10px; margin-top: 22px; }
+.bk-opts.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.bk-opts.three { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 0; }
+.bk-opt { display: flex; align-items: center; gap: 14px; min-height: 60px; padding: 12px 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.04); color: #fff; font: inherit; text-align: left; cursor: pointer; transition: border-color .15s, background-color .15s, transform .1s; }
+.bk-opt::before { content: ''; flex: none; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.45); transition: border .15s; }
+.bk-opt:hover { border-color: rgba(255,255,255,.34); background: rgba(255,255,255,.07); }
+.bk-opt:active { transform: scale(.985); }
+.bk-opt[aria-pressed="true"] { border-color: var(--k-yellow); background: rgba(255, 198, 26, .08); }
+.bk-opt[aria-pressed="true"]::before { border: 5px solid var(--k-yellow); }
+.bk-opt:disabled { opacity: .35; cursor: not-allowed; }
+.bk-opt:focus-visible, .bk-day:focus-visible, .bk-row:focus-visible, .bk-back:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.bk-opt-t { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.bk-opt-t b { font-size: 17px; font-weight: 600; }
+.bk-opt-t small { font-size: 13px; color: var(--k-grey); line-height: 1.35; }
+.bk-opt-s { flex: none; font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.bk-opt-s .ask, .bk-opt .ask { font-weight: 500; color: var(--k-grey); }
+.bk-opts.three .bk-opt { justify-content: center; padding: 12px 10px; }
+.bk-opts.three .bk-opt::before { display: none; }
+.bk-opts.three .bk-opt-t { flex: none; text-align: center; }
+.bk-opts.three .bk-opt-t b { font-size: 20px; font-variant-numeric: tabular-nums; }
+
+/* days: one row of date tiles, the earliest free one already picked */
+.bk-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; margin-top: 22px; }
+.bk-day { display: grid; justify-items: center; gap: 0; padding: 8px 4px; border-radius: 10px; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.04);
+  color: #fff; font: inherit; cursor: pointer; transition: border-color .15s, background-color .15s, transform .1s; }
+.bk-day small { font-size: 12px; color: var(--k-grey); }
+.bk-day b { font-size: 22px; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.bk-day:hover { border-color: rgba(255,255,255,.34); }
+.bk-day:active { transform: scale(.96); }
+.bk-day[aria-pressed="true"] { border-color: var(--k-yellow); background: var(--k-yellow); color: #111; }
+.bk-day[aria-pressed="true"] small { color: #3a3000; }
+.bk-more { align-content: center; font-size: 14px; font-weight: 600; }
+.bk-sk { height: 66px; border-radius: 10px; background: rgba(255,255,255,.06); animation: none; }
+
+/* typed answers: two fields at most */
+.bk-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 22px; }
+.bk-field { display: grid; gap: 6px; min-width: 0; }
+.bk-field label { font-size: 14px; font-weight: 600; color: #fff; }
+.bk-field label span { font-weight: 400; color: var(--k-grey); }
+.bk-in { width: 100%; min-height: 52px; padding: 0 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.96);
+  font: 17px var(--body); color: #0b1231; }
+.bk-in:focus { outline: 2px solid var(--k-yellow); outline-offset: 1px; }
+.bk-in::placeholder { color: #8a93a8; }
+.bk-consent { display: flex; gap: 12px; align-items: flex-start; margin-top: 18px; font-size: 14px; line-height: 1.5; color: var(--k-grey); cursor: pointer; }
+.bk-consent input { flex: none; width: 22px; height: 22px; margin-top: 1px; accent-color: var(--k-yellow); }
+.bk-err { margin-top: 14px; font-size: 15px; font-weight: 600; color: #fca5a5; }
+.bk-foot { margin-top: 22px; }
+.bk-foot .form-go, .bk-done-btns .form-go { width: 100%; max-width: 360px; padding: 0 22px; text-decoration: none; }
+
+/* "Tempahan anda": the summary that fills in */
+.bk-sum { padding: 18px; border-radius: 16px; background: rgba(255,255,255,.07); }
+.bk-sum-h { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+.bk-empty { font-size: 14px; color: var(--k-grey); }
+.bk-look { margin: 0 -4px 10px; }
+.bk-look .pp-lbl { cursor: default; min-height: 0; }
+.bk-look .pp-lbl b { font-size: 16px; }
+.bk-look .pp-svg-wrap { max-width: 280px; margin: 0 auto; }
+.bk-look-note { text-align: center; font-size: 12.5px; color: var(--k-grey); margin-top: 4px; }
+.bk-rows { display: grid; }
+.bk-row { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; align-items: baseline; padding: 9px 4px; border: 0; border-radius: 8px; background: none;
+  color: #fff; font: inherit; text-align: left; cursor: pointer; transition: background-color .15s; }
+button.bk-row:hover { background: rgba(255,255,255,.06); }
+div.bk-row { cursor: default; }
+.bk-row span { font-size: 13px; color: var(--k-grey); }
+.bk-row b { font-size: 15px; font-weight: 600; }
+.bk-price { display: flex; justify-content: space-between; align-items: baseline; margin: 12px -6px 0; padding: 10px 10px; border-radius: 10px; background: rgba(255,255,255,.06); }
+.bk-price span { font-size: 13px; color: var(--k-grey); }
+.bk-price b { font-family: 'Exo 2', system-ui, sans-serif; font-size: 30px; font-weight: 800; color: var(--k-yellow); font-variant-numeric: tabular-nums; }
+.bk-price b small { font-size: 14px; font-weight: 600; color: var(--k-grey); }
+.bk-pay { margin-top: 6px; padding: 0 4px; font-size: 13px; color: var(--k-grey); }
+
+/* phones: a one-line summary instead of the panel; the full one shows on the last screen */
+.bk-strip { display: none; }
+.bk-only-phone { display: none; }
+
+/* done */
+.bk-done { max-width: 560px; }
+.bk-ref { margin-top: 18px; font-family: 'Exo 2', system-ui, sans-serif; font-weight: 800; font-size: 56px; line-height: 1; letter-spacing: .06em; color: var(--k-yellow); }
+.bk-done-when { margin-top: 14px; font-size: 18px; font-weight: 600; color: #fff; }
+.bk-done-when span { font-size: 14px; font-weight: 400; color: var(--k-grey); }
+.bk-done-btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+.bk-done-btns .form-go { width: auto; }
+.bk-line { display: inline-flex; align-items: center; min-height: 46px; padding: 0 18px; border-radius: 8px; border: 1px solid rgba(255,255,255,.3); background: none;
+  color: #fff; font: 600 15px var(--body); text-decoration: none; cursor: pointer; }
+.bk-line:hover { background: rgba(255,255,255,.08); }
+
+@media (max-width: 900px) {
+  .bk { grid-template-columns: minmax(0, 1fr); }
+  .bk-side { display: none; }
+  .bk-only-phone { display: block; margin-top: 18px; }
+  .bk-strip { display: flex; align-items: center; gap: 10px; margin: -6px 0 16px; padding: 10px 14px; border-radius: 10px; background: rgba(255,255,255,.06); font-size: 14px; }
+  .bk-strip i { flex: none; width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(255,255,255,.4); }
+  .bk-strip .wiz-look { flex: 1; min-width: 0; color: var(--k-grey); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bk-strip b { flex: none; font-weight: 700; color: var(--k-yellow); font-variant-numeric: tabular-nums; }
+  .bk-strip b small { font-size: 12px; color: var(--k-grey); }
+}
+@media (max-width: 860px) { .bk-page { padding-top: 92px; } }
+@media (max-width: 560px) {
+  .bk-opts.two, .bk-fields { grid-template-columns: minmax(0, 1fr); }
+  .bk-days { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .bk-opt { min-height: 56px; }
+  .bk-foot .form-go { max-width: none; }
+  .bk-head { margin-bottom: 14px; }
+  .bk-head p { display: none; }
+}
+/* 11-inch Chromebook: header 72px, everything a step tighter */
+@media (min-width: 861px) and (max-height: 820px) {
+  .bk-page { padding-top: 92px; }
+  .bk-head { margin-bottom: 14px; }
+  .bk-top { margin-bottom: 12px; }
+  .bk-opts, .bk-days, .bk-fields { margin-top: 16px; }
+  .bk-opt { min-height: 52px; padding: 10px 16px; }
+  .bk-side { top: 84px; }
+  .bk-sum { padding: 14px 16px; }
+  .bk-look .pp-svg-wrap { max-width: 230px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bk-card.from-right, .bk-card.from-left { animation: none; }
+  .bk-bar i, .bk-opt, .bk-day { transition: none; }
+  .bk-opt:active, .bk-day:active, .bk-back:active { transform: none; }
+}
+/* Later steps: the summary has more rows, so the drawing and its note give way (price stays on screen). */
+@media (min-width: 861px) and (max-height: 820px) {
+  .bk-look-note { display: none; }
+  .bk-row { padding: 6px 4px; }
+  .bk-price b { font-size: 26px; }
+}
+/* Phone, last screen: the summary is right there, so the strip goes and the drawing is smaller. */
+.bk-card[data-screen="sahkan"] .bk-sum { padding: 14px; }
+.bk-only-phone .bk-look .pp-svg-wrap { max-width: 210px; }
+.bk-only-phone .bk-look-note { display: none; }
+.bk-only-phone .bk-row { padding: 6px 4px; }
+@media (max-width: 900px) { .bk-main:has([data-screen="sahkan"]) .bk-strip { display: none; } }
+@media (min-width: 861px) and (max-height: 820px) { .bk-look .pp-svg-wrap { max-width: 190px; } .bk-look { margin-bottom: 4px; } }
+/* Phone, last screen: rows and price only, so "Sahkan tempahan" stays on the first screen. */
+.bk-only-phone .bk-look { display: none; }

@@ -4,3 +4,4 @@ dist-demo
 test-shots
 .env*
 !.env.example
+.taste-skill/

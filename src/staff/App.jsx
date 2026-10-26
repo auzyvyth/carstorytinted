@@ -54,7 +54,7 @@ function Login() {
       <label className="fld"><span>Kata laluan</span><input className="in" type="password" autoComplete="current-password" value={pw} onChange={(e) => setPw(e.target.value)} required /></label>
       {err && <div className="warnline" role="alert">{err}</div>}
       <button className="btn btn-primary" disabled={busy}>{busy ? 'Sebentar...' : 'Masuk'}</button>
-      <div className="muted" style={{ fontSize: 12 }}>Lupa kata laluan? Hubungi pemilik kedai.</div>
+      <div className="muted" style={{ fontSize: 13 }}>Lupa kata laluan? Hubungi pemilik kedai.</div>
       {DEMO && (
         <div style={{ display: 'grid', gap: 8, borderTop: '1px solid var(--line)', paddingTop: 12 }}>
           <div className="micro">Cuba demo</div>

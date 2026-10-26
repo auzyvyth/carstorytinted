@@ -9,14 +9,90 @@ export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
 export const rm = (n) => `RM${Math.round(Number(n)).toLocaleString('en-MY')}`;
 // VLT readings with the JPJ verdict. Shared by the certificate (/sijil/) and the
 // customer's own page (/urus/), so the two can never disagree about pass/fail.
+// With photo proof (0006_job_photos.sql), each reading carries the meter photo taken on
+// that window; tapping it opens the full picture.
+const PHOTO_ALT = { windscreen: 'cermin depan', front: 'tingkap sisi depan', rear: 'tingkap belakang' };
+// The windows on a certificate, in order. min 0 = no JPJ limit.
+export const VLT_WINDOWS = [
+  { kind: 'windscreen', key: 'vlt_windscreen', label: 'Cermin depan', short: 'Depan', min: JPJ.windscreen },
+  { kind: 'front', key: 'vlt_front', label: 'Tingkap sisi depan', short: 'Sisi depan', min: JPJ.frontSide },
+  { kind: 'rear', key: 'vlt_rear', label: 'Belakang', short: 'Belakang', min: 0 },
+];
+// JPJ issues no certificate to tint shops: the certificate is the shop's own record of what
+// it measured, so it says "within the limit when measured", never "passed JPJ" (2026-10-26).
+export const verdictOf = (v, min) => (v === null || v === undefined || v === '' ? null : !min ? 'free' : Number(v) >= min ? 'ok' : 'bad');
+export const VERDICT_WORD = { ok: 'Dalam had', bad: 'Bawah had', free: 'Tiada had' };
+export const MEETS_JPJ = 'Memenuhi had JPJ semasa diukur';
+// 'ok' when every limited window was read and is within its limit, 'bad' when any is below,
+// null when a limited window has no reading (nothing to claim either way).
+export function jpjSummary(c) {
+  const v = VLT_WINDOWS.filter((w) => w.min).map((w) => verdictOf(c[w.key], w.min));
+  return v.includes('bad') ? 'bad' : v.every((x) => x === 'ok') ? 'ok' : null;
+}
+const photoOf = (c, kind) => (Array.isArray(c.photos) ? c.photos : []).find((p) => p.kind === kind && /^(https:|data:image\/|\/)/.test(String(p.url)));
+const thumb = (p, alt) => `<a class="cert-thumb" href="${esc(p.url)}" target="_blank" rel="noopener"><img src="${esc(p.url)}" alt="Foto meter VLT pada ${alt}" loading="lazy" width="64" height="48"></a>`;
 export function vltRows(c) {
-  const row = (label, v, min) => {
+  const row = (kind, label, v, min) => {
     if (v === null || v === undefined) return '';
-    const verdict = min ? (v >= min ? '<span class="pass"><i class="dot"></i>Lulus JPJ</span>' : '<span class="fail"><i class="dot"></i>Bawah had</span>') : '<span class="muted">Tiada had</span>';
-    return `<div class="cert-row"><span>${label}${min ? ` <small class="muted">(min ${min}%)</small>` : ''}</span><b>${v}% ${verdict}</b></div>`;
+    const vd = verdictOf(v, min);
+    const verdict = vd === 'free' ? '<span class="muted">Tiada had</span>' : `<span class="${vd === 'ok' ? 'pass' : 'fail'}"><i class="dot"></i>${VERDICT_WORD[vd]}</span>`;
+    const p = photoOf(c, kind);
+    return `<div class="cert-row${p ? ' has-thumb' : ''}">${p ? thumb(p, PHOTO_ALT[kind]) : ''}<span>${label}${min ? ` <small class="muted">(min ${min}%)</small>` : ''}</span><b>${v}% ${verdict}</b></div>`;
   };
-  const rows = row('Cermin depan', c.vlt_windscreen, JPJ.windscreen) + row('Tingkap sisi depan', c.vlt_front, JPJ.frontSide) + row('Belakang', c.vlt_rear, 0);
-  return rows || '<p class="note">Bacaan VLT tidak direkodkan untuk kerja ini.</p>';
+  const rows = row('windscreen', 'Cermin depan', c.vlt_windscreen, JPJ.windscreen) + row('front', 'Tingkap sisi depan', c.vlt_front, JPJ.frontSide) + row('rear', 'Belakang', c.vlt_rear, 0);
+  if (!rows) return '<p class="note">Bacaan VLT tidak direkodkan untuk kerja ini.</p>';
+  const sum = jpjSummary(c);
+  const head = sum === 'ok' ? `<p class="note"><span class="pass">${MEETS_JPJ}.</span></p>` : sum === 'bad' ? '<p class="note"><span class="fail">Ada cermin di bawah had JPJ semasa diukur.</span></p>' : '';
+  const shot = (Array.isArray(c.photos) ? c.photos : []).find((p) => p.kind !== 'car');
+  // The time is the server's upload time (0006), so it is worth saying so.
+  const stamp = shot?.at ? `<p class="cert-proof">Foto meter diambil di kedai, ${esc(timeLabel(shot.at))}. Masa dicatat oleh sistem semasa foto dimuat naik.</p>` : '';
+  return rows + head + stamp;
+}
+// Top-down car, front on the left. Glass shapes carry data-kind so a tap picks that window;
+// the labels above it (each over its own window) are the real buttons, the drawing is decoration.
+// look (optional, the booking page): { windscreen, front, rear } VLT %, colour: each pane is
+// shaded like the tint preview shades it (tintOpacity), in the film colour picked there.
+export function carPlanSvg(sel, look = null) {
+  const shade = (kind) => {
+    if (!look || look[kind] === null || look[kind] === undefined) return '';
+    return ` style="fill:${esc(look.colour || '#06080d')};fill-opacity:${Math.max(0.1, tintOpacity(look[kind]))}"`;
+  };
+  const g = (kind, d) => `<path class="pp-glass${kind === sel ? ' on' : ''}" data-kind="${kind}"${shade(kind)} d="${d}"/>`;
+  return `<svg class="pp-svg" viewBox="0 14 360 142" aria-hidden="true">
+  <ellipse cx="122" cy="26" rx="9" ry="5" class="pp-mirror"/><ellipse cx="122" cy="144" rx="9" ry="5" class="pp-mirror"/>
+  <rect x="16" y="22" width="328" height="126" rx="58" class="pp-body"/>
+  <rect x="126" y="58" width="122" height="54" rx="8" class="pp-roof"/>
+  ${g('windscreen', 'M88 40 Q74 85 88 130 L120 116 Q112 85 120 54 Z')}
+  ${g('front', 'M128 32 L188 32 L188 50 L124 52 Z')}${g('front', 'M124 118 L188 120 L188 138 L128 138 Z')}
+  ${g('rear', 'M192 32 L246 32 L250 52 L192 50 Z')}${g('rear', 'M192 120 L250 118 L246 138 L192 138 Z')}
+  ${g('rear', 'M256 56 Q263 85 256 114 L282 126 Q294 85 282 44 Z')}
+</svg>`;
+}
+
+// Homepage sample of the design C certificate ("Contoh sijil"), baked at build time.
+// Same classes as the real page (cert.css), but static: no tapping, no meter photo
+// (we have no real one to show, and a sample never fakes one).
+export function certSample() {
+  const lbl = (pos, short, v, cls) => `<span class="pp-lbl pp-lbl-${pos}"><span>${short}</span><b class="${cls}">${v}</b></span>`;
+  return `<div class="pp pp-sample reveal" role="group" aria-label="Contoh sijil">
+  <div class="pp-top has-photo"><img class="pp-car" src="/kerja/04.webp" alt="" loading="lazy" width="1200" height="750">
+    <div class="pp-id"><p class="pp-eyebrow">Contoh sijil · Pasport tint</p><p class="pp-h">Perodua Myvi</p>
+    <p class="pp-sub">PKA 1*** · Nano Ceramic HD · 26 Okt 2026</p></div></div>
+  <div class="pp-plan"><p class="pp-sum ok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>${MEETS_JPJ}</p>
+    <div class="pp-car-plan">${lbl('front', 'Depan', '72%', 'ok')}${lbl('mid', 'Sisi depan', '52%', 'ok')}${lbl('back', 'Belakang', '18%', 'free')}<div class="pp-svg-wrap">${carPlanSvg('windscreen')}</div></div></div>
+  <div class="pp-warranty"><div class="pp-ring" aria-hidden="true">5<small>thn</small></div><div><p class="pp-wh">Waranti 5 tahun</p><p>Foto meter VLT pada cermin, masa dicatat oleh sistem. Pautan sijil dihantar melalui WhatsApp.</p></div></div>
+</div>`;
+}
+// The finished car, above the certificate details. '' when there is no such photo.
+export function carPhoto(c) {
+  const p = photoOf(c, 'car');
+  return p ? `<a class="cert-car" href="${esc(p.url)}" target="_blank" rel="noopener"><img src="${esc(p.url)}" alt="Kereta selepas siap dipasang tinted" loading="lazy"></a>` : '';
+}
+const MON = ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun', 'Jul', 'Ogo', 'Sep', 'Okt', 'Nov', 'Dis'];
+// "2026-10-26T12:14" (shop time, from the server) -> "26 Okt 2026, 12:14".
+function timeLabel(at) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2})/.exec(String(at));
+  return m ? `${Number(m[3])} ${MON[Number(m[2]) - 1]} ${m[1]}, ${m[4]}` : '';
 }
 export const hasNum = (v) => v !== null && v !== undefined && v !== '' && !Number.isNaN(Number(v));
 
@@ -111,40 +187,49 @@ export const PRICE_BASIS = 'Kereta kompak, 4 cermin sisi';
 // How dark a window looks for a given VLT (share of light let through). The eye
 // reads light on a curve, not a straight line, so 50% film still shows the
 // cabin clearly and 5% nearly hides it.
-export const tintOpacity = (vlt) => +(1 - (vlt / 100) ** 0.6).toFixed(3);
+// How much a film layer darkens the photo. Steeper than the true light figure on purpose
+// (owner, 2026-10-26): on a photo the interior is already dark, so a true 50% read as almost
+// clear. Matched by eye to a shop shade chart: 50% looks mid-grey, 15% nearly black.
+export const tintOpacity = (vlt) => +(1 - (vlt / 100) ** 1.4).toFixed(3);
 // Rear darkness the preview opens on, clamped into each film's range.
 const PREVIEW_REAR = 30;
+// Film colours the preview can show: the usual shades sold for cars. Preview only;
+// which colours a film comes in depends on the shop's stock (said under the swatches).
+export const TINT_COLOURS = [
+  ['hitam', 'Hitam', '#06080d'],
+  ['charcoal', 'Charcoal', '#2b2f35'],
+  ['bronze', 'Bronze', '#7a4a1e'],
+  ['biru', 'Biru', '#14428c'],
+  ['hijau', 'Hijau', '#155a3c'],
+];
 const clampVlt = (f, v) => (Array.isArray(f.vlt) ? Math.min(f.vlt[1], Math.max(f.vlt[0], v)) : v);
 
 // Two panes of glass, rear (left) and front (right), with "Need a tint?" behind
 // them. Each pane has a tint layer whose opacity is its VLT, so the visitor SEES
 // how much the film hides. A labelled pointer names each pane. The front pane
 // is drawn at the JPJ limit and never follows the slider.
+// The tint preview: a photo of a car with its glass split into three masked layers
+// (public/tint/*: windscreen, front side, rear), each darkened by a film layer.
+// Front glass is drawn at the JPJ limits; tint.js moves only .tint-rear.
+// The photo is AI-generated (owner, 2026-10-26), so it is labelled as an illustration.
+// Masks: public/tint/car-front-*.png at 2x, alpha measured from the owner's magenta-glass copy.
+const TINT = '#06080d';
 function carSvg(rearVlt) {
-  const T = '#05070d';
-  const pane = (x) => `x="${x}" y="84" width="230" height="230" rx="18"`;
-  const tag = (cx, title, value) => `<g text-anchor="middle">
-    <text x="${cx}" y="24" font-size="23" font-weight="800" fill="#fff" letter-spacing=".06em">${title}</text>
-    <text x="${cx}" y="50" font-size="19" font-weight="600" fill="rgba(255,255,255,.7)">${value}</text>
-    <path d="M${cx} 60 L${cx} 74 M${cx - 8} 67 L${cx} 76 L${cx + 8} 67" stroke="#ffc71a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-  </g>`;
-  return `<svg class="car-view" viewBox="0 0 520 318" role="img" aria-label="Pratonton tinted: cermin belakang ${rearVlt}%, cermin depan ${JPJ.frontSide}%">
-  <defs><linearGradient id="ts-glass-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22325f"/><stop offset="1" stop-color="#101a3a"/></linearGradient>
-    <linearGradient id="ts-glare" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
-  <g font-family="Plus Jakarta Sans, system-ui, sans-serif">
-    ${tag(135, 'BELAKANG', `<tspan data-rear-tag>${rearVlt}%</tspan>`)}
-    ${tag(385, 'DEPAN', `${JPJ.frontSide}% (had JPJ)`)}
-    <rect ${pane(20)} fill="url(#ts-glass-bg)"/><rect ${pane(270)} fill="url(#ts-glass-bg)"/>
-    <g font-size="46" font-weight="800" fill="#ffd21f" text-anchor="middle">
-      <text x="135" y="214">Need a</text><text x="385" y="214">tint?</text>
-    </g>
-    <rect class="tint-rear" ${pane(20)} fill="${T}" style="opacity:${tintOpacity(rearVlt)}"/>
-    <rect class="tint-front" ${pane(270)} fill="${T}" style="opacity:${tintOpacity(JPJ.frontSide)}"/>
-    <rect ${pane(20)} fill="none" stroke="#2a3140" stroke-width="6"/><rect ${pane(270)} fill="none" stroke="#2a3140" stroke-width="6"/>
-    <clipPath id="ts-panes"><rect ${pane(20)}/><rect ${pane(270)}/></clipPath>
-    <g clip-path="url(#ts-panes)" aria-hidden="true"><rect class="glare" x="-140" y="60" width="90" height="300" fill="url(#ts-glare)" transform="skewX(-18)"/></g>
-  </g>
-</svg>`;
+  const layer = (zone, cls, vlt) => `<i class="cp-tint ${cls}" style="--m:url(/tint/car-front-${zone}.png);opacity:${tintOpacity(vlt)}"></i>`;
+  return `<div class="car-view car-photo" style="--tint-c:${TINT_COLOURS[0][2]}" role="img" aria-label="Pratonton tinted: cermin belakang ${rearVlt}%, cermin depan ${JPJ.windscreen}%, tingkap sisi depan ${JPJ.frontSide}%">
+  <img class="cp-bg" src="/tint/car-front-bg.webp" alt="" width="1128" height="570" loading="lazy" decoding="async">
+  <img class="cp-base" src="/tint/car-front.webp" alt="" width="1128" height="570" loading="lazy" decoding="async">
+  ${layer('ws', 'tint-ws', JPJ.windscreen)}${layer('front', 'tint-front', JPJ.frontSide)}${layer('rear', 'tint-rear', rearVlt)}
+  <i class="cp-glass" aria-hidden="true"></i>
+  <i class="cp-sheen" aria-hidden="true"></i>
+  <svg class="cp-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M44 22L39 12H0M73 24V8L70.5 3H46M82 23V8L84.5 3H100"/><path class="dot" d="M44 22h0M73 24h0M82 23h0"/>
+  </svg>
+  <span class="cp-tag cp-tag-ws">Cermin depan <b data-ws-tag>${JPJ.windscreen}%</b></span>
+  <span class="cp-tag cp-tag-front">Tingkap depan <b data-front-tag>${JPJ.frontSide}%</b></span>
+  <span class="cp-tag cp-tag-rear">Belakang <b data-rear-tag>${rearVlt}%</b></span>
+</div>
+<p class="cp-note">Gambaran sahaja, imej dijana komputer.</p>`;
 }
 
 // The film picker: pick a film, see the car's windows tint, read the specs in
@@ -171,7 +256,7 @@ export function tintStudio(catalog) {
   ${cells.map(([k, v]) => `<div class="spec-cell"><span>${k}</span><b>${v}</b></div>`).join('')}
   <div class="spec-buy"><div class="film-price">${from !== null ? `<span>dari</span> ${rm(from)}` : 'Tanya harga'}</div>
     ${from !== null ? `<p class="pnote">${PRICE_BASIS}</p>` : ''}
-    <a class="btn btn-sun" href="/tempah/?film=${encodeURIComponent(f.id)}" aria-label="Tempah slot, filem ${esc(f.name)}">Tempah slot</a></div>
+    <a class="btn btn-sun" data-book="${esc(f.id)}" href="/tempah/?film=${encodeURIComponent(f.id)}" aria-label="Tempah slot, filem ${esc(f.name)}">Tempah slot</a></div>
 </div>`;
   }).join('');
   // .studio-grid: on desktop the glass + slider sit left of the spec card (site.css),
@@ -180,9 +265,13 @@ export function tintStudio(catalog) {
 <div class="studio-grid"><div class="glass-col">
 <div class="stage">${carSvg(rear)}</div>
 <div class="dial">
-  <label for="ts-rear">Kegelapan cermin belakang <b data-rear-out>${rear}%</b></label>
-  <input id="ts-rear" type="range" data-rear min="${Array.isArray(first.vlt) ? first.vlt[0] : 5}" max="${Array.isArray(first.vlt) ? first.vlt[1] : 70}" step="5" value="${rear}">
-  <p class="dial-note">Cermin depan ${JPJ.windscreen}% dan tingkap sisi depan ${JPJ.frontSide}% kekal ikut had JPJ. Lebih kecil peratus, lebih gelap.</p>
+  <div class="sliders">
+    <div class="vs"><b data-ws-out>${JPJ.windscreen}%</b><input id="ts-ws" type="range" data-ws min="${JPJ.windscreen}" max="100" step="5" value="${JPJ.windscreen}"><label for="ts-ws">Cermin depan</label></div>
+    <div class="vs"><b data-front-out>${JPJ.frontSide}%</b><input id="ts-front" type="range" data-front min="${JPJ.frontSide}" max="100" step="5" value="${JPJ.frontSide}"><label for="ts-front">Tingkap depan</label></div>
+    <div class="vs"><b data-rear-out>${rear}%</b><input id="ts-rear" type="range" data-rear min="${Array.isArray(first.vlt) ? first.vlt[0] : 5}" max="${Array.isArray(first.vlt) ? first.vlt[1] : 70}" step="5" value="${rear}"><label for="ts-rear">Belakang</label></div>
+  </div>
+  <div class="tint-colours" role="radiogroup" aria-label="Warna filem">${TINT_COLOURS.map(([id, name, c], i) => `<button type="button" role="radio" aria-checked="${!i}" data-tint-c="${c}" data-tint-name="${id}"><i style="background:${c}"></i>${name}</button>`).join('')}</div>
+  <p class="dial-note">Warna ikut stok filem, tanya kami dulu. Had JPJ: tingkap depan ${JPJ.frontSide}%, cermin depan ${JPJ.windscreen}%. Tarik ke atas, lebih gelap.</p>
 </div>
 </div><div class="spec-col">${panels}</div></div>`;
 }
@@ -194,17 +283,27 @@ export function tintStudio(catalog) {
 export const siteOf = (catalog) => ({ services: [], team: [], videos: [], ...(catalog?.site || {}) });
 
 // Other services (polish, car carpet...). Not bookable online: the price and time depend
-// on the car, so every card ends in a WhatsApp ask, never an invented number.
+// on the car, so every card ends in a WhatsApp ask, never an invented number. Each card is
+// one link (the whole card is the thumb target).
+const svg = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const WA_ICON = svg('<path d="M3.5 20.5l1.3-4.3A8.6 8.6 0 1 1 8 19.4z"/><path d="M9 8.6c0 3.2 3.2 6.4 6.4 6.4l1.2-1.6-2-1-1 1c-1.2-.4-2.6-1.8-3-3l1-1-1-2z" stroke-width="1.4"/>');
+// icon per service id; owner-added services get the spanner
+const SVC_ICONS = {
+  polish: svg('<path d="M10 3l1.9 5.1L17 10l-5.1 1.9L10 17l-1.9-5.1L3 10l5.1-1.9z"/><path d="M18 14l.9 2.1L21 17l-2.1.9L18 20l-.9-2.1L15 17l2.1-.9z"/>'),
+  'polish-lampu': svg('<path d="M11 5H9.5a7 7 0 0 0 0 14H11z"/><path d="M15 7.5l5-1.5M15 12h5.5M15 16.5l5 1.5"/>'),
+  karpet: svg('<rect x="5" y="3" width="14" height="18" rx="3"/><path d="M8.5 7.5h7M8.5 11h7M8.5 14.5h7M8.5 18h7" stroke-width="1.4"/>'),
+};
+const SVC_DEFAULT_ICON = svg('<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3.5 17.5l3 3 5.8-5.8a4 4 0 0 0 5.4-5.4l-2.4 2.4-2.6-.5-.5-2.6z"/>');
 export function servicesHtml(catalog) {
   const list = siteOf(catalog).services.filter((x) => x?.name);
   if (!list.length) return '';
   const c = SHOP.contacts[0];
-  return `<div class="svc-grid">${list.map((x) => `<article class="svc">
-  <h3>${esc(x.name)}</h3>
-  ${x.desc ? `<p>${esc(x.desc)}</p>` : ''}
-  <div class="svc-foot"><b>${hasNum(x.price_from) ? `<span>dari</span> ${rm(x.price_from)}` : 'Tanya harga'}</b>
-  <a class="btn btn-line btn-sm" href="${waLink(c.phone, `Salam, saya nak tanya pasal ${x.name}.`)}" rel="noopener">WhatsApp</a></div>
-</article>`).join('')}</div>`;
+  return `<ul class="svc-list">${list.map((x, i) => `<li class="reveal" style="--i:${i}"><a class="svc" href="${waLink(c.phone, `Salam, saya nak tanya pasal ${x.name}.`)}" rel="noopener">
+  <span class="svc-icon">${SVC_ICONS[x.id] || SVC_DEFAULT_ICON}</span>
+  <h3 class="svc-name">${esc(x.name)}</h3>
+  ${x.desc ? `<p class="svc-desc">${esc(x.desc)}</p>` : ''}
+  <span class="svc-ask">${WA_ICON}${hasNum(x.price_from) ? `dari ${rm(x.price_from)}` : 'Tanya harga'}</span>
+</a></li>`).join('')}</ul>`;
 }
 
 const safeImg = (u) => (/^(https:\/\/|data:image\/(webp|jpeg|png);base64,)/.test(String(u || '')) ? String(u) : '');
@@ -255,7 +354,20 @@ const sec = (id, cls, eyebrow, title, lead, body) => (body ? `<section id="${id}
     <div class="reveal">${body}</div>
   </div>
 </section>` : '');
-export const servicesSection = (c) => sec('servis', 'glow warm', 'Servis lain', 'Bukan tinted sahaja.', 'Harga ikut kereta anda. WhatsApp kami, kami sebut harga dulu sebelum mula.', servicesHtml(c));
+// Blue section (same ground as the tint preview), heading top-left and the cards stepping
+// up to the right (owner's reference, 2026-10-26). Cards fade in one after another (.reveal, --i).
+export const servicesSection = (c) => {
+  const body = servicesHtml(c);
+  return body ? `<section id="servis">
+  <div class="wrap svc-in">
+    <div class="svc-head reveal">
+      <h2>Bukan tinted sahaja.</h2>
+      <p>Harga ikut kereta anda. WhatsApp kami, kami sebut harga dulu sebelum mula.</p>
+    </div>
+    ${body}
+  </div>
+</section>` : '';
+};
 export const teamSection = (c) => sec('pasukan', 'glow', 'Pasukan kami', 'Kenali siapa yang pasang.', '', teamHtml(c));
 export const videosSection = (c) => sec('video', 'glow alt', 'Video', 'Tengok kami bekerja.', '', videosHtml(c));
 

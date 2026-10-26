@@ -5,7 +5,7 @@ built. Only the "Sell" section is being done now. Everything after it waits for
 the owner (Maliki) to agree and pay.
 
 ## 0. Next build (agreed 2026-09-28)
-- [ ] **UI-1: staff + owner dashboards back to a WHITE theme, with the Salesman Premium
+- [x] **UI-1 (done 2026-10-25): staff + owner dashboards back to a WHITE theme, with the Salesman Premium
       DESIGN (not its dark colours).** The 2026-09-28 restyle copied Premium's dark palette;
       the owner meant its look: soft blurred colour smudges behind cards
       (ShiftOS `src/pages/salesmanPremium/DashboardTab.jsx:290` corner blob,
@@ -58,6 +58,13 @@ the owner (Maliki) to agree and pay.
       setup, what is monthly, what is a paid add-on.
 
 ## 2. On signing: setup (included in the setup fee)
+- [ ] **Run `0006_job_photos.sql`** in the Supabase SQL editor (photo proof: `job_photos` table,
+      `bukti` bucket, photos on the certificate). Until it runs, the photo slots in the job
+      screen fail to save and the certificate shows no photos.
+- [ ] **PHOTO-PURGE: delete meter photos when the warranty ends** (PDPA: car + plate linked to a
+      customer is personal data). Not automated yet: needs an edge function on a daily cron that
+      removes the `bukti` files and `job_photos` rows where `jobs.warranty_until < today`
+      (Storage files can't be deleted from SQL). Add a line to /privasi/ when it ships.
 - [ ] **Booking alerts.** Deploy `notify-staff`, VAPID keys (never regenerate),
       `NOTIFY_SECRET`, `app_config` rows, Telegram backup (README Setup 2-3).
       Live check 2026-09-28: no edge function, `app_config` empty, 0 push devices,

@@ -33,6 +33,10 @@ const jobs = [
 ];
 const calls = [];
 const patches = [];
+// Photo proof (0006_job_photos.sql). Lim's finished job already has a meter photo on the windscreen.
+const photos = [{ id: crypto.randomUUID(), job_id: jobs[2].id, kind: 'windscreen', url: '/kerja/01.webp', created_at: now },
+  { id: crypto.randomUUID(), job_id: jobs[2].id, kind: 'car', url: '/kerja/04.webp', created_at: now }];
+const uploads = [];
 
 function slotsFrom(from, days) {
   const rows = [];
@@ -49,7 +53,8 @@ function slotsFrom(from, days) {
 async function mockSupabase(route) {
   const req = route.request();
   const url = new URL(req.url());
-  const body = req.postDataJSON?.() ?? null;
+  let body = null;
+  try { body = req.postDataJSON?.() ?? null; } catch { /* a photo upload is not JSON */ }
   const single = (req.headers().accept || '').includes('vnd.pgrst.object');
   const json = (data, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(data) });
   const p = url.pathname;
@@ -64,8 +69,8 @@ async function mockSupabase(route) {
   if (p === '/rest/v1/rpc/available_slots') return json(slotsFrom(body.p_from, body.p_days));
   if (p === '/rest/v1/rpc/book_slot') {
     if (!/^0?1\d{8,9}$/.test(String(body.p_phone).replace(/\D/g, '').replace(/^6/, ''))) return json({ message: 'bad_phone' }, 400);
-    const j = job({ source: 'web', stage: 'baru', customer_name: body.p_name, phone: '60' + String(body.p_phone).replace(/\D/g, '').replace(/^0/, ''),
-      car_model: body.p_car_model, car_size: body.p_car_size, film_id: body.p_film_id, scheduled_date: body.p_date, scheduled_slot: body.p_slot,
+    const j = job({ source: 'web', stage: 'baru', plate: body.p_plate, customer_name: body.p_name, phone: '60' + String(body.p_phone).replace(/\D/g, '').replace(/^0/, ''),
+      car_model: body.p_car_model, car_size: body.p_car_size, film_id: body.p_film_id, scheduled_date: body.p_date, scheduled_slot: body.p_slot, notes: body.p_notes || null,
       quoted_price: films.find((f) => f.id === body.p_film_id).prices[body.p_car_size], consent_at: now });
     jobs.push(j);
     return json({ ref: j.ref, date: j.scheduled_date, slot: j.scheduled_slot, quoted_price: j.quoted_price });
@@ -73,7 +78,8 @@ async function mockSupabase(route) {
   if (p === '/rest/v1/rpc/get_certificate') {
     const j = jobs.find((x) => x.cert_token === body.p_token);
     return json(j ? { ref: j.ref, customer: j.customer_name.split(' ')[0], car_model: j.car_model, plate: 'PNB 1***', film: 'Nano Ceramic',
-      vlt_windscreen: j.vlt_windscreen, vlt_front: j.vlt_front, vlt_rear: j.vlt_rear, completed_at: shop(0), warranty_until: shop(365 * 5) } : null);
+      vlt_windscreen: j.vlt_windscreen, vlt_front: j.vlt_front, vlt_rear: j.vlt_rear, completed_at: shop(0), warranty_until: shop(365 * 5),
+      installer: 'Tam', photos: photos.filter((x) => x.job_id === j.id).map((x) => ({ kind: x.kind, url: x.url, at: `${shop(0)}T12:14` })) } : null);
   }
   if (p === '/rest/v1/rpc/push_device_count') return json(0);
   if (p.startsWith('/rest/v1/rpc/')) return route.fulfill({ status: 204, body: '' });
@@ -88,6 +94,13 @@ async function mockSupabase(route) {
     return json(single ? settings : [settings]);
   }
   if (p === '/rest/v1/job_events') return json([]);
+  if (p.startsWith('/storage/v1/object/')) { uploads.push(`${req.method()} ${p}`); return json({ Key: p.split('/object/')[1] }); }
+  if (p === '/rest/v1/job_photos') {
+    const q = (k) => url.searchParams.get(k)?.replace('eq.', '');
+    if (req.method() === 'POST') { const r = { id: crypto.randomUUID(), taken_by: OWNER.id, created_at: new Date().toISOString(), ...body }; photos.push(r); return json(single ? r : [r], 201); }
+    if (req.method() === 'DELETE') { photos.splice(photos.findIndex((x) => x.id === q('id')), 1); return route.fulfill({ status: 204, body: '' }); }
+    return json(photos.filter((x) => x.job_id === q('job_id')));
+  }
   if (p === '/rest/v1/jobs') {
     const id = url.searchParams.get('id')?.replace('eq.', '');
     if (req.method() === 'PATCH') { patches.push(body); const j = jobs.find((x) => x.id === id); Object.assign(j, body, { updated_at: new Date().toISOString() });
@@ -122,16 +135,32 @@ async function page(width, session) {
 }
 const noSideScroll = (p) => p.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
 
-// 1. Home: live slots + live prices, no sideways scroll on a phone.
-let p = await page(375);
+// 1. Home: the hero form's prices follow the car size (desktop), live film prices, no sideways scroll on a phone.
+let p = await page(1280);
 await p.goto(`${BASE}/`);
-await p.waitForSelector('.slot-day');
-check((await p.locator('.slot-day').count()) === 3, 'home shows 3 next free days');
-check((await p.locator('.film-price').first().innerText()).includes('RM250'), 'home film card shows live "dari RM250"');
+await p.waitForSelector('.hero-form [data-film-rm]');
+const rm0 = await p.locator('.hero-form [data-film-rm]').first().innerText();
+await p.click('.hero-form .seg >> nth=2');
+await p.waitForFunction((t) => document.querySelector('.hero-form [data-film-rm]').textContent !== t, rm0);
+check(true, 'hero form price changes with the car size');
+// 11-inch Chromebook (1366x768 screen, ~640px of page): hero with the whole booking form, and
+// the tint preview, each fit one screen (owner, 2026-10-26: "too big and too tall").
+await p.setViewportSize({ width: 1366, height: 640 });
+await p.waitForTimeout(200);
+const fit = await p.evaluate(() => ({ hero: document.querySelector('.hero').offsetHeight, form: document.querySelector('.hero-form').getBoundingClientRect().bottom,
+  films: document.querySelector('#filem').offsetHeight }));
+check(fit.hero <= 640 && fit.form <= 640 && fit.films <= 640, `hero + booking form and tint preview fit a Chromebook screen (${JSON.stringify(fit)})`);
+await p.setViewportSize({ width: 1280, height: 860 });
+check(await p.locator('.hero-form').evaluate((f) => f.action.endsWith('/tempah/')), 'hero form goes to the booking page');
+p = await page(375);
+await p.goto(`${BASE}/`);
+await p.waitForFunction(() => document.querySelector('.film-price')?.textContent.includes('RM250'));
+check(true, 'home film card shows live "dari RM250"');
 check(await noSideScroll(p), 'home fits 375px');
 await p.screenshot({ path: `${SHOTS}/1-home-375.png`, fullPage: true });
 
-// 2. Booking wizard end to end: one question per screen, a tap slides to the next.
+// 2. Booking end to end (redesign 2026-10-26): at most two things asked per screen, a tap
+//    answers and moves on, typing only for name + WhatsApp and plate + model.
 await p.goto(`${BASE}/tempah/`);
 check(await p.locator('[data-screen="saiz"]').count() === 1, 'booking opens on the size question alone');
 check(await noSideScroll(p), 'booking size screen fits 375px');
@@ -140,43 +169,103 @@ await p.click('[data-size="suv"]');
 await p.waitForSelector('[data-screen="filem"]');
 check(true, 'tapping a size slides to the film question');
 await p.click('[data-film="ceramic"]');
-await p.waitForSelector('[data-screen="hari"] [data-date]');
-check((await p.locator('.wiz-total').innerText()).includes('850'), 'running total shows SUV ceramic RM850');
-check(await p.locator(`[data-date="${shop(0)}"] small:last-child`).innerText().then((t) => /slot|Penuh/.test(t)), 'booking lists days with free counts');
+await p.waitForSelector('[data-screen="bila"] [data-date]');
+check((await p.locator('.bk-strip .wiz-total').innerText()).includes('850'), 'running total shows SUV ceramic RM850');
+check(await p.locator('[data-screen="bila"] [data-date][aria-pressed="true"]').count() === 1, 'the earliest free day is already picked: time is one tap away');
+check(await p.locator('[data-screen="bila"] [data-slot]').count() >= 1, 'day and time are on one screen');
 await p.click(`[data-date="${shop(2)}"]`);
-await p.waitForSelector('[data-screen="masa"]');
 await p.click('[data-slot="09:30"]');
 check(await noSideScroll(p), 'booking time screen fits 375px');
 await p.screenshot({ path: `${SHOTS}/3-book-step2-375.png`, fullPage: true });
 await p.waitForSelector('[data-screen="tunggu"]');
+check(await p.locator('[data-screen="tunggu"] [data-wait]').count() === 2, 'wait-or-leave is two choices');
 await p.click('[data-wait="tunggu"]');
-await p.waitForSelector('[data-screen="butiran"]');
-await p.click('[data-goto="filem"]');
-await p.waitForSelector('[data-screen="filem"]');
-check(await p.locator('[data-film="ceramic"]').getAttribute('aria-pressed') === 'true', 'a summary chip jumps back to that question, answer kept');
-await p.goBack();
-await p.waitForSelector('[data-screen="butiran"]');
-check(true, 'phone back gesture returns to the previous question');
+await p.waitForSelector('[data-screen="anda"]');
+check(await p.locator('[data-screen="anda"] input:not([type=checkbox])').count() === 2, 'the name screen asks two things only');
+await p.click('[data-next]');
+check(await p.locator('.bk-err').innerText().then((t) => t.includes('nama')).catch(() => false), 'name is required');
 await p.fill('#f-name', 'Ahmad Faizal');
 await p.fill('#f-phone', '0171234567');
 check(await noSideScroll(p), 'booking details screen fits 375px');
-await p.click('button:has-text("Sahkan tempahan")');
-check(await p.locator('.err').innerText().then((t) => t.includes('plat')).catch(() => false), 'booking requires the plate');
+await p.click('[data-next]');
+await p.waitForSelector('[data-screen="kereta"]');
+await p.click('[data-next]');
+check(await p.locator('.bk-err').innerText().then((t) => t.includes('plat')).catch(() => false), 'booking requires the plate');
 await p.fill('#f-plate', 'PKA 1234');
+await p.click('[data-next]');
+await p.waitForSelector('[data-screen="sahkan"]');
+await p.click('.bk-only-phone [data-goto="filem"]');
+await p.waitForSelector('[data-screen="filem"]');
+check(await p.locator('[data-film="ceramic"]').getAttribute('aria-pressed') === 'true', 'a summary row jumps back to that question, answer kept');
+await p.goBack();
+await p.waitForSelector('[data-screen="sahkan"]');
+check(true, 'phone back gesture returns to the previous question');
 await p.click('button:has-text("Sahkan tempahan")');
-check(await p.locator('.err').innerText().then((t) => t.includes('privasi')).catch(() => false), 'booking blocks submit without consent');
+check(await p.locator('.bk-err').innerText().then((t) => t.includes('privasi')).catch(() => false), 'booking blocks submit without consent');
 await p.check('input[name=consent]');
 await p.click('button:has-text("Sahkan tempahan")');
-await p.waitForSelector('.done-box');
+await p.waitForSelector('.bk-done');
 check(await noSideScroll(p), 'booking confirmation fits 375px');
 await p.screenshot({ path: `${SHOTS}/4-book-done-375.png`, fullPage: true });
-check(jobs.some((j) => j.customer_name === 'Ahmad Faizal' && j.stage === 'baru' && j.source === 'web'), 'booking reached the database as a new web job');
+check(jobs.some((j) => j.customer_name === 'Ahmad Faizal' && j.stage === 'baru' && j.source === 'web' && j.plate === 'PKA 1234'), 'booking reached the database as a new web job');
+
+// 2b. The home tint preview's picks ride into the booking: shown on the car drawing, saved in the notes.
+await p.goto(`${BASE}/`);
+await p.waitForFunction(() => document.querySelector('.film-price')?.textContent.includes('RM250'));
+await p.$eval('#ts-ws', (e) => { e.value = '80'; e.dispatchEvent(new Event('input')); });
+await p.$eval('#ts-rear', (e) => { e.value = '15'; e.dispatchEvent(new Event('input')); });
+await p.click('[data-tint-name="bronze"]');
+await p.click('#filem [data-panel]:not([hidden]) [data-book]');
+await p.waitForSelector('[data-screen="saiz"]');
+check((await p.locator('.bk-strip').innerText()).includes('Bronze') && (await p.locator('.bk-strip').innerText()).includes('80 · 50 · 15%'), 'booking shows the tint picked on the home preview');
+await p.click('[data-size="small"]');
+await p.waitForSelector('[data-screen="bila"] [data-date]');
+await p.click(`[data-date="${shop(3)}"]`);
+await p.click('[data-slot="09:30"]');
+await p.click('[data-wait="tunggu"]');
+await p.waitForSelector('[data-screen="anda"]');
+await p.fill('#f-name', 'Siti Pratonton');
+await p.fill('#f-phone', '0171234568');
+await p.click('[data-next]');
+await p.fill('#f-plate', 'PKB 55');
+await p.click('[data-next]');
+await p.waitForSelector('[data-screen="sahkan"]');
+await p.check('input[name=consent]');
+await p.click('button:has-text("Sahkan tempahan")');
+await p.waitForSelector('.bk-done');
+const lookNote = jobs.find((j) => j.customer_name === 'Siti Pratonton')?.notes || '';
+check(lookNote.startsWith('Pilihan pratonton: cermin depan 80%, tingkap depan 50%, belakang 15%, warna Bronze.'), `the preview's picks are saved in the booking notes (${lookNote})`);
+await p.goto(`${BASE}/tempah/?film=standard&ws=20&front=10&warna=x`);
+await p.waitForSelector('[data-screen="saiz"]');
+check(!(await p.locator('.bk-strip').innerText()).includes('%'), 'a link darker than the JPJ limits carries no tint');
 check(p.errors.length === 0, `public pages have no JS errors ${p.errors.join(' | ')}`);
+
+// 2c. Desktop: "Tempahan anda" shows the picked darkness on the car drawing, and every
+//     booking button on the home page goes to /tempah/.
+p = await page(1366);
+await p.setViewportSize({ width: 1366, height: 640 });
+await p.goto(`${BASE}/`);
+const bookLinks = await p.evaluate(() => [...document.querySelectorAll('a[href^="/tempah/"], form[action$="/tempah/"]')].length);
+check(bookLinks >= 8, `every booking button on the home page goes to /tempah/ (${bookLinks})`);
+await p.goto(`${BASE}/tempah/?film=ceramic&ws=70&front=50&rear=15&warna=bronze`);
+await p.waitForSelector('.bk-side .bk-look .pp-glass');
+check(await p.locator('.bk-side .pp-glass[data-kind="rear"]').first().evaluate((e) => e.style.fill.includes('122, 74, 30')), 'the car drawing is shaded in the colour picked on the home page');
+check(await p.locator('[data-screen="saiz"]').evaluate((e) => e.getBoundingClientRect().bottom <= 640), 'the size question fits a Chromebook screen');
+await p.screenshot({ path: `${SHOTS}/4b-book-desktop-1366.png` });
 
 // 3. Certificate page.
 await p.goto(`${BASE}/sijil/?t=${'a'.repeat(36)}`);
-await p.waitForSelector('.cert');
-check((await p.locator('.cert').innerText()).includes('Lulus JPJ'), 'certificate shows JPJ pass for 72/52');
+await p.waitForSelector('.pp');
+const certText = await p.locator('.pp').innerText();
+check(certText.includes('Memenuhi had JPJ semasa diukur') && !/lulus/i.test(certText), 'certificate says "Memenuhi had JPJ semasa diukur", never "Lulus"');
+check(certText.includes('bukan dokumen JPJ'), 'certificate says it is the shop record, not a JPJ document');
+check(await p.locator('.pp-lbl b.ok').first().evaluate((e) => getComputedStyle(e).color === 'rgb(74, 222, 128)'), 'readings within the limit are green');
+check(await p.locator('.pp-car[alt="Kereta selepas siap dipasang tinted"]').count() === 1, 'certificate shows the finished car on top');
+check(await p.locator('.pp-shot img[alt="Foto meter VLT pada cermin depan"]').count() === 1 && (await p.locator('[data-detail]').innerText()).includes('Diukur oleh Tam'), 'opens on the windscreen meter photo, with who measured it');
+await p.click('.pp-lbl[data-kind="front"]');
+check((await p.locator('[data-detail]').innerText()).includes('Tingkap sisi depan, min 50%') && await p.locator('.pp-lbl[data-kind="front"]').getAttribute('aria-pressed') === 'true', 'tapping a window shows that window');
+check(await noSideScroll(p), 'certificate fits 375px');
+await p.waitForTimeout(400); // let the selection fade finish before the screenshot
 await p.screenshot({ path: `${SHOTS}/5-cert-375.png`, fullPage: true });
 await p.goto(`${BASE}/sijil/?t=nope`);
 check((await p.locator('[data-cert]').innerText()).toLowerCase().includes('tidak dijumpai'), 'bad certificate token shows not found');
@@ -218,6 +307,25 @@ check((await p.locator('.warnline').allInnerTexts()).some((t) => t.includes('Sis
 check(await noSideScroll(p), 'job drawer fits 375px');
 await p.screenshot({ path: `${SHOTS}/8-drawer-375.png`, fullPage: true });
 await p.locator('.grid3 input').nth(1).fill('52');
+// Photo proof: Siap asks first while the windscreen + front meter photos are missing.
+check(await p.locator('.shot-slot').count() === 4, 'job screen shows 4 photo slots');
+let asked = '';
+p.once('dialog', (d) => { asked = d.message(); d.dismiss(); });
+await p.click('.sheet-f button:has-text("Tandakan siap")');
+await p.waitForTimeout(300);
+check(asked.includes('cermin depan dan sisi depan') && jobs.find((j) => j.customer_name === 'Siti Aminah').stage === 'dalam_kerja', 'Siap asks before going ahead without meter photos');
+const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
+for (const n of [0, 1]) {
+  const [chooser] = await Promise.all([p.waitForEvent('filechooser'), p.locator('.shot-btn').nth(n).click()]);
+  await chooser.setFiles({ name: 'meter.png', mimeType: 'image/png', buffer: PNG });
+  await p.locator('.shot-slot').nth(n).locator('img').waitFor();
+}
+const sitiId = jobs.find((j) => j.customer_name === 'Siti Aminah').id;
+check(photos.filter((x) => x.job_id === sitiId).map((x) => x.kind).sort().join() === 'front,windscreen', 'photos saved against the job, one per window');
+check(uploads.filter((u) => u.startsWith('POST /storage/v1/object/bukti/')).length === 2, 'photos uploaded to the bukti bucket');
+check(await noSideScroll(p), 'job drawer with photos fits 375px');
+await p.locator(".shots").scrollIntoViewIfNeeded();
+await p.screenshot({ path: `${SHOTS}/8b-drawer-photos-375.png` });
 await p.click('.sheet-f button:has-text("Tandakan siap")');
 await p.waitForTimeout(300);
 const siti = jobs.find((j) => j.customer_name === 'Siti Aminah');

@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import catalog from './src/shared/catalog.default.json' with { type: 'json' };
 import { SHOP, JPJ, POLICY, fullAddress, displayPhone } from './src/shared/shop.js';
 import * as R from './src/shared/render.js';
+import { heroForm } from './src/shared/heroForm.js';
 
 // Public pages. Each is plain HTML with <!--@slot--> markers the plugin below
 // fills at build time, so crawlers get full text without running JavaScript.
@@ -24,6 +25,8 @@ const DEMO_BANNER = `<div class="demo-bar" role="note"><b>Versi demo</b> Data da
 
 function shopPages(siteUrl, demo) {
   const slots = {
+    'hero-form': () => heroForm(catalog),
+    'cert-sample': () => R.certSample(),
     films: () => R.tintStudio(catalog),
     services: () => R.servicesSection(catalog),
     team: () => R.teamSection(catalog),

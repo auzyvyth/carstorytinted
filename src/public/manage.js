@@ -7,7 +7,7 @@ import './site.css';
 import './nav.js';
 import { rpc, apiReady, dayLabel, dateLabel, slotLabel } from '../shared/api.js';
 import { SHOP, POLICY, waLink, fullAddress } from '../shared/shop.js';
-import { esc, rm, vltRows } from '../shared/render.js';
+import { esc, rm, vltRows, carPhoto } from '../shared/render.js';
 import { saveImage, vltData } from './saveImage.js';
 
 const box = document.querySelector('[data-manage]');
@@ -41,6 +41,7 @@ function receipt(b) {
 function certificate(b) {
   if (!b.done) return '';
   return `<p class="eyebrow" style="margin:22px 0 2px">Sijil pemasangan</p>
+  ${carPhoto(b)}
   <div class="cert-row"><span>Tarikh pasang</span><b>${b.completed_at ? dateLabel(b.completed_at) : '-'}</b></div>
   ${vltRows(b)}
   <div class="cert-row" style="border-top:1px solid var(--line);margin-top:10px;padding-top:14px"><span>Waranti hingga</span><b>${b.warranty_until ? dateLabel(b.warranty_until) : 'Rujuk kedai'}</b></div>`;

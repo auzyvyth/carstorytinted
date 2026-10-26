@@ -7,6 +7,7 @@ import { NEXT, vltWarnings, certUrl, manageUrl, balance, num, firstName, waCusto
 import { METHODS } from './report.js';
 import { DEMO } from '../shared/api.js';
 import { Sheet, StageChip, Icon, rmFmt } from './ui.jsx';
+import JobPhotos, { missingRequired } from './JobPhotos.jsx';
 
 const FIELDS = ['customer_name', 'phone', 'car_model', 'plate', 'car_size', 'film_id', 'scheduled_date', 'scheduled_slot',
   'price', 'paid_amount', 'vlt_windscreen', 'vlt_front', 'vlt_rear', 'notes', 'no_followup', 'installer_id', 'payment_method', 'addons', 'wait_mode', 'heard_from'];
@@ -57,6 +58,7 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
   const [err, setErr] = useState('');
   const [menu, setMenu] = useState(false);
   const [events, setEvents] = useState([]);
+  const [photos, setPhotos] = useState([]);
   const [note, setNote] = useState('');
   const [clash, setClash] = useState(false);
   // What the form looked like when it last matched the database. A field that
@@ -70,6 +72,10 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
     setEvents(data || []);
   }, [job]);
   useEffect(() => { loadEvents(); }, [loadEvents, job?.stage, job?.paid_amount]);
+  useEffect(() => {
+    if (!job?.id) return;
+    supabase.from('job_photos').select('*').eq('job_id', job.id).then(({ data }) => setPhotos(Array.isArray(data) ? data : []));
+  }, [job?.id]);
   // The job changed underneath us (the other phone saved, or our own save came back).
   // Take the new values for every field you have NOT touched; keep what you typed.
   useEffect(() => {
@@ -133,6 +139,8 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
     if (!n) return;
     if (n.to === 'siap' && [f.vlt_windscreen, f.vlt_front, f.vlt_rear].every((v) => v === '' || v === null)
       && !window.confirm('Tiada bacaan VLT direkod. Sijil akan tunjuk "tidak direkodkan". Teruskan?')) return;
+    const noPhoto = n.to === 'siap' ? missingRequired(photos) : [];
+    if (noPhoto.length && !window.confirm(`Foto meter belum diambil: ${noPhoto.map((x) => x.label.toLowerCase()).join(' dan ')}. Sijil pelanggan akan tanpa foto bukti. Teruskan juga?`)) return;
     if (n.to === 'siap' && warns.length && !window.confirm(`${warns.join('. ')}. Kereta ini akan GAGAL ujian JPJ. Teruskan juga?`)) return;
     const extra = { stage: n.to };
     if (n.to === 'selesai') extra.paid_amount = Math.max(num(f.paid_amount) || 0, num(f.price) || 0);
@@ -295,18 +303,19 @@ export default function JobDrawer({ job, jobs = [], settings, staff, me, api, on
         )}
         {isClosedDay(settings, f.scheduled_date) && <div className="warnline">Tarikh ini ditanda tutup dalam tetapan kedai.</div>}
         {f.scheduled_date && (settings?.slots || []).length > 0 && settings.slots.every((t) => (use[t] || 0) >= cap && t !== job?.scheduled_slot) && <div className="warnline">Semua slot pada tarikh ini penuh.</div>}
-        {listed.lines.length > 0 && <div className="muted" style={{ fontSize: 12 }}>Harga senarai untuk pilihan ini: {listed.total !== null ? rmExact(listed.total) : `dari ${rmExact(listed.known)} (ada bahagian tanpa harga)`}</div>}
-        {job?.quoted_price !== null && job?.quoted_price !== undefined && <div className="muted" style={{ fontSize: 12 }}>Harga di laman web semasa tempah: {rmFmt(job.quoted_price)}</div>}
+        {listed.lines.length > 0 && <div className="muted" style={{ fontSize: 13 }}>Harga senarai untuk pilihan ini: {listed.total !== null ? rmExact(listed.total) : `dari ${rmExact(listed.known)} (ada bahagian tanpa harga)`}</div>}
+        {job?.quoted_price !== null && job?.quoted_price !== undefined && <div className="muted" style={{ fontSize: 13 }}>Harga di laman web semasa tempah: {rmFmt(job.quoted_price)}</div>}
       </div>
 
       <div className="card box">
-        <div className="box-h"><span className="micro">Bacaan VLT selepas pasang (%)</span>{!warns.length && f.vlt_windscreen !== '' && f.vlt_front !== '' && <span className="okline">Lulus had JPJ</span>}</div>
+        <div className="box-h"><span className="micro">Bacaan VLT selepas pasang (%)</span>{!warns.length && f.vlt_windscreen !== '' && f.vlt_front !== '' && <span className="okline">Dalam had JPJ</span>}</div>
         <div className="grid3">
           <label className="fld"><span>Cermin depan · min {JPJ.windscreen}</span><input className="in tab-num" type="number" inputMode="numeric" min="0" max="100" value={f.vlt_windscreen} onChange={set('vlt_windscreen')} /></label>
           <label className="fld"><span>Sisi depan · min {JPJ.frontSide}</span><input className="in tab-num" type="number" inputMode="numeric" min="0" max="100" value={f.vlt_front} onChange={set('vlt_front')} /></label>
           <label className="fld"><span>Belakang · bebas</span><input className="in tab-num" type="number" inputMode="numeric" min="0" max="100" value={f.vlt_rear} onChange={set('vlt_rear')} /></label>
         </div>
         {warns.map((w) => <div key={w} className="warnline">{w}</div>)}
+        {!isNew && ['dalam_kerja', 'siap', 'selesai'].includes(job.stage) && <JobPhotos job={job} photos={photos} setPhotos={setPhotos} form={f} toast={toast} />}
       </div>
 
       {!isNew && job.cert_token && (

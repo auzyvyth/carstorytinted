@@ -1,0 +1,183 @@
+/* Homepage hero (owner's dark banner, 2026-10-26), laid over the production page.
+   Neutralises the production hero's own photo panel and wash, and sets the header on the banner. */
+.v4 .hero::before, .v4 .hero::after { content: ''; position: absolute; z-index: -1; border-radius: 50%; filter: blur(70px); pointer-events: none;
+  top: auto; right: auto; bottom: auto; left: auto; opacity: 1; -webkit-mask-image: none; mask-image: none; }   /* clear the old photo panel's rules (site.css .hero::before) */
+.v4 .hero::before { width: 620px; height: 420px; left: 50%; bottom: -120px; transform: translateX(-50%); background: var(--hero-light-low); }
+.v4 .hero::after { width: 420px; height: 420px; right: -120px; top: -140px; background: var(--hero-light-high); }
+.v4 .mast::after { content: none; }
+.v4 .hero { background-image: none; }
+
+/* ---------- hero v4: the owner's dark banner (2026-10-26). Car in blue light on the right,
+   type in Exo 2 / Barlow, sign-yellow action. Sizes are the banner's, scaled from its 1080px width.
+   Ground (owner, 2026-10-26): no photo, the tint preview's own background (.studio in site.css): --blue-ground plus
+   its two blurred lights, orange low in the middle, blue top right. Change the hero's colours with the --hero-* tokens only. ---------- */
+.v4 { --k-bg: #000208; --k-yellow: #ffc61a; --k-line: rgba(255, 255, 255, .22); --k-grey: #c3c8d4; }
+.v4 .hero {
+  --hero-ground: var(--blue-ground);
+  --hero-light-low: rgba(244, 123, 32, 0.34);
+  --hero-light-high: rgba(59, 108, 240, 0.40);
+  position: relative; isolation: isolate; overflow: clip; background: var(--hero-ground); color: #fff;
+  padding: 0 !important; min-height: max(620px, min(100svh, 900px)); display: flex; align-items: center; }
+.v4 .hero-in { width: 100%; padding-top: 128px; padding-bottom: 72px; }
+.v4 .hero h1 { font-family: 'Exo 2', system-ui, sans-serif; font-weight: 800; color: #fff; font-size: clamp(46px, 6.2vw, 92px); line-height: 1.02; letter-spacing: -0.01em; margin: 0; }
+.hero-sub { display: flex; flex-wrap: wrap; align-items: center; max-width: 560px; margin-top: 22px; font-family: 'Barlow', var(--body); font-size: clamp(15px, 1.3vw, 18px); line-height: 1.6; color: var(--k-grey); }
+.hero-sub span { display: inline-flex; align-items: center; }
+.hero-sub span:not(:last-child)::after { content: ''; width: 5px; height: 5px; margin: 0 .55em; border-radius: 50%; background: var(--k-yellow); }
+.v4 .hero-btns { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
+.hero-go, .v4 .hero-wa { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 52px; padding: 0 22px; border-radius: 7px;
+  font-family: 'Barlow', var(--body); font-weight: 600; font-size: 16px; text-decoration: none; -webkit-tap-highlight-color: transparent; transition: transform .1s ease-out, background-color .15s, border-color .15s, box-shadow .2s; }
+.hero-go { background: var(--k-yellow); color: #111; box-shadow: 0 0 22px rgba(255, 198, 26, .45), 0 0 2px rgba(255, 198, 26, .9); }
+.hero-go svg { width: 20px; height: 20px; transition: transform .2s cubic-bezier(.2, .9, .3, 1); }
+.v4 .hero-wa { border: 1.5px solid rgba(255, 255, 255, .85); color: #fff; background: rgba(0, 0, 0, .25); }
+.v4 .hero-wa svg { width: 24px; height: 24px; }
+@media (hover: hover) {
+  .hero-go:hover { background: #ffd34d; box-shadow: 0 0 30px rgba(255, 198, 26, .6), 0 0 2px rgba(255, 198, 26, .9); }
+  .hero-go:hover svg { transform: translateX(3px); }
+  .v4 .hero-wa:hover { background: rgba(255, 255, 255, .08); border-color: #fff; color: #fff; }
+}
+.hero-go:active, .v4 .hero-wa:active { transform: scale(.97); }
+.hero-go:focus-visible, .v4 .hero-wa:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.hero-chips { list-style: none; display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+.hero-chips li, .hero-trust { display: inline-flex; align-items: center; border: 1px solid var(--k-line); border-radius: 8px; background: rgba(255, 255, 255, .02);
+  font-family: 'Barlow', var(--body); font-weight: 500; font-size: 14px; color: #e6e8ee; }
+.hero-chips li { gap: 9px; min-height: 40px; padding: 0 14px; }
+.hero-chips svg, .hero-trust svg { width: 18px; height: 18px; flex: none; }
+.hero-trust { list-style: none; margin-top: 16px; min-height: 44px; padding: 0 6px; }
+.hero-trust li { display: inline-flex; align-items: center; gap: 9px; padding: 0 16px; }
+.hero-trust li + li { border-left: 1px solid var(--k-line); }
+
+/* header on the banner: logo mark + tagline, links on the right; solid once scrolled (nav.js).
+   Scoped to .mast: the certificate sample and footer sit on light ground and keep the plain wordmark. */
+.v4.on-photo .mast { position: fixed; left: 0; right: 0; background: transparent; box-shadow: none; transition: transform .25s ease, background-color .25s ease; }
+.v4.on-photo .mast:not(.solid) { -webkit-backdrop-filter: none; backdrop-filter: none; }   /* its blur would draw a band on the hero's blue */
+.v4.on-photo .mast.solid { background: rgba(0, 2, 8, .94); }
+.v4 .mast-in { height: 96px; }
+.v4 .mast .wordmark { display: inline-flex; align-items: center; white-space: pre; position: relative; font-family: 'Exo 2', system-ui, sans-serif; font-weight: 700; font-size: 22px; letter-spacing: .01em; color: var(--k-yellow); padding-bottom: 12px; }
+.v4 .mast .wordmark span { color: #fff; }
+.v4 .mast .wordmark::before { content: ''; display: block; flex: none; width: 46px; height: 38px; margin-right: 12px; margin-top: 10px; border-radius: 0; letter-spacing: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 38'%3E%3Cpath fill='%23ffc61a' d='M9 0h37l-4 8H5z'/%3E%3Cpath fill='%23ffc61a' d='M23 10h10L21 38H11z'/%3E%3Cpath fill='%23fff' d='M2 10h17l-3 5H0z'/%3E%3C/svg%3E") center / contain no-repeat; }
+.v4 .mast .wordmark::after { content: 'PREMIUM AUTO CARE'; position: absolute; left: 58px; bottom: 0; font-family: 'Barlow', sans-serif; font-weight: 600; font-size: 8.5px; letter-spacing: .32em; color: #d9dce4; white-space: nowrap; }
+.v4.on-photo .mast:not(.solid) .mast-nav a, .v4 .mast.solid .mast-nav a { color: rgba(255, 255, 255, .82); }
+.v4 .mast-nav a:hover { color: var(--k-yellow); }
+.v4 .mast-in > .btn-sm { display: none; }
+@media (min-width: 861px) { .v4 .mast-nav { justify-content: flex-end; } }
+.v4 .mast-menu, .v4 .mast.open .mast-menu, .v4 .mast-menu:hover { color: #fff; background: transparent; }
+.v4 .mast.open .mast-menu { background: rgba(255, 255, 255, .1); }
+
+@media (max-width: 860px) {
+  .v4 .hero { display: block; min-height: 0; }
+  .v4 .hero-in { padding-top: 104px; padding-bottom: 56px; }
+  .v4 .hero h1 { font-size: clamp(40px, 12vw, 56px); }
+  .v4 .hero-btns { flex-direction: column; align-items: stretch; }
+  .hero-chips { gap: 8px; }
+  .hero-chips li { padding: 0 10px; font-size: 13px; }
+  .hero-trust { display: grid; grid-template-columns: auto auto minmax(0, 1fr); width: 100%; padding: 0; font-size: 13px; }
+  .hero-trust li { gap: 6px; padding: 10px; min-height: 44px; line-height: 1.25; }
+  .hero-trust svg { width: 16px; height: 16px; }
+  .v4 .mast-in { height: 72px; }
+  .v4 .mast .wordmark { font-size: 18px; }
+  .v4 .mast .wordmark::before { width: 36px; height: 30px; margin-right: 10px; }
+  .v4 .mast .wordmark::after { left: 46px; font-size: 7px; }
+  .v4.on-photo .mast.open { background: rgba(0, 2, 8, .97); }
+  .v4 .mast.js-nav .mast-nav { background: #05070d; }
+  .v4 .mast.js-nav .mast-nav a + a:not(.nav-cta) { border-top-color: rgba(255, 255, 255, .12); }
+  .v4 .mast.js-nav .mast-nav a.nav-cta { background: var(--k-yellow); color: #111; }
+}
+
+/* ---------- hero form (desktop): the two easy questions, live price, then the booking page ---------- */
+/* booking card: beside the headline on desktop, under the hero buttons on phones */
+.hero-form { display: grid; gap: 22px; padding: 28px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, .14);
+  background: rgba(6, 10, 20, .74); -webkit-backdrop-filter: blur(18px) saturate(140%); backdrop-filter: blur(18px) saturate(140%);
+  font-family: 'Barlow', var(--body); color: #fff; }
+.hero-form h2 { font-family: 'Exo 2', system-ui, sans-serif; font-weight: 700; font-size: 26px; letter-spacing: 0; color: #fff; }
+.hero-form fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.hero-form legend { padding: 0; margin-bottom: 10px; font-size: 14px; font-weight: 500; color: var(--k-grey); }
+.hero-form input { position: absolute; opacity: 0; pointer-events: none; }
+.segs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 10px; background: rgba(255, 255, 255, .06); }
+.seg span { display: grid; place-items: center; min-height: 40px; padding: 0 4px; border-radius: 7px; font-weight: 600; font-size: 14px; color: #dfe2ea; text-align: center; line-height: 1.1; cursor: pointer; transition: background-color .15s, color .15s; }
+.seg:hover span { color: #fff; background: rgba(255, 255, 255, .06); }
+.seg input:checked + span { background: var(--k-yellow); color: #111; }
+.film-opts { display: grid; gap: 8px; }
+.film-opt { display: flex; align-items: center; gap: 12px; min-height: 50px; padding: 0 16px; border-radius: 9px; border: 1px solid rgba(255, 255, 255, .14); cursor: pointer; transition: border-color .15s, background-color .15s; }
+.film-opt::before { content: ''; flex: none; width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, .45); transition: border .15s; }
+.film-opt:has(input:checked) { border-color: var(--k-yellow); background: rgba(255, 198, 26, .07); }
+.film-opt:has(input:checked)::before { border: 5px solid var(--k-yellow); }
+.film-opt:hover { border-color: rgba(255, 255, 255, .35); }
+.film-name { flex: 1; font-weight: 600; font-size: 16px; }
+.film-rm { font-weight: 600; font-size: 16px; font-variant-numeric: tabular-nums; color: #fff; }
+.hero-form input:focus-visible + span, .film-opt:has(input:focus-visible) { outline: 2px solid #fff; outline-offset: 2px; }
+.form-go { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 54px; border: 0; border-radius: 8px; cursor: pointer;
+  background: var(--k-yellow); color: #111; font-family: 'Barlow', var(--body); font-weight: 600; font-size: 17px;
+  box-shadow: 0 0 22px rgba(255, 198, 26, .4), 0 0 2px rgba(255, 198, 26, .9); transition: transform .1s ease-out, background-color .15s, box-shadow .2s; }
+.form-go svg { width: 20px; height: 20px; transition: transform .2s cubic-bezier(.2, .9, .3, 1); }
+.form-go:hover { background: #ffd34d; }
+.form-go:hover svg { transform: translateX(3px); }
+.form-go:active { transform: scale(.98); }
+.form-go:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+/* the hero button lands here: one ring of light so the eye finds the form */
+@keyframes nudge { 0% { box-shadow: 0 0 0 0 rgba(255, 198, 26, .7); } 100% { box-shadow: 0 0 0 18px rgba(255, 198, 26, 0); } }
+.hero-form.nudge { animation: nudge .8s ease-out 2; }
+@media (max-width: 860px) { .hero-form { margin-top: 28px; padding: 22px 18px; } }
+@media (min-width: 861px) {
+  .v4 .hero-in { display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 400px); gap: clamp(32px, 5vw, 80px); align-items: center; }
+  .v4 .hero h1 { font-size: clamp(46px, 5.4vw, 84px); }
+}
+@media (prefers-reduced-motion: reduce) { .hero-form.nudge { animation: none; } .form-go:active { transform: none; } }
+@media (prefers-reduced-transparency: reduce) { .hero-form { background: #0a0e18; -webkit-backdrop-filter: none; backdrop-filter: none; } }
+
+/* ---------- our work: the shop's own photographs, under the tint preview on the hero's dark ground ---------- */
+.v4 .work { padding: 64px 0 72px; background: var(--k-bg); color: #fff; }
+.work-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 24px; }
+.work-head h2 { font-family: 'Exo 2', system-ui, sans-serif; font-weight: 800; font-size: clamp(28px, 3vw, 40px); line-height: 1.1; color: #fff; margin: 0; }
+.work-head p { margin-top: 6px; font-family: 'Barlow', var(--body); font-size: 16px; color: var(--k-grey); }
+.work-nav { display: flex; gap: 8px; }
+.work-nav button { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .3); background: transparent; color: #fff; cursor: pointer; transition: background-color .15s, border-color .15s, opacity .15s, transform .1s ease-out; }
+.work-nav button:hover:not(:disabled) { background: var(--k-yellow); border-color: var(--k-yellow); color: #111; }
+.work-nav button:active:not(:disabled) { transform: scale(.94); }
+.work-nav button:disabled { opacity: .3; cursor: default; }
+.work-nav svg { width: 20px; height: 20px; }
+.work-track { --gap: 16px; --show: 5; list-style: none; margin: 0; padding: 0; display: grid; grid-auto-flow: column;
+  grid-auto-columns: calc((100% - (var(--show) - 1) * var(--gap)) / var(--show)); gap: var(--gap);
+  overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none; scroll-behavior: smooth; }
+.work-track::-webkit-scrollbar { display: none; }
+.work-track:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+.work-track li { scroll-snap-align: start; min-width: 0; }
+.work-track figure { margin: 0; }
+.work-track img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 10px; background: #0d1220; }
+.work-track figcaption { margin-top: 10px; font-family: 'Barlow', var(--body); font-weight: 600; font-size: 15px; color: #e6e8ee; }
+@media (max-width: 860px) {
+  .v4 .work { padding: 48px 0 56px; }
+  .work-nav { display: none; }
+  .work-head { margin-bottom: 18px; }
+  .work-track { --gap: 10px; --show: 3; margin-right: calc(var(--gutter, 24px) * -1); padding-right: var(--gutter, 24px); scroll-padding-left: 0; }
+  .work-track figcaption { margin-top: 6px; font-size: 13px; line-height: 1.3; }
+  .work-track img { border-radius: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { .work-track { scroll-behavior: auto; } }
+
+/* Short laptop screens (owner, 2026-10-26: an 11-inch Chromebook, 1366x768, shows ~640px of
+   page): the hero, header included, fits one screen with the whole booking form visible.
+   Sizes follow the screen HEIGHT here, because width is not what runs out. */
+@media (min-width: 861px) and (max-height: 820px) {
+  .v4 .mast-in { height: 72px; }
+  .v4 .mast .wordmark { font-size: 19px; }
+  .v4 .mast .wordmark::before { width: 38px; height: 31px; margin-right: 10px; }
+  .v4 .mast .wordmark::after { left: 48px; font-size: 7.5px; }
+  .v4 .hero { min-height: max(560px, 100svh); }
+  .v4 .hero-in { padding-top: 84px; padding-bottom: 28px; }
+  .v4 .hero h1 { font-size: clamp(44px, min(6.2vw, 10.5svh), 92px); }
+  .hero-sub { margin-top: 14px; font-size: 15px; line-height: 1.5; }
+  .v4 .hero-btns { margin-top: 20px; gap: 12px; }
+  .hero-go, .v4 .hero-wa { min-height: 46px; padding: 0 18px; font-size: 15px; }
+  .hero-chips { margin-top: 18px; gap: 8px; }
+  .hero-chips li { min-height: 34px; font-size: 13px; padding: 0 12px; }
+  .hero-trust { margin-top: 10px; min-height: 38px; font-size: 13px; }
+  .hero-form { gap: 14px; padding: 20px 22px; }
+  .hero-form h2 { font-size: 22px; }
+  .hero-form legend { margin-bottom: 6px; font-size: 13px; }
+  .seg span { min-height: 34px; font-size: 13px; }
+  .film-opts { gap: 6px; }
+  .film-opt { min-height: 40px; padding: 0 14px; }
+  .film-name, .film-rm { font-size: 15px; }
+  .form-go { min-height: 46px; font-size: 16px; }
+}

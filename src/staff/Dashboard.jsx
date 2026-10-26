@@ -3,6 +3,7 @@ import { actionsFor, monthStats, byScheduled, klDate, walkInNow, klNowHm } from 
 import { StageChip, Tile, Icon, rmFmt } from './ui.jsx';
 import { shopDate, dayParts, slotLabel } from '../shared/api.js';
 import { CAR_SIZES } from '../shared/shop.js';
+import { DEMO } from '../shared/api.js';
 
 function greeting() {
   const h = Number(new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hourCycle: 'h23', timeZone: 'Asia/Kuala_Lumpur' }).format(new Date()));
@@ -48,7 +49,7 @@ function WeekStrip({ jobs, settings, day, onPick }) {
             className={`card day${closed ? ' closed' : ''}${i === 0 ? ' today' : ''}`} title={closed ? 'Tutup' : `${n} daripada ${cap}`}>
             <div className="micro">{i === 0 ? 'Hari ini' : p.short}</div>
             <b>{closed ? '-' : n}</b>
-            <div className="muted" style={{ fontSize: 11 }}>{closed ? 'Tutup' : `/${cap}`}</div>
+            <div className="muted" style={{ fontSize: 13.5 }}>{closed ? 'Tutup' : `/${cap}`}</div>
             {!closed && <div className="track"><i style={{ width: `${cap ? Math.min(100, (n / cap) * 100) : 0}%` }} /></div>}
           </button>
         );
@@ -147,7 +148,8 @@ export default function Dashboard({ me, jobs, settings, staff = [], push, device
 
   return (
     <div className="page">
-      <PushNotice push={push} devices={devices} />
+      {/* Demo runs on a laptop that can never ring: a warning there only reads as "broken". */}
+      {!DEMO && <PushNotice push={push} devices={devices} />}
       {error && <div className="notice"><p className="warnline">{error}</p></div>}
       <div className="page-h">
         <div><div className="micro">{dayParts(today).dow}, {dayParts(today).date} {dayParts(today).mon}</div><h1>{greeting()}, {me.name}</h1></div>
@@ -155,46 +157,9 @@ export default function Dashboard({ me, jobs, settings, staff = [], push, device
       </div>
       <WalkInCard jobs={jobs} settings={settings} tick={tick} onNew={onNew} />
 
-      {me.role !== 'owner' && (
-        <div className="tiles">
-          <Tile label="Kereta anda siap bulan ini" value={mine.cur} cur={mine.cur} prev={mine.prev} note="vs bulan lepas" />
-          <Tile label="Kerja anda hari ini" value={mine.today} note={`daripada ${todays.length} kereta hari ini`} />
-        </div>
-      )}
-      {me.role === 'owner' && (
-        <div className="tiles">
-          <Tile label="Jualan bulan ini" value={rmFmt(stats.cur.sales)} cur={stats.cur.sales} prev={stats.prev.sales} note="vs bulan lepas" />
-          <Tile label="Kereta siap" value={stats.cur.cars} cur={stats.cur.cars} prev={stats.prev.cars} note="vs bulan lepas" />
-          <Tile label="Tempahan online" value={stats.cur.online} cur={stats.cur.online} prev={stats.prev.online} note="vs bulan lepas" />
-          <Tile label="Belum dibayar" value={rmFmt(stats.cur.owed)} note="kereta siap, baki tertunggak" />
-        </div>
-      )}
-
-      <div className="section">
-        <div className="section-h"><span className="micro">Jadual · {day === today ? 'hari ini' : `${dayParts(day).dow} ${dayParts(day).date} ${dayParts(day).mon}`} · {jobs.filter((j) => j.scheduled_date === day && j.stage !== 'batal' && j.scheduled_slot).length} kereta</span>
-          {day !== today && <button className="btn btn-sm" onClick={() => setDay(today)}>Hari ini</button>}</div>
-        <WeekStrip jobs={jobs} settings={settings} day={day} onPick={setDay} />
-        <Schedule jobs={jobs} settings={settings} day={day} me={me} staff={staff} onOpen={onOpen} onNew={onNew} />
-      </div>
-
-      {waiting.length > 0 && (
-        <div className="section">
-          <div className="section-h"><span className="micro">Senarai menunggu walk-in · {waiting.length}</span><span className="muted" style={{ fontSize: 12 }}>yang pertama ditawarkan bay kosong dulu</span></div>
-          <div className="card rows">
-            {waiting.map((j, i) => (
-              <button key={j.id} className="row" onClick={() => onOpen(j)}>
-                <span className="row-time">#{i + 1}</span>
-                <span className="row-main"><span className="row-title">{j.customer_name}</span>
-                  <span className="row-sub">{[j.car_model, size(j.car_size), `sejak ${new Date(j.waitlist_at).toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kuala_Lumpur' })}`].filter(Boolean).join(' · ')}</span></span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="section">
+      <div className="section section-first">
         <div className="section-h"><span className="micro">Perlu tindakan · {actions.length}</span></div>
-        <div className="card rows">
+        <div className={`card rows${actions.length ? ' attn' : ''}`}>
           {actions.length ? actions.map((a) => (
             <div key={a.job.id + a.kind} className="row row-act" onClick={() => onOpen(a.job)} role="button" tabIndex={0}
               onKeyDown={(e) => { if (e.key === 'Enter') onOpen(a.job); }}>
@@ -211,6 +176,46 @@ export default function Dashboard({ me, jobs, settings, staff = [], push, device
             </div>
           )) : <div className="empty">Semua pelanggan sudah diurus.</div>}
         </div>
+      </div>
+
+      {waiting.length > 0 && (
+        <div className="section">
+          <div className="section-h"><span className="micro">Senarai menunggu walk-in · {waiting.length}</span><span className="muted" style={{ fontSize: 13 }}>yang pertama ditawarkan bay kosong dulu</span></div>
+          <div className="card rows">
+            {waiting.map((j, i) => (
+              <button key={j.id} className="row" onClick={() => onOpen(j)}>
+                <span className="row-time">#{i + 1}</span>
+                <span className="row-main"><span className="row-title">{j.customer_name}</span>
+                  <span className="row-sub">{[j.car_model, size(j.car_size), `sejak ${new Date(j.waitlist_at).toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kuala_Lumpur' })}`].filter(Boolean).join(' · ')}</span></span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="section">
+        <div className="section-h"><span className="micro">Jadual · {day === today ? 'hari ini' : `${dayParts(day).dow} ${dayParts(day).date} ${dayParts(day).mon}`} · {jobs.filter((j) => j.scheduled_date === day && j.stage !== 'batal' && j.scheduled_slot).length} kereta</span>
+          {day !== today && <button className="btn btn-sm" onClick={() => setDay(today)}>Hari ini</button>}</div>
+        <WeekStrip jobs={jobs} settings={settings} day={day} onPick={setDay} />
+        <Schedule jobs={jobs} settings={settings} day={day} me={me} staff={staff} onOpen={onOpen} onNew={onNew} />
+      </div>
+
+      <div className="section">
+        <div className="section-h"><span className="micro">Bulan ini</span></div>
+      {me.role !== 'owner' && (
+          <div className="tiles">
+            <Tile label="Kereta anda siap bulan ini" value={mine.cur} cur={mine.cur} prev={mine.prev} note="vs bulan lepas" />
+            <Tile label="Kerja anda hari ini" value={mine.today} note={`daripada ${todays.length} kereta hari ini`} />
+          </div>
+        )}
+        {me.role === 'owner' && (
+          <div className="tiles">
+            <Tile label="Jualan bulan ini" value={rmFmt(stats.cur.sales)} cur={stats.cur.sales} prev={stats.prev.sales} note="vs bulan lepas" />
+            <Tile label="Kereta siap" value={stats.cur.cars} cur={stats.cur.cars} prev={stats.prev.cars} note="vs bulan lepas" />
+            <Tile label="Tempahan online" value={stats.cur.online} cur={stats.cur.online} prev={stats.prev.online} note="vs bulan lepas" />
+            <Tile label="Belum dibayar" value={rmFmt(stats.cur.owed)} note="kereta siap, baki tertunggak" />
+          </div>
+        )}
       </div>
 
     </div>

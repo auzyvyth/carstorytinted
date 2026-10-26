@@ -32,7 +32,7 @@ function Bars({ rows, money = false, empty = 'Tiada data dalam tempoh ini.', sub
 function Section({ title, note, children }) {
   return (
     <div className="section">
-      <div className="section-h"><span className="micro">{title}</span>{note && <span className="muted" style={{ fontSize: 12 }}>{note}</span>}</div>
+      <div className="section-h"><span className="micro">{title}</span>{note && <span className="muted" style={{ fontSize: 13 }}>{note}</span>}</div>
       <div className="card box">{children}</div>
     </div>
   );
@@ -85,6 +85,10 @@ export default function Report({ jobs, settings, staff }) {
       <div className="rgrid">
       <Section title={`Tempahan online · ${r.web.total}`} note={r.web.doneRate === null ? (r.web.total ? 'peratus dipapar bila 5 tempahan atau lebih' : '') : `${pct(r.web.doneRate)} jadi pelanggan`}>
         <Bars rows={r.web.out.map((o) => ({ ...o, v: o.n }))} empty="Tiada tempahan online dalam tempoh ini." />
+      </Section>
+
+      <Section title="Pelanggan tahu dari mana" note="isi 'Tahu dari' setiap kerja supaya angka ini tepat">
+        <Bars rows={r.bySource} money sub={(x) => `${x.n} kereta`} />
       </Section>
 
       <Section title="Jualan ikut filem">

@@ -1,6 +1,6 @@
 // Owner report maths. Pure: no React, no network, so tests/report.test.mjs can run it.
 // Every number comes from the jobs table; nothing is estimated.
-import { CAR_SIZES } from '../shared/shop.js';
+import { CAR_SIZES, HEARD_FROM } from '../shared/shop.js';
 import { balance, num, klDate } from './logic.js';
 
 export { klDate };
@@ -106,6 +106,9 @@ export function report(allJobs, { today, period = 'mtd', settings = null, staff 
     byFilm: group(done, (j) => filmName(j.film_id), priceOf).sort((a, b) => b.v - a.v),
     bySize: group(done, (j) => sizeName(j.car_size), priceOf).sort((a, b) => b.v - a.v),
     byInstaller: group(done, (j) => staffName(j.installer_id)).sort((a, b) => b.n - a.n || a.key.localeCompare(b.key)),
+    // Where finished customers heard of the shop: the one number that says whether an
+    // ad channel (Facebook) pays for itself. Unrecorded is shown, never dropped.
+    bySource: group(done, (j) => HEARD_FROM.find(([k]) => k === j.heard_from)?.[1] || 'Tidak direkod', priceOf).sort((a, b) => b.v - a.v),
     byMethod: group(paidRows, (j) => METHODS[j.payment_method] || 'Tidak direkod', (j) => num(j.paid_amount) || 0).sort((a, b) => b.v - a.v),
     byDay,
     bay: offered ? { used, offered, rate: used / offered } : null,
