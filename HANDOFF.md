@@ -225,3 +225,13 @@ Open:
 - Picks live in notes only; separate columns needed if they should show on the certificate.
 - Older items above still open (back view, BMW badge, real hero photo, captions, free-days card,
   Google review link, prices, hours, Vercel access, merge only on owner's go-ahead).
+
+## Session 2026-10-26 (3) (branch ccr-d7d3bf16-v6jrgq, from a969112; main = 772d224, not merged)
+Polish on the sections under the tint preview (Servis lain, Cara tempah, Had JPJ, Soalan lazim):
+- Certificate sample + footer: the header's dark-banner logo (`.v4 .wordmark`: white/yellow text, T mark,
+  "PREMIUM AUTO CARE") leaked onto these light cards, so the name was unreadable and the tagline invisible.
+  Scoped to `.v4 .mast .wordmark` in hero.css; the cert and footer show the plain blue/ink wordmark again.
+- "Had JPJ" eyebrow was 12px while every other section's was 15px (they inherited `.sec-head p`'s size).
+  `.sec-head .eyebrow, .proof .eyebrow` now set 15px on purpose.
+- Servis lain: `.svc-grid` uses auto-fit, so two services fill the row instead of leaving an empty third column.
+- Tests: UI 57/57, report + logic pass.

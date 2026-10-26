@@ -41,15 +41,16 @@
 .hero-trust li { display: inline-flex; align-items: center; gap: 9px; padding: 0 16px; }
 .hero-trust li + li { border-left: 1px solid var(--k-line); }
 
-/* header on the banner: logo mark + tagline, links on the right; solid once scrolled (nav.js) */
+/* header on the banner: logo mark + tagline, links on the right; solid once scrolled (nav.js).
+   Scoped to .mast: the certificate sample and footer sit on light ground and keep the plain wordmark. */
 .v4.on-photo .mast { position: fixed; left: 0; right: 0; background: transparent; box-shadow: none; transition: transform .25s ease, background-color .25s ease; }
 .v4.on-photo .mast.solid { background: rgba(0, 2, 8, .94); }
 .v4 .mast-in { height: 96px; }
-.v4 .wordmark { display: inline-flex; align-items: center; white-space: pre; position: relative; font-family: 'Exo 2', system-ui, sans-serif; font-weight: 700; font-size: 22px; letter-spacing: .01em; color: var(--k-yellow); padding-bottom: 12px; }
-.v4 .wordmark span { color: #fff; }
-.v4 .wordmark::before { content: ''; display: block; flex: none; width: 46px; height: 38px; margin-right: 12px; margin-top: 10px; border-radius: 0; letter-spacing: 0;
+.v4 .mast .wordmark { display: inline-flex; align-items: center; white-space: pre; position: relative; font-family: 'Exo 2', system-ui, sans-serif; font-weight: 700; font-size: 22px; letter-spacing: .01em; color: var(--k-yellow); padding-bottom: 12px; }
+.v4 .mast .wordmark span { color: #fff; }
+.v4 .mast .wordmark::before { content: ''; display: block; flex: none; width: 46px; height: 38px; margin-right: 12px; margin-top: 10px; border-radius: 0; letter-spacing: 0;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 38'%3E%3Cpath fill='%23ffc61a' d='M9 0h37l-4 8H5z'/%3E%3Cpath fill='%23ffc61a' d='M23 10h10L21 38H11z'/%3E%3Cpath fill='%23fff' d='M2 10h17l-3 5H0z'/%3E%3C/svg%3E") center / contain no-repeat; }
-.v4 .wordmark::after { content: 'PREMIUM AUTO CARE'; position: absolute; left: 58px; bottom: 0; font-family: 'Barlow', sans-serif; font-weight: 600; font-size: 8.5px; letter-spacing: .32em; color: #d9dce4; white-space: nowrap; }
+.v4 .mast .wordmark::after { content: 'PREMIUM AUTO CARE'; position: absolute; left: 58px; bottom: 0; font-family: 'Barlow', sans-serif; font-weight: 600; font-size: 8.5px; letter-spacing: .32em; color: #d9dce4; white-space: nowrap; }
 .v4.on-photo .mast:not(.solid) .mast-nav a, .v4 .mast.solid .mast-nav a { color: rgba(255, 255, 255, .82); }
 .v4 .mast-nav a:hover { color: var(--k-yellow); }
 .v4 .mast-in > .btn-sm { display: none; }
@@ -75,9 +76,9 @@
   .hero-trust li { gap: 6px; padding: 10px; min-height: 44px; line-height: 1.25; }
   .hero-trust svg { width: 16px; height: 16px; }
   .v4 .mast-in { height: 72px; }
-  .v4 .wordmark { font-size: 18px; }
-  .v4 .wordmark::before { width: 36px; height: 30px; margin-right: 10px; }
-  .v4 .wordmark::after { left: 46px; font-size: 7px; }
+  .v4 .mast .wordmark { font-size: 18px; }
+  .v4 .mast .wordmark::before { width: 36px; height: 30px; margin-right: 10px; }
+  .v4 .mast .wordmark::after { left: 46px; font-size: 7px; }
   .v4.on-photo .mast.open { background: rgba(0, 2, 8, .97); }
   .v4 .mast.js-nav .mast-nav { background: #05070d; }
   .v4 .mast.js-nav .mast-nav a + a:not(.nav-cta) { border-top-color: rgba(255, 255, 255, .12); }

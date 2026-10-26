@@ -68,7 +68,7 @@ section { padding: 80px 0; }
 @media (max-width: 720px) { section { padding: 72px 0; } .sec-head { margin-bottom: 28px; gap: 12px; } }
 .sec-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px 32px; flex-wrap: wrap; margin-bottom: 36px; }
 .sec-head p { max-width: 440px; color: var(--text-2); font-size: 15px; }
-.sec-head .eyebrow { margin-bottom: 10px; color: var(--accent); max-width: none; }
+.sec-head .eyebrow, .proof .eyebrow { font-size: 15px; letter-spacing: 0.14em; margin-bottom: 10px; color: var(--accent); max-width: none; }
 .dark .sec-head .eyebrow { color: var(--accent-on-dark); }
 .alt { background: var(--wash-blue); }
 .warm { background: var(--wash-sun); }
@@ -407,7 +407,7 @@ main:has(> .page-head), main:has(> .wrap > .page-head), main.book { background: 
 .loc-card { border: 1px solid rgba(255, 255, 255, 0.8); background: rgba(255, 255, 255, 0.7); }
 
 /* other services (owner-edited) */
-.svc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 16px; }
+.svc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px; }
 .svc { display: flex; flex-direction: column; gap: 8px; padding: 22px; border-radius: 18px; background: rgba(255, 255, 255, 0.66); border: 1px solid rgba(255, 255, 255, 0.85);
   box-shadow: var(--shadow); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
 .svc p { color: var(--text-2); font-size: 15px; flex: 1; }
