@@ -429,8 +429,8 @@ export function carDiagram() {
 }
 
 export const FAQ = [
-  ['Adakah tinted di sini lulus JPJ?',
-    `Ya. Cermin depan mesti membenarkan sekurang-kurangnya ${JPJ.windscreen}% cahaya dan tingkap sisi depan ${JPJ.frontSide}%. Tingkap belakang dan cermin belakang tiada had. Kami ukur setiap cermin dengan meter VLT selepas pasang.`],
+  ['Adakah tinted di sini ikut had JPJ?',
+    `Ya, kami pasang ikut had JPJ. Cermin depan mesti membenarkan sekurang-kurangnya ${JPJ.windscreen}% cahaya dan tingkap sisi depan ${JPJ.frontSide}%. Tingkap belakang dan cermin belakang tiada had. Kami ukur setiap cermin dengan meter VLT selepas pasang.`],
   ['Apa itu VLT?',
     'VLT (Visible Light Transmission) ialah peratus cahaya yang tembus cermin. Lebih rendah VLT, lebih gelap. JPJ mengukur cermin kilang dan filem bersama.'],
   ['Apa denda kalau tinted terlalu gelap?',
