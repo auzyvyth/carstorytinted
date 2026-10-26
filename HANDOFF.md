@@ -257,3 +257,7 @@ Polish on the sections under the tint preview (Servis lain, Cara tempah, Had JPJ
   hero on phones; they stay in `#filem` after Hasil kerja kami, as on desktop. Removed the `[data-hero-tint]`
   slot (index.html), the move in tint.js and the `.hero-tint` rules (hero.css). The phone hero shows the
   banner car again. (The hero booking card is still desktop-only; owner left that as is.)
+- Section order (owner, 2026-10-26), same on desktop and phones: hero -> Lihat hasilnya dulu (#filem) ->
+  Hasil kerja kami (#kerja) -> Servis lain -> Cara tempah -> ... The hero booking card (#borang) now shows on
+  phones too, under the hero buttons/badges (its styles moved out of the desktop-only media query in hero.css);
+  the hero's "Tempah Slot, Bayar di Kedai" button scrolls to it on phones as well.
