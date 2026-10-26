@@ -2,7 +2,7 @@
 // live prices and menu, and the entrance motion.
 import { loadCatalog } from './site.js';
 import './home.css';
-import { filmShowcase, menuHtml, filmCompare } from '../shared/homeRender.js';
+import { filmShowcase, menuHtml } from '../shared/homeRender.js';
 import defaults from '../shared/catalog.default.json';
 import { tintOpacity, rm, hasNum } from '../shared/render.js';
 import { JPJ } from '../shared/shop.js';
@@ -57,8 +57,6 @@ document.querySelector('[data-to-form]')?.addEventListener('click', (e) => {
 loadCatalog().then((cat) => {
   if (!cat?.films) return;
   catalog = cat; paintPrices();
-  const cmp = document.querySelector('[data-compare]');
-  if (cmp) cmp.innerHTML = filmCompare(cat);
   const show = document.querySelector('[data-show]');
   if (show) { show.innerHTML = filmShowcase(cat); mountShowcase(); }
   const menu = document.querySelector('[data-menu]');
